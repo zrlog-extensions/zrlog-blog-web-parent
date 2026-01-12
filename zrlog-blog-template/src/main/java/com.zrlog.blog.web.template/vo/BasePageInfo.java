@@ -32,6 +32,8 @@ public class BasePageInfo {
     private String reqQueryString;
     private String basePath;
     private String baseWithHostPath;
+    //Hexo
+    private Map<String, Object> theme;
 
     public String getRequrl() {
         return requrl;
@@ -257,5 +259,13 @@ public class BasePageInfo {
 
     public void set_res(Map<String, Object> _res) {
         this._res = _res;
+    }
+
+    public Map<String, Object> getTheme() {
+        return theme;
+    }
+
+    public void setTheme(Map<String, Object> theme) {
+        this.theme = theme;
     }
 }

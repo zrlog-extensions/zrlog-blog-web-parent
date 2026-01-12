@@ -5,6 +5,7 @@ import com.hibegin.http.server.api.HttpRequest;
 import com.hibegin.http.server.util.PathUtil;
 import com.hibegin.template.TemplateRender;
 import com.zrlog.blog.freemarker.template.FreemarkerZrLogTemplate;
+import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.web.plugin.TemplateDownloadPlugin;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.business.plugin.BodySaveResponse;
