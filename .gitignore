@@ -12,3 +12,4 @@ cache
 conf/plugins
 static/
 .DS_Store
+!zrlog-hexo-template/src/main/resources/include/templates/hexo-next/source/lib

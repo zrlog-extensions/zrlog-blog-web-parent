@@ -9,7 +9,7 @@ import com.zrlog.blog.web.interceptor.BlogPluginInterceptor;
 import com.zrlog.blog.web.interceptor.BlogStaticResourceInterceptor;
 import com.zrlog.blog.web.plugin.ArticleStatisticsPluginImpl;
 import com.zrlog.blog.web.plugin.BlogPageStaticSitePlugin;
-import com.zrlog.blog.web.plugin.TemplateDownloadPlugin;
+import com.zrlog.blog.web.template.plugin.TemplateDownloadPlugin;
 import com.zrlog.blog.web.util.BlogNativeImageUtils;
 import com.zrlog.common.ZrLogConfig;
 import com.zrlog.plugin.Plugins;
