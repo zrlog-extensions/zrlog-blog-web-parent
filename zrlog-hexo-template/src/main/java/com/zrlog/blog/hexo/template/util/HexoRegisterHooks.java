@@ -2,6 +2,7 @@ package com.zrlog.blog.hexo.template.util;
 
 import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
+import com.zrlog.blog.hexo.template.fluid.FluidConfigExporter;
 import com.zrlog.blog.hexo.template.impl.HexoHelperImpl;
 import com.zrlog.blog.hexo.template.impl.HexoI18nHelperImpl;
 import com.zrlog.blog.hexo.template.impl.HexoPaginator;
@@ -56,7 +57,7 @@ public class HexoRegisterHooks {
         bindings.putMember("partial", (ProxyExecutable) args -> {
             String path = args[0].asString();
             try {
-                Map<String, Object> locals = args.length > 1 ? args[1].as(Map.class) : new HashMap<>();
+                Map<String, Object> locals = args.length > 1 ? args[1].as(Map.class) : hexoTemplate.getLocals();
                 return hexoHelper.partial(path, locals);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -186,8 +187,6 @@ public class HexoRegisterHooks {
                 o.put("script_snippets", s);
             }
             s.add(args[0].asString());
-            System.out.println("s = " + s);
-            // 返回空字符串，防止在调用处渲染出冗余内容
             return args[0].asString();
         });
 
@@ -209,8 +208,15 @@ public class HexoRegisterHooks {
                 src = (base.endsWith("/") ? base : base + "/") + file;
             }
 
-            // 返回标准的 HTML 标签
-            return String.format("<link href=\"%s\"/>", src);
+            String link = String.format("<link  rel=\"stylesheet\" href=\"%s\"/>", src);
+            Map<String, Object> o = (Map<String, Object>) basePageInfo.getTheme().get("page");
+            List<String> s = (List<String>) o.get("css_snippets");
+            if (Objects.isNull(s)) {
+                s = new ArrayList<>();
+                o.put("css_snippets", s);
+            }
+            s.add(link);
+            return link;
         });
 
         bindings.putMember("css_ex", (ProxyExecutable) args -> {
@@ -332,29 +338,11 @@ public class HexoRegisterHooks {
             Value theme = bindings.getMember("theme");
             if (theme == null) return "";
 
-            // 2. Fluid 默认会导出一些核心 Key，这里我们根据参数或者预设来构建
-            Map<String, Object> exportMap = new HashMap<>();
-
-            // 常见的 Fluid 前端配置项
-            String[] keysToExport = {"hostname", "root", "statics", "favicon", "apple_touch_icon", "bookmark_icon", "daovoice", "user", "is_search", "search_path", "version"};
-
-            for (String key : keysToExport) {
-                if (theme.hasMember(key)) {
-                    exportMap.put(key, theme.getMember(key).as(Object.class));
-                }
-            }
-
             // 3. 将 Map 转换为 JSON 字符串 (建议使用 Jackson 或 Gson)
-            String jsonConfig = new com.google.gson.Gson().toJson(exportMap);
+            String jsonConfig = FluidConfigExporter.getExportConfigJson(basePageInfo.getTheme(), basePageInfo.getTheme());
 
             // 4. 返回一段 JS 脚本，将配置挂载到全局变量 Fluid.ctx (Fluid 主题的约定)
-            return String.format(
-                    "<script id=\"fluid-configs\">\n" +
-                            "    var Fluid = window.Fluid || {};\n" +
-                            "    Fluid.ctx = %s;\n" +
-                            "</script>",
-                    jsonConfig
-            );
+            return String.format("<script id=\"fluid-configs\">\n" + "    var Fluid = window.Fluid || {};\n" + "    Fluid.ctx = %s;\n" + "    var CONFIG = %s;\n" + "</script>", jsonConfig, jsonConfig);
         });
 
         bindings.putMember("css", (ProxyExecutable) args -> {
@@ -392,13 +380,9 @@ public class HexoRegisterHooks {
 
             // 1. 处理不同的日期输入类型
             if (dateObj instanceof Date) {
-                dateTime = ((Date) dateObj).toInstant()
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDateTime();
+                dateTime = ((Date) dateObj).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             } else if (dateObj instanceof Long) {
-                dateTime = java.time.Instant.ofEpochMilli((Long) dateObj)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDateTime();
+                dateTime = java.time.Instant.ofEpochMilli((Long) dateObj).atZone(ZoneId.systemDefault()).toLocalDateTime();
             } else {
                 // 如果是字符串或其他，尝试原样返回或解析
                 return dateObj.toString();
@@ -460,8 +444,7 @@ public class HexoRegisterHooks {
             if (args.length == 0 || args[0].isNull()) return "";
             String url = args[0].asString();
             try {
-                return java.net.URLEncoder.encode(url, java.nio.charset.StandardCharsets.UTF_8)
-                        .replace("+", "%20"); // 兼容 Hexo/Node.js 的空格处理
+                return java.net.URLEncoder.encode(url, java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20"); // 兼容 Hexo/Node.js 的空格处理
             } catch (Exception e) {
                 return url;
             }

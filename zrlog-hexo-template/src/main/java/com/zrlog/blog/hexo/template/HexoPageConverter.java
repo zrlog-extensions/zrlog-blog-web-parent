@@ -1,12 +1,12 @@
 package com.zrlog.blog.hexo.template;
 
+import com.hibegin.common.dao.dto.PageData;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.common.cache.dto.LogNavDTO;
 import com.zrlog.data.dto.ArticleBasicDTO;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Value;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,38 +37,42 @@ public class HexoPageConverter {
             theme.put("page404", themeMap);
         }
         if (pageInfo instanceof ArticleListPageVO) {
-            List<ArticleBasicDTO> rows = ((ArticleListPageVO) pageInfo).getData().getRows();
-            List<Map<String, Object>> list = new ArrayList<>();
-            for (ArticleBasicDTO articleBasicDTO : rows) {
-                Map<String, Object> row = new HashMap<>();
-                row.put("title", articleBasicDTO.getTitle());
-                List<Map<String, Object>> categories = new ArrayList<>();
-                categories.add(Map.of("length", 0, "name", articleBasicDTO.getTypeName(), "path", articleBasicDTO.getTypeUrl()));
-                row.put("categories", categories);
-                row.put("tags", articleBasicDTO.getTags().stream().map(e -> Map.of("name", e.getName(), "path", e.getUrl())).collect(Collectors.toList()));
-                row.put("path", articleBasicDTO.getUrl());
-                row.put("date", articleBasicDTO.getReleaseTime());
-                row.put("index_img", articleBasicDTO.getThumbnail());
-                row.put("description", articleBasicDTO.getContent());
-                row.put("excerpt", articleBasicDTO.getContent());
-                list.add(row);
+            PageData<ArticleBasicDTO> data = ((ArticleListPageVO) pageInfo).getData();
+            if (Objects.nonNull(data)) {
+                List<ArticleBasicDTO> rows = data.getRows();
+                List<Map<String, Object>> list = new ArrayList<>();
+                for (ArticleBasicDTO articleBasicDTO : rows) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("title", articleBasicDTO.getTitle());
+                    List<Map<String, Object>> categories = new ArrayList<>();
+                    categories.add(Map.of("length", 0, "name", articleBasicDTO.getTypeName(), "path", articleBasicDTO.getTypeUrl()));
+                    row.put("categories", categories);
+                    row.put("tags", articleBasicDTO.getTags().stream().map(e -> Map.of("name", e.getName(), "path", e.getUrl())).collect(Collectors.toList()));
+                    row.put("path", articleBasicDTO.getUrl());
+                    row.put("date", articleBasicDTO.getReleaseTime());
+                    row.put("index_img", articleBasicDTO.getThumbnail());
+                    row.put("description", articleBasicDTO.getContent());
+                    row.put("excerpt", articleBasicDTO.getContent());
+                    list.add(row);
+                }
+                page.put("posts", list);
+                if (Objects.nonNull(pageInfo.getWebs())) {
+                    page.put("subtitle", pageInfo.getWebs().getSecond_title());
+                }
+                if (Objects.nonNull(((ArticleListPageVO) pageInfo).getPager())) {
+                    page.put("total", ((ArticleListPageVO) pageInfo).getPager().getPageList().size());
+                } else {
+                    page.put("total", 1);
+                }
             }
-            page.put("posts", toArray(context, list, "posts", page));
-            if (Objects.nonNull(pageInfo.getWebs())) {
-                page.put("subtitle", pageInfo.getWebs().getSecond_title());
-            }
-            if (Objects.nonNull(((ArticleListPageVO) pageInfo).getPager())) {
-                page.put("total", ((ArticleListPageVO) pageInfo).getPager().getPageList().size());
-            } else {
-                page.put("total", 1);
-            }
-
         } else if (pageInfo instanceof ArticleDetailPageVO) {
             Map<String, Object> row = new HashMap<>();
             row.put("title", ((ArticleDetailPageVO) pageInfo).getLog().getTitle());
             page.put("post", row);
             page.put("title", ((ArticleDetailPageVO) pageInfo).getLog().getTitle());
             page.put("content", ((ArticleDetailPageVO) pageInfo).getLog().getContent());
+            page.put("meta", true);
+            page.put("data", ((ArticleDetailPageVO) pageInfo).getLog().getReleaseTime());
             /*if (Objects.nonNull(pageInfo.getWebs())) {
                 page.put("sub_title", pageInfo.getWebs().getSecond_title());
             }*/
@@ -84,6 +88,7 @@ public class HexoPageConverter {
             }
             pageInfo.getTheme().put("navbar", Map.of("menu", list, "blog_title", pageInfo.getWebs().getTitle()));
         }
+        pageInfo.getTheme().put("language", pageInfo.getLang());
         map.put("config", pageInfo.getTheme());
         theme.put("apple_touch_icon", "/favicon.ico");
         theme.put("favicon", "/favicon.png");
@@ -94,16 +99,5 @@ public class HexoPageConverter {
         Map<String, Object> indexGen = (Map<String, Object>) pageInfo.getTheme().computeIfAbsent("index_generator", k -> new HashMap<>());
         indexGen.putIfAbsent("order_by", "name");
         return map;
-    }
-
-    private static Object toArray(Context context, Object arrays, String name, Map<String, Object> page) {
-        Value bindings = context.getBindings("js");
-        // 渲染方法内
-        String json = new com.google.gson.Gson().toJson(arrays);
-        context.getBindings("js").putMember("jsonStr", json);
-        Value jsPage = context.eval("js", "JSON.parse(jsonStr)"); // 转为纯正 JS 对象
-        bindings.putMember(name, jsPage);
-        // 将 Java ArrayList 转换为 JS Array
-        return jsPage;
     }
 }

@@ -106,7 +106,7 @@ public class ZrLogTemplateRender implements TemplateRender {
         }
         HtmlTemplateProcessor pluginTagHande = new HtmlTemplateProcessor(
                 request, adminTokenVO, Objects.requireNonNullElse(pageInfo.getStaticResourceBaseUrl(), "/"));
-        String realHtmlStr = pluginTagHande.transform(htmlStr);
+        String realHtmlStr = pluginTagHande.transform(htmlStr).replaceAll("&gt;", ">");
         if (!catGeneratorHtml(request)) {
             return realHtmlStr;
         }

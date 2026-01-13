@@ -1,24 +1,17 @@
 package com.zrlog.blog.hexo.template;
 
-import com.hibegin.common.dao.dto.PageData;
-import com.hibegin.common.util.IOUtil;
-import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
 import com.zrlog.blog.hexo.template.fluid.FluidHexoObjectBox;
 import com.zrlog.blog.hexo.template.util.GraalDataUtils;
 import com.zrlog.blog.hexo.template.util.HexoRegisterHooks;
 import com.zrlog.blog.hexo.template.util.YamlLoader;
 import com.zrlog.blog.web.template.ZrLogTemplate;
-import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
-import com.zrlog.data.dto.ArticleBasicDTO;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class HexoTemplate implements ZrLogTemplate {
@@ -27,6 +20,7 @@ public class HexoTemplate implements ZrLogTemplate {
     private String template;
     private String rootPath;
     private Map<String, Object> config;
+    private Map<String, Object> locals;
     private HexoObjectBox hexoObjectBox;
 
     public HexoTemplate() {
@@ -37,6 +31,10 @@ public class HexoTemplate implements ZrLogTemplate {
                 .build();
         context.eval("js", ZrLogResourceLoader.read("classpath:/include/templates/ejs.min.js"));
         context.eval("js", ZrLogResourceLoader.read("classpath:/include/templates/hooks.js"));
+    }
+
+    public Map<String, Object> getLocals() {
+        return locals;
     }
 
     public String getTemplate() {
@@ -51,7 +49,7 @@ public class HexoTemplate implements ZrLogTemplate {
         return hexoObjectBox;
     }
 
-    public static void main(String[] args) throws Exception {
+    /*public static void main(String[] args) throws Exception {
         // 使用示例
         HexoTemplate engine = new HexoTemplate();
         engine.initClassTemplate("/include/templates/hexo-theme-fluid/");
@@ -71,7 +69,7 @@ public class HexoTemplate implements ZrLogTemplate {
         String html = engine.render("/index", basePageInfo);
         IOUtil.writeBytesToFile(html.getBytes(), new File(PathUtil.getRootPath() + "/classes/1.html"));
         System.out.println(html);
-    }
+    }*/
 
     @Override
     public void init(File path) throws Exception {
@@ -88,11 +86,15 @@ public class HexoTemplate implements ZrLogTemplate {
         for (Map.Entry<String, Object> entry : convert.entrySet()) {
             bindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
         }
+        this.locals = convert;
         convert.put("body", doRender((String) ((Map<String, Object>) convert.get("page")).get("layout"), convert));
         return doRender("/layout", convert);
     }
 
     public String doRender(String page, Object locals) {
+        if (page.contains("scripts")) {
+            System.out.println("locals = " + locals);
+        }
         // 1. 将 Java Map 转换为 JS 能够识别的 Proxy 对象
         // 使用之前写的 GraalDataUtils 确保 List/Map 结构正确
         Object jsFriendlyLocals = GraalDataUtils.makeJsFriendly(locals);
