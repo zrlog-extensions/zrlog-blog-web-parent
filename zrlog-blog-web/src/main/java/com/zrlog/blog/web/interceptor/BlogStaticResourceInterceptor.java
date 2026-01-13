@@ -43,7 +43,9 @@ public class BlogStaticResourceInterceptor implements HandleAbleInterceptor {
             return false;
         }
         //默认主题的静态文件
-        if (request.getUri().startsWith(Constants.DEFAULT_TEMPLATE_PATH) || request.getUri().startsWith("/assets/")) {
+        if (request.getUri().startsWith(Constants.DEFAULT_TEMPLATE_PATH)
+                || request.getUri().startsWith("/include/templates/hexo-")
+                || request.getUri().startsWith("/assets/")) {
             try (InputStream resourceAsStream = BlogStaticResourceInterceptor.class.getResourceAsStream(request.getUri())) {
                 if (Objects.nonNull(resourceAsStream)) {
                     ZrLogUtil.putLongTimeCache(response);

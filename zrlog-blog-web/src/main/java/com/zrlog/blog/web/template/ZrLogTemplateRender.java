@@ -97,6 +97,7 @@ public class ZrLogTemplateRender implements TemplateRender {
         if (StringUtils.isNotEmpty(pageInfo.getArrangePlugin()) && existsByTemplateName("arrange")) {
             page = "arrange";
         }
+        //long start = System.currentTimeMillis();
         String htmlStr = zrLogTemplate.render(page, pageInfo);
         TokenService tokenService = Constants.zrLogConfig.getTokenService();
         AdminTokenVO adminTokenVO = null;
@@ -113,6 +114,7 @@ public class ZrLogTemplateRender implements TemplateRender {
         try (BodySaveResponse bodySaveResponse = new BodySaveResponse(request, Constants.zrLogConfig.getResponseConfig(), false)) {
             bodySaveResponse.renderHtmlStr(realHtmlStr);
         }
+        //System.out.println("(System.currentTimeMillis() - start) = " + (System.currentTimeMillis() - start));
         return realHtmlStr;
     }
 }

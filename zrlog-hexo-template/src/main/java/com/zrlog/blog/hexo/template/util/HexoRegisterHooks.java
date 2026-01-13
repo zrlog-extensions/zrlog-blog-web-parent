@@ -1,9 +1,11 @@
 package com.zrlog.blog.hexo.template.util;
 
 import com.zrlog.blog.hexo.template.HexoTemplate;
-import com.zrlog.blog.hexo.template.ejs.HexoHelperImpl;
-import com.zrlog.blog.hexo.template.ejs.HexoI18nHelperImpl;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
+import com.zrlog.blog.hexo.template.impl.HexoHelperImpl;
+import com.zrlog.blog.hexo.template.impl.HexoI18nHelperImpl;
+import com.zrlog.blog.hexo.template.impl.HexoPaginator;
+import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -31,8 +33,8 @@ public class HexoRegisterHooks {
     }
 
     // 辅助拼接方法
-    private void appendCssTag(StringBuilder sb, String path) {
-        if (path == null || path.isEmpty()) return;
+    private String appendCssTag(String path) {
+        if (path == null || path.isEmpty()) return "";
         // 简单处理：如果没有以 http 或 / 开头，可以自动补充
         String href = path;
         if (!href.contains("://") && !href.startsWith("/")) {
@@ -42,7 +44,10 @@ public class HexoRegisterHooks {
         if (!href.endsWith(".css") && !href.contains("?")) {
             href += ".css";
         }
-        sb.append(String.format("<link rel=\"stylesheet\" href=\"%s\">\n", href));
+        if (href.startsWith("/") && !href.startsWith("//")) {
+            href = basePageInfo.getTemplateUrl() + "source" + href;
+        }
+        return String.format("<link rel=\"stylesheet\" href=\"%s\"/>\n", href);
     }
 
     public void injectHelpers(Value bindings) {
@@ -60,27 +65,48 @@ public class HexoRegisterHooks {
         bindings.putMember("__", (ProxyExecutable) args -> {
             String key = args[0].asString();
             try {
-                return new HexoI18nHelperImpl().i18n(key);
+                return new HexoI18nHelperImpl(hexoTemplate, basePageInfo.getLang()).i18n(key);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
 
+        if (basePageInfo instanceof ArticleListPageVO) {
+            bindings.putMember("paginator", new HexoPaginator(((ArticleListPageVO) basePageInfo).getPager()));
+        }
+        bindings.putMember("url_join", HexoHelperImpl.getUrlJoinProvider());
+
         // 映射 url_for
-        bindings.putMember("url_for", (ProxyExecutable) args -> hexoHelper.url_for(args[0].asString()));
+        bindings.putMember("url_for", (ProxyExecutable) args -> {
+            if (args.length > 0) {
+                return hexoHelper.url_for(args[0].asString());
+            }
+            return hexoHelper.url_for(null);
+        });
         // 在 injectHelpers 方法中
         bindings.putMember("inject_point", (ProxyExecutable) args -> {
             if (args.length == 0) return "";
             String pointName = args[0].asString();
 
-            // 这里的 themeConfig 是你用 SnakeYAML 读进来的 Map
-            // 假设配置路径是 theme.inject.xxx
-            Map<String, Object> injectMap = (Map<String, Object>) basePageInfo.getTheme().get("inject");
-            if (injectMap != null && injectMap.containsKey(pointName)) {
-                return injectMap.get(pointName).toString();
+            // 1. 从之前 setup 阶段填充的 injectionPoints Map 中获取注册的文件路径列表
+            // 这里的 injectionPoints 是你存储 List<String> 路径的那个全局 Map
+            List<String> filePaths = hexoTemplate.getHexoObjectBox().getInjectionPoints(pointName);
+
+            if (filePaths == null || filePaths.isEmpty()) {
+                return "";
             }
 
-            return ""; // 如果没配置，返回空字符串，不影响渲染
+            StringBuilder htmlResult = new StringBuilder();
+            for (String filePath : filePaths) {
+                // 2. 重要：注入的内容通常是 .ejs 文件，不能直接 toString()
+                // 你必须调用你现有的 EJS 渲染引擎去渲染这个文件
+                // 假设你有一个 renderPartial(path) 方法
+                //System.out.println("filePath = " + filePath);
+                String renderedContent = hexoTemplate.doRender(filePath, basePageInfo);
+                htmlResult.append(renderedContent);
+            }
+
+            return htmlResult.toString();
         });
         bindings.putMember("is_post", (ProxyExecutable) args -> {
             // 1. 从 JS 全局作用域获取当前的 page 对象
@@ -93,6 +119,10 @@ public class HexoRegisterHooks {
 
             // 3. 默认返回 false
             return false;
+        });
+
+        bindings.putMember("is_page", (ProxyExecutable) args -> {
+            return !(basePageInfo instanceof ArticleListPageVO);
         });
 
         bindings.putMember("js_ex", (ProxyExecutable) args -> {
@@ -114,9 +144,73 @@ public class HexoRegisterHooks {
                     attributes.append(" defer");
                 }
             }
-
             // 3. 返回标准的 HTML 标签
-            return String.format("<script src=\"%s\"%s></script>", src + "/" + args[1], attributes);
+            if (src.startsWith("http")) {
+                return String.format("<script src=\"%s\"%s></script>", src + "/" + args[1], attributes);
+
+            }
+            return String.format("<script src=\"%s\"%s></script>", basePageInfo.getTemplateUrl() + "source" + src + "/" + args[1], attributes);
+
+        });
+
+        bindings.putMember("import_js", (ProxyExecutable) args -> {
+            if (args.length < 2) return "";
+
+            // 参数 1: base_path (例如 theme.static_prefix.internal_js)
+            // 参数 2: file_name (例如 'local-search.js')
+            String base = args[0].isNull() ? "" : args[0].asString();
+            String file = args[1].asString();
+
+            // 逻辑处理：拼接路径
+            String src;
+            if (base.isEmpty()) {
+                // 如果没有前缀，通常默认在主题的 js 目录下
+                src = "/js/" + file;
+            } else {
+                // 确保 base 和 file 之间有斜杠
+                src = (base.endsWith("/") ? base : base + "/") + file;
+            }
+
+            // 返回标准的 HTML 标签
+            return String.format("<script src=\"%s\"></script>", src);
+        });
+
+
+        bindings.putMember("import_script", (ProxyExecutable) args -> {
+            // 2. 从上下文获取 page 对象
+            // 注意：这里的 context 或 bindings 取决于你如何初始化渲染引擎的
+            Map<String, Object> o = (Map<String, Object>) basePageInfo.getTheme().get("page");
+            List<String> s = (List<String>) o.get("script_snippets");
+            if (Objects.isNull(s)) {
+                s = new ArrayList<>();
+                o.put("script_snippets", s);
+            }
+            s.add(args[0].asString());
+            System.out.println("s = " + s);
+            // 返回空字符串，防止在调用处渲染出冗余内容
+            return args[0].asString();
+        });
+
+        bindings.putMember("import_css", (ProxyExecutable) args -> {
+            if (args.length < 2) return "";
+
+            // 参数 1: base_path (例如 theme.static_prefix.internal_js)
+            // 参数 2: file_name (例如 'local-search.js')
+            String base = args[0].isNull() ? "" : args[0].asString();
+            String file = args[1].asString();
+
+            // 逻辑处理：拼接路径
+            String src;
+            if (base.isEmpty()) {
+                // 如果没有前缀，通常默认在主题的 css 目录下
+                src = "/css/" + file;
+            } else {
+                // 确保 base 和 file 之间有斜杠
+                src = (base.endsWith("/") ? base : base + "/") + file;
+            }
+
+            // 返回标准的 HTML 标签
+            return String.format("<link href=\"%s\"/>", src);
         });
 
         bindings.putMember("css_ex", (ProxyExecutable) args -> {
@@ -125,6 +219,9 @@ public class HexoRegisterHooks {
             // 1. 获取 CSS 路径 (例如: /css/main.css)
             String href = args[0].asString();
 
+            if (!href.startsWith("http") && !href.startsWith("//")) {
+                href = basePageInfo.getTemplateUrl() + "source" + href;
+            }
             // 2. 初始化属性字符串
             StringBuilder attrs = new StringBuilder();
 
@@ -154,7 +251,7 @@ public class HexoRegisterHooks {
             }
 
             // 4. 返回完整的 HTML 标签
-            return String.format("<link %s href=\"%s\">", attrs.toString().trim(), href);
+            return String.format("<link %s href=\"%s\"/>", attrs.toString().trim(), href);
         });
 
         bindings.putMember("deduplicate", (ProxyExecutable) args -> {
@@ -219,11 +316,11 @@ public class HexoRegisterHooks {
 
             // 3. 构建 Meta 标签
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("<meta name=\"description\" content=\"%s\">\n", description));
-            sb.append("<meta property=\"og:type\" content=\"website\">\n");
-            sb.append(String.format("<meta property=\"og:title\" content=\"%s\">\n", title));
-            sb.append(String.format("<meta property=\"og:author\" content=\"%s\">\n", author));
-            sb.append("<meta name=\"twitter:card\" content=\"summary_large_image\">\n");
+            sb.append(String.format("<meta name=\"description\" content=\"%s\"/>\n", description));
+            sb.append("<meta property=\"og:type\" content=\"website\"/>\n");
+            sb.append(String.format("<meta property=\"og:title\" content=\"%s\"/>\n", title));
+            sb.append(String.format("<meta property=\"og:author\" content=\"%s\"/>\n", author));
+            sb.append("<meta name=\"twitter:card\" content=\"summary_large_image\"/>\n");
 
             // 如果有自定义参数（args[0] 通常是 options 对象），可以根据需要解析
             // 在基础实现中，直接返回这些核心标签即可
@@ -269,8 +366,7 @@ public class HexoRegisterHooks {
             for (Value arg : args) {
                 sb.add(arg.asString());
             }
-            appendCssTag(new StringBuilder(sb.toString()), sb.toString());
-            return sb.toString();
+            return appendCssTag(sb.toString());
         });
 
         bindings.putMember("strip_html", (ProxyExecutable) args -> {
@@ -345,6 +441,38 @@ public class HexoRegisterHooks {
             } catch (Exception e) {
                 return "Invalid Date";
             }
+        });
+
+        // 注入 decode_url
+        bindings.putMember("decode_url", (ProxyExecutable) args -> {
+            if (args.length == 0 || args[0].isNull()) return "";
+            String url = args[0].asString();
+            try {
+                // 使用标准的 URLDecoder 进行解码
+                return java.net.URLDecoder.decode(url, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                return url; // 解码失败则返回原字符串
+            }
+        });
+
+        // 建议顺便把 encode_url 也实现了，防止后续报错
+        bindings.putMember("encode_url", (ProxyExecutable) args -> {
+            if (args.length == 0 || args[0].isNull()) return "";
+            String url = args[0].asString();
+            try {
+                return java.net.URLEncoder.encode(url, java.nio.charset.StandardCharsets.UTF_8)
+                        .replace("+", "%20"); // 兼容 Hexo/Node.js 的空格处理
+            } catch (Exception e) {
+                return url;
+            }
+        });
+
+        bindings.putMember("prev_post", (ProxyExecutable) args -> {
+            return "";
+        });
+
+        bindings.putMember("next_post", (ProxyExecutable) args -> {
+            return "";
         });
     }
 }

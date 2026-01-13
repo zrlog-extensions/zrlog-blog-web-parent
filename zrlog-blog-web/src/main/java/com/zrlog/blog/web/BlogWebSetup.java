@@ -49,7 +49,7 @@ public class BlogWebSetup implements WebSetup {
     public Plugins getPlugins() {
         Plugins plugins = new Plugins();
         plugins.add(new TemplateDownloadPlugin());
-        plugins.add(new BlogPageStaticSitePlugin(zrLogConfig, contextPath));
+        //plugins.add(new BlogPageStaticSitePlugin(zrLogConfig, contextPath));
         plugins.add(new ArticleStatisticsPluginImpl());
         return plugins;
     }

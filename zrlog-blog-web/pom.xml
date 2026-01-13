@@ -20,12 +20,6 @@
     <dependencies>
         <dependency>
             <groupId>com.hibegin</groupId>
-            <artifactId>zrlog-blog-template</artifactId>
-            <version>3.2.123-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.hibegin</groupId>
             <artifactId>zrlog-freemarker-template</artifactId>
             <version>3.2.123-SNAPSHOT</version>
             <scope>compile</scope>

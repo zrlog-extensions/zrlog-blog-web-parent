@@ -29,7 +29,7 @@ import java.util.Objects;
 
 public class ArticleService {
 
-    private List<ArticleDetailDTO.TagsDTO> getTags(ArticleDetailDTO log, HttpRequest request) {
+    private static List<ArticleDetailDTO.TagsDTO> getTags(ArticleBasicDTO log, HttpRequest request) {
         String keywords = ObjectHelpers.requireNonNullElse(log.getKeywords(), "");
         List<ArticleDetailDTO.TagsDTO> tags = new ArrayList<>();
         for (String tag : keywords.split(",")) {
@@ -49,7 +49,7 @@ public class ArticleService {
         String suffix = StaticSitePlugin.getSuffix(request);
         log.getNextLog().setUrl(WebTools.buildEncodedUrl(request, Constants.getArticleUri() + log.getNextLog().getAlias() + suffix));
         log.getLastLog().setUrl(WebTools.buildEncodedUrl(request, Constants.getArticleUri() + log.getLastLog().getAlias() + suffix));
-        log.setTags(getTags(log, request));
+
         if (StringUtils.isNotEmpty(log.getMarkdown())) {
             List<Outline> outlineVO = OutlineUtil.extractOutline(log.getContent());
             if (!outlineVO.isEmpty()) {
@@ -116,6 +116,7 @@ public class ArticleService {
             log.setThumbnail(null);
             log.setThumbnailAlt(null);
         }
+        log.setTags(getTags(log, request));
         return log;
     }
 
