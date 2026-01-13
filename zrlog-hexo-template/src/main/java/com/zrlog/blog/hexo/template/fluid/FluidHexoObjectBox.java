@@ -63,7 +63,6 @@ public class FluidHexoObjectBox implements HexoObjectBox {
             ResourceScanner scanner = new ResourceScanner();
             // 注意：这里扫描 scripts 目录，让 JS 脚本自己跑
             List<String> scripts = scanner.listFiles(themeDir);
-            System.out.println("scripts = " + scripts);
             for (String scriptPath : scripts) {
                 String code = readText(scriptPath);
                 if (code.contains("('theme_inject")) {

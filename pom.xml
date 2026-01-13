@@ -19,6 +19,10 @@
         <module>zrlog-hexo-template</module>
     </modules>
 
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+
     <url>https://github.com/zrlog-extensions/zrlog-blog-web</url>
     <description>ZrLog blog web</description>
 
@@ -83,8 +87,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-
 
 
     <build>

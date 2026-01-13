@@ -92,9 +92,6 @@ public class HexoTemplate implements ZrLogTemplate {
     }
 
     public String doRender(String page, Object locals) {
-        if (page.contains("scripts")) {
-            System.out.println("locals = " + locals);
-        }
         // 1. 将 Java Map 转换为 JS 能够识别的 Proxy 对象
         // 使用之前写的 GraalDataUtils 确保 List/Map 结构正确
         Object jsFriendlyLocals = GraalDataUtils.makeJsFriendly(locals);
