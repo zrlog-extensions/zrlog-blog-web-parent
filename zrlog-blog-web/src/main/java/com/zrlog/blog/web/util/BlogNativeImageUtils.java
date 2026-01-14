@@ -20,6 +20,7 @@ import com.zrlog.common.ZrLogConfig;
 import com.zrlog.data.dto.ArticleBasicDTO;
 import com.zrlog.data.dto.ArticleDetailDTO;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +28,8 @@ public class BlogNativeImageUtils {
 
     public static void reg(ZrLogConfig zrLogConfig) {
         try {
-            InjectionStorage.class.getMethod("add", String.class, String.class);
+            Method add = InjectionStorage.class.getMethod("add", String.class, String.class);
+            add.invoke(new InjectionStorage(null, null), Constants.DEFAULT_TEMPLATE_PATH, Constants.DEFAULT_TEMPLATE_PATH);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -71,6 +73,15 @@ public class BlogNativeImageUtils {
         NativeImageUtils.gsonNativeAgentByClazz(List.of(objects));
         for (Class<?> o : objects) {
             NativeImageUtils.regGetMethodByClassName(o);
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            Method add = InjectionStorage.class.getMethod("add", String.class, String.class);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

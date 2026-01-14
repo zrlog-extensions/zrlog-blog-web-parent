@@ -5,6 +5,7 @@ import org.graalvm.polyglot.HostAccess;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class InjectionStorage {
     private final Map<String, List<String>> injectionPoints;
@@ -18,6 +19,9 @@ public class InjectionStorage {
     // 必须是 public，且建议显式允许访问
     @HostAccess.Export
     public void add(String slot, String path) {
+        if (Objects.isNull(themeDir)) {
+            return;
+        }
         String rPath = path.substring(this.themeDir.length()).replace(".ejs", "").replace("/layout", "");
         //System.out.println("成功捕获注入: [" + slot + "] -> " + rPath);
         injectionPoints.computeIfAbsent(slot, k -> new ArrayList<>()).add(rPath);
