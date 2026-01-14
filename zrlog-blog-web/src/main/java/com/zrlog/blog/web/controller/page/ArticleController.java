@@ -210,4 +210,9 @@ public class ArticleController extends Controller {
         return "link";
     }
 
+    @RequestMethod
+    public String links() {
+        return "links";
+    }
+
 }

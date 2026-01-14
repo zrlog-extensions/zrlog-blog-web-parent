@@ -5,6 +5,7 @@ import com.zrlog.blog.hexo.template.util.HexoConvertUtils;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
+import com.zrlog.common.cache.dto.LinkDTO;
 import com.zrlog.common.cache.dto.LogNavDTO;
 import com.zrlog.data.dto.ArticleBasicDTO;
 import com.zrlog.data.dto.ArticleDetailDTO;
@@ -102,6 +103,23 @@ public class HexoPageConverter {
             }
             pageInfo.getTheme().put("navbar", Map.of("menu", list, "blog_title", pageInfo.getWebs().getTitle()));
         }
+
+        if (Objects.nonNull(pageInfo.getInit().getLinks())) {
+            List<Map<String, Object>> list = new ArrayList<>();
+            List<LinkDTO> logNavs = pageInfo.getInit().getLinks();
+            for (LinkDTO logNavDTO : logNavs) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("link", logNavDTO.getUrl());
+                row.put("title", logNavDTO.getLinkName());
+                row.put("intro", logNavDTO.getAlt());
+                row.put("avatar", "/favicon.ico");
+                list.add(row);
+            }
+            Map<String, Object> links = new HashMap<>(Map.of("items", list));
+            pageInfo.getTheme().put("links", links);
+            links.put("comments", Map.of("type", ""));
+        }
+
         pageInfo.getTheme().put("language", pageInfo.getLang());
         map.put("config", pageInfo.getTheme());
         theme.put("apple_touch_icon", "/favicon.ico");
