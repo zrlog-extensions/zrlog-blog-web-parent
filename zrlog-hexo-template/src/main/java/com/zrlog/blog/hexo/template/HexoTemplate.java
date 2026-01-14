@@ -1,5 +1,6 @@
 package com.zrlog.blog.hexo.template;
 
+import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
 import com.zrlog.blog.hexo.template.fluid.FluidHexoObjectBox;
 import com.zrlog.blog.hexo.template.util.GraalDataUtils;
@@ -12,6 +13,7 @@ import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 public class HexoTemplate implements ZrLogTemplate {
@@ -22,6 +24,9 @@ public class HexoTemplate implements ZrLogTemplate {
     private Map<String, Object> config;
     private Map<String, Object> locals;
     private HexoObjectBox hexoObjectBox;
+    private final Value jsBindings;
+    private final Value ejs;
+
 
     public HexoTemplate() {
         this.context = Context.newBuilder("js")
@@ -29,8 +34,19 @@ public class HexoTemplate implements ZrLogTemplate {
                 .allowHostClassLookup(s -> true)
                 .option("js.ecmascript-version", "2022") // 建议开启现代语法支持
                 .build();
-        context.eval("js", ZrLogResourceLoader.read("classpath:/include/templates/ejs.min.js"));
+        try {
+            context.eval("js", new String(PathUtil.getConfInputStream("hexo/scripts/ejs.min.js").readAllBytes()));
+            context.eval("js", new String(PathUtil.getConfInputStream("hexo/scripts/hooks.js").readAllBytes()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
+        jsBindings = context.getBindings("js");
+        // 2. 获取 JS 环境中的 ejs 对象（前提是你已经加载了 ejs.min.js）
+        ejs = jsBindings.getMember("ejs");
+        if (ejs == null || ejs.getMember("render").isNull()) {
+            throw new RuntimeException("EJS 引擎未初始化，请先加载 ejs.min.js");
+        }
     }
 
     public Map<String, Object> getLocals() {
@@ -58,12 +74,11 @@ public class HexoTemplate implements ZrLogTemplate {
     @Override
     public String render(String page, BasePageInfo pageInfo) throws Exception {
         pageInfo.setTheme(config);
-        Value bindings = context.getBindings("js");
-        new HexoRegisterHooks(pageInfo, resolver, this).injectHelpers(bindings);
+        new HexoRegisterHooks(pageInfo, resolver, this).injectHelpers(jsBindings);
         Map<String, Object> convert = HexoPageConverter.toIndexMap(pageInfo, page);
 
         for (Map.Entry<String, Object> entry : convert.entrySet()) {
-            bindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
+            jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
         }
         this.locals = convert;
         convert.put("body", doRender((String) ((Map<String, Object>) convert.get("page")).get("layout"), convert));
@@ -71,26 +86,13 @@ public class HexoTemplate implements ZrLogTemplate {
     }
 
     public String doRender(String page, Object locals) {
-        // 1. 将 Java Map 转换为 JS 能够识别的 Proxy 对象
-        // 使用之前写的 GraalDataUtils 确保 List/Map 结构正确
         Object jsFriendlyLocals = GraalDataUtils.makeJsFriendly(locals);
-
-        // 2. 获取 JS 环境中的 ejs 对象（前提是你已经加载了 ejs.min.js）
-        Value ejs = context.getBindings("js").getMember("ejs");
-
-        if (ejs == null || ejs.getMember("render").isNull()) {
-            throw new RuntimeException("EJS 引擎未初始化，请先加载 ejs.min.js");
-        }
         String path = (template + page + ".ejs").replaceAll("//", "/");
-        //System.out.println("path = " + path);
         try {
-            // 3. 调用 JS 的 ejs.render(content, data, options)
-            // 注意：第三个参数建议传入 { async: false } 确保同步返回字符串
             Value options = context.eval("js", "({ async: false, cache: false })");
             Value result = ejs.getMember("render").execute(ZrLogResourceLoader.read(path), jsFriendlyLocals, options);
             return result.asString();
         } catch (Exception e) {
-            // 捕获 JS 运行时的详细错误堆栈
             System.err.println("EJS 渲染出错: " + path + e.getMessage());
             throw e;
         }
@@ -102,7 +104,6 @@ public class HexoTemplate implements ZrLogTemplate {
         String configYml = rootPath + "/_config.yml";
         this.config = YamlLoader.loadConfig(ZrLogResourceLoader.read(configYml));
         this.resolver = new TemplateResolver(template);
-        this.context.eval("js", ZrLogResourceLoader.read(rootPath + "/hooks.js"));
         this.hexoObjectBox = new FluidHexoObjectBox(config, rootPath);
         this.hexoObjectBox.setup(context);
     }

@@ -7,6 +7,7 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
+import javax.script.Bindings;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,7 +19,8 @@ public class FluidHexoObjectBox implements HexoObjectBox {
     private final Map<String, Object> themeConfig;
     private final String themeDir;
 
-    public FluidHexoObjectBox(Map<String, Object> themeConfig, String themeDir) {
+    public FluidHexoObjectBox(Map<String, Object> themeConfig,
+                              String themeDir) {
         this.themeConfig = themeConfig;
         this.themeDir = themeDir;
     }

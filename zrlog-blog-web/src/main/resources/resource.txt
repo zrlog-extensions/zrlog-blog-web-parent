@@ -9,6 +9,9 @@ assets/css/markdown.css
 assets/css/pretty-print.css
 assets/css/video-js.css
 assets/js/video.js
+conf/hexo/README.md
+conf/hexo/scripts/ejs.min.js
+conf/hexo/scripts/hooks.js
 favicon.ico
 i18n/blog_en_US.properties
 i18n/blog_zh_CN.properties
@@ -34,9 +37,7 @@ include/templates/default/pager.ftl
 include/templates/default/plugin.ftl
 include/templates/default/setting/config-form.json
 include/templates/default/template.properties
-include/templates/ejs.min.js
 include/templates/hexo-theme-fluid/_config.yml
-include/templates/hexo-theme-fluid/hooks.js
 include/templates/hexo-theme-fluid/languages/de.yml
 include/templates/hexo-theme-fluid/languages/en.yml
 include/templates/hexo-theme-fluid/languages/eo.yml
