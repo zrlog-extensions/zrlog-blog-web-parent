@@ -3,7 +3,7 @@ package com.zrlog.blog.web.plugin;
 import com.hibegin.common.BaseLockObject;
 import com.hibegin.common.util.EnvKit;
 import com.hibegin.common.util.LoggerUtil;
-import com.zrlog.business.util.TemplateDownloadUtils;
+import com.zrlog.business.template.util.TemplateDownloadUtils;
 import com.zrlog.common.Constants;
 import com.zrlog.plugin.IPlugin;
 
@@ -40,6 +40,9 @@ public class TemplateDownloadPlugin extends BaseLockObject implements IPlugin {
 
     public void precheckTemplate(String templatePath) {
         if (Objects.equals(templatePath, Constants.DEFAULT_TEMPLATE_PATH)) {
+            return;
+        }
+        if (Objects.equals(templatePath, Constants.DEFAULT_HEXO_TEMPLATE_PATH)) {
             return;
         }
         lock.lock();
