@@ -8,6 +8,7 @@ import com.hibegin.http.server.util.FreeMarkerUtil;
 import com.hibegin.http.server.util.HttpRequestBuilder;
 import com.hibegin.http.server.util.NativeImageUtils;
 import com.hibegin.http.server.util.PathUtil;
+import com.zrlog.blog.hexo.template.InjectionStorage;
 import com.zrlog.blog.web.BlogWebSetup;
 import com.zrlog.blog.web.template.PagerVO;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
@@ -25,6 +26,12 @@ import java.util.stream.Collectors;
 public class BlogNativeImageUtils {
 
     public static void reg(ZrLogConfig zrLogConfig) {
+        try {
+            InjectionStorage.class.getMethod("add", String.class, String.class);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+
         nativeJson();
         List<String> resources = BlogResourceUtils.getResources();
         NativeImageUtils.doResourceLoadByResourceNames(resources.stream().filter(StringUtils::isNotEmpty).map(e -> "/" + e).collect(Collectors.toList()));
