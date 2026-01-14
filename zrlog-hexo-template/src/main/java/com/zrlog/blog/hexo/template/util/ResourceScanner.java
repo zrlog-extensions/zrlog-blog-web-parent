@@ -23,7 +23,7 @@ public class ResourceScanner {
 
         // 1. 寻找锚点文件（每个主题必有 _config.yml）
         themeRootPath = themeRootPath.replaceAll("classpath:/", "");
-        String anchor = (themeRootPath + "_config.yml");
+        String anchor = (themeRootPath + "/_config.yml");
         URL anchorUrl = classLoader.getResource(anchor);
 
         if (anchorUrl == null) {

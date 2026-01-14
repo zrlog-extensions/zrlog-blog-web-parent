@@ -48,7 +48,7 @@ public class HexoRegisterHooks {
             href += ".css";
         }
         if (href.startsWith("/") && !href.startsWith("//")) {
-            href = basePageInfo.getTemplateUrl() + "source" + href;
+            href = basePageInfo.getTemplateUrl() + "/source" + href;
         }
         return String.format("<link rel=\"stylesheet\" href=\"%s\"/>\n", href);
     }
@@ -144,7 +144,7 @@ public class HexoRegisterHooks {
                 return String.format("<script src=\"%s\"%s></script>", src + "/" + args[1], attributes);
 
             }
-            return String.format("<script src=\"%s\"%s></script>", basePageInfo.getTemplateUrl() + "source" + src + "/" + args[1], attributes);
+            return String.format("<script src=\"%s\"%s></script>", basePageInfo.getTemplateUrl() + "/source" + src + "/" + args[1], attributes);
 
         });
 
@@ -220,7 +220,7 @@ public class HexoRegisterHooks {
             String href = args[0].asString();
 
             if (!href.startsWith("http") && !href.startsWith("//")) {
-                href = basePageInfo.getTemplateUrl() + "source" + href;
+                href = basePageInfo.getTemplateUrl() + "/source" + href;
             }
             // 2. 初始化属性字符串
             StringBuilder attrs = new StringBuilder();

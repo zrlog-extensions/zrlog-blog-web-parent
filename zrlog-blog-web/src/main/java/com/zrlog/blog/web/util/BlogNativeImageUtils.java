@@ -1,6 +1,5 @@
 package com.zrlog.blog.web.util;
 
-import com.hibegin.common.util.IOUtil;
 import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.common.util.StringUtils;
 import com.hibegin.http.HttpMethod;
@@ -19,7 +18,6 @@ import com.zrlog.common.ZrLogConfig;
 import com.zrlog.data.dto.ArticleBasicDTO;
 import com.zrlog.data.dto.ArticleDetailDTO;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,8 +25,8 @@ public class BlogNativeImageUtils {
 
     public static void reg(ZrLogConfig zrLogConfig) {
         nativeJson();
-        String[] resources = IOUtil.getStringInputStream(BlogWebSetup.class.getResourceAsStream("/resource.txt")).split("\n");
-        NativeImageUtils.doResourceLoadByResourceNames(Arrays.stream(resources).filter(StringUtils::isNotEmpty).map(e -> "/" + e).collect(Collectors.toList()));
+        List<String> resources = BlogResourceUtils.getResources();
+        NativeImageUtils.doResourceLoadByResourceNames(resources.stream().filter(StringUtils::isNotEmpty).map(e -> "/" + e).collect(Collectors.toList()));
 
         try {
             FreeMarkerUtil.init(PathUtil.getStaticFile(Constants.DEFAULT_TEMPLATE_PATH).getPath());

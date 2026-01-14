@@ -37,7 +37,7 @@ public class ZrLogTemplateRender implements TemplateRender {
 
     private ZrLogTemplate setupTemplate() throws Exception {
         ZrLogTemplate template;
-        if (pageInfo.getTemplate().contains("/hexo-theme-fluid")) {
+        if (Objects.equals(pageInfo.getTemplate(), Constants.DEFAULT_HEXO_TEMPLATE_PATH)) {
             template = new HexoTemplate();
             template.initClassTemplate(pageInfo.getTemplate());
             return template;

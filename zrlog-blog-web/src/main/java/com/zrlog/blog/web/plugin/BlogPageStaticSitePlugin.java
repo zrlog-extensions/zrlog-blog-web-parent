@@ -6,6 +6,7 @@ import com.hibegin.common.util.*;
 import com.hibegin.http.server.ApplicationContext;
 import com.hibegin.http.server.config.AbstractServerConfig;
 import com.hibegin.http.server.util.PathUtil;
+import com.zrlog.blog.web.util.BlogResourceUtils;
 import com.zrlog.business.plugin.StaticSitePlugin;
 import com.zrlog.business.plugin.type.StaticSiteType;
 import com.zrlog.business.service.TemplateInfoHelper;
@@ -23,6 +24,7 @@ import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class BlogPageStaticSitePlugin extends BaseLockObject implements StaticSitePlugin {
 
@@ -134,13 +136,18 @@ public class BlogPageStaticSitePlugin extends BaseLockObject implements StaticSi
 
 
     private void copyDefaultTemplateAssets(String templatePath) {
-        if (!Objects.equals(templatePath, Constants.DEFAULT_TEMPLATE_PATH)) {
+        TemplateVO templateVO;
+        if (Objects.equals(templatePath, Constants.DEFAULT_TEMPLATE_PATH)) {
+            templateVO = TemplateInfoHelper.getDefaultTemplateVO();
+        } else if (templatePath.equals(Constants.DEFAULT_HEXO_TEMPLATE_PATH)) {
+            templateVO = TemplateInfoHelper.getDefaultHexoTemplateVO();
+        } else {
             return;
         }
-        TemplateVO templateVO = TemplateInfoHelper.getDefaultTemplateVO();
-        templateVO.getStaticResources().forEach(e -> {
-            String resourceUri = Constants.DEFAULT_TEMPLATE_PATH + "/" + e;
-            copyResourceToCacheFolder(resourceUri);
+
+        List<String> resources = templateVO.getStaticResources().stream().map(e -> templateVO.getTemplate() + "/" + e).collect(Collectors.toList());
+        resources.forEach(e -> {
+            BlogResourceUtils.searchResources(e).forEach(this::copyResourceToCacheFolder);
         });
     }
 

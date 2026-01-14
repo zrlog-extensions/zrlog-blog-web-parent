@@ -122,7 +122,7 @@ public class HexoTemplate implements ZrLogTemplate {
         this.rootPath = "classpath:" + templateBase;
         this.template = (rootPath + "/layout").replace("//", "/");
         // 1. 初始化上下文，允许 Host 访问以进行 Java/JS 互操作
-        String configYml = "classpath:" + templateBase + "_config.yml";
+        String configYml = "classpath:" + templateBase + "/_config.yml";
         this.config = YamlLoader.loadConfig(ZrLogResourceLoader.read(configYml));
         this.resolver = new TemplateResolver(template);
         this.hexoObjectBox = new FluidHexoObjectBox(config, rootPath);
