@@ -21,11 +21,13 @@ public class BlogWebSetup implements WebSetup {
 
     private final ZrLogConfig zrLogConfig;
     private final String contextPath;
+    private final boolean enablePageStatic;
 
 
-    public BlogWebSetup(ZrLogConfig zrLogConfig, String contextPath) {
+    public BlogWebSetup(ZrLogConfig zrLogConfig, String contextPath, boolean enablePageStatic) {
         this.zrLogConfig = zrLogConfig;
         this.contextPath = contextPath;
+        this.enablePageStatic = enablePageStatic;
         if (zrLogConfig.getServerConfig().isNativeImageAgent()) {
             BlogNativeImageUtils.reg(zrLogConfig);
         }
@@ -49,7 +51,9 @@ public class BlogWebSetup implements WebSetup {
     public Plugins getPlugins() {
         Plugins plugins = new Plugins();
         plugins.add(new TemplateDownloadPlugin());
-        //plugins.add(new BlogPageStaticSitePlugin(zrLogConfig, contextPath));
+        if (enablePageStatic) {
+            plugins.add(new BlogPageStaticSitePlugin(zrLogConfig, contextPath));
+        }
         plugins.add(new ArticleStatisticsPluginImpl());
         return plugins;
     }
