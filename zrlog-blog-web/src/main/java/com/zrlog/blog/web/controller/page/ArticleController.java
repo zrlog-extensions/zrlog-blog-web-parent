@@ -200,6 +200,8 @@ public class ArticleController extends Controller {
 
     @RequestMethod
     public String tags() {
+        Long rows = cacheService.getPublicWebSiteInfo().getRows();
+        setPageDataInfo("tags", new PageData<>(), new PageRequestImpl(1L, rows));
         return "tags";
     }
 

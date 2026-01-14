@@ -30,6 +30,6 @@ public class HexoI18nHelperImpl {
         if (Objects.isNull(nestedValue)) {
             return path;
         }
-        return nestedValue.toString();
+        return String.format(nestedValue.toString(), args);
     }
 }

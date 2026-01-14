@@ -81,7 +81,7 @@ public class HexoTemplate implements ZrLogTemplate {
         pageInfo.setTheme(config);
         Value bindings = context.getBindings("js");
         new HexoRegisterHooks(pageInfo, resolver, this).injectHelpers(bindings);
-        Map<String, Object> convert = HexoPageConverter.toIndexMap(pageInfo, page, context);
+        Map<String, Object> convert = HexoPageConverter.toIndexMap(pageInfo, page);
 
         for (Map.Entry<String, Object> entry : convert.entrySet()) {
             bindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));

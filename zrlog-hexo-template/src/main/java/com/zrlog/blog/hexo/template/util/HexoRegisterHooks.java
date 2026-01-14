@@ -6,6 +6,7 @@ import com.zrlog.blog.hexo.template.fluid.FluidConfigExporter;
 import com.zrlog.blog.hexo.template.impl.HexoHelperImpl;
 import com.zrlog.blog.hexo.template.impl.HexoI18nHelperImpl;
 import com.zrlog.blog.hexo.template.impl.HexoPaginator;
+import com.zrlog.blog.hexo.template.impl.HexoTagCloud;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
@@ -53,7 +54,7 @@ public class HexoRegisterHooks {
     }
 
     public void injectHelpers(Value bindings) {
-        HexoHelperImpl hexoHelper = new HexoHelperImpl(hexoTemplate, templateResolver);
+        HexoHelperImpl hexoHelper = new HexoHelperImpl(hexoTemplate, templateResolver, basePageInfo);
         // 映射 partial
         bindings.putMember("partial", (ProxyExecutable) args -> {
             String path = args[0].asString();
@@ -67,7 +68,8 @@ public class HexoRegisterHooks {
         bindings.putMember("__", (ProxyExecutable) args -> {
             String key = args[0].asString();
             try {
-                return new HexoI18nHelperImpl(hexoTemplate, basePageInfo.getLang()).i18n(key);
+                List<Object> objects = new ArrayList<>(Arrays.asList(args).subList(1, args.length));
+                return new HexoI18nHelperImpl(hexoTemplate, basePageInfo.getLang()).i18n(key, objects);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -111,16 +113,7 @@ public class HexoRegisterHooks {
             return htmlResult.toString();
         });
         bindings.putMember("is_post", (ProxyExecutable) args -> {
-            // 1. 从 JS 全局作用域获取当前的 page 对象
-            Value page = bindings.getMember("page");
-
-            // 2. 逻辑判断：如果 page 存在且 layout 属性等于 "post"
-            if (page != null && page.hasMember("layout")) {
-                return "post".equals(page.getMember("layout").asString());
-            }
-
-            // 3. 默认返回 false
-            return false;
+            return basePageInfo instanceof ArticleDetailPageVO;
         });
 
         bindings.putMember("is_page", (ProxyExecutable) args -> {
@@ -311,17 +304,9 @@ public class HexoRegisterHooks {
         });
 
         bindings.putMember("open_graph", (ProxyExecutable) args -> {
-            // 1. 获取全局配置和当前页面数据
-            Value config = bindings.getMember("config");
-            Value theme = bindings.getMember("theme");
-            Value page = bindings.getMember("page");
-
-            // 2. 提取基础信息
-            String title = page.hasMember("title") ? page.getMember("title").asString() : config.getMember("title").asString();
-            String author = config.hasMember("author") ? config.getMember("author").asString() : "";
-            String description = page.hasMember("description") ? page.getMember("description").asString() : "";
-
-            // 3. 构建 Meta 标签
+            String title = basePageInfo.getTitle();
+            String author = "";
+            String description = basePageInfo.getDescription();
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("<meta name=\"description\" content=\"%s\"/>\n", description));
             sb.append("<meta property=\"og:type\" content=\"website\"/>\n");
@@ -329,8 +314,6 @@ public class HexoRegisterHooks {
             sb.append(String.format("<meta property=\"og:author\" content=\"%s\"/>\n", author));
             sb.append("<meta name=\"twitter:card\" content=\"summary_large_image\"/>\n");
 
-            // 如果有自定义参数（args[0] 通常是 options 对象），可以根据需要解析
-            // 在基础实现中，直接返回这些核心标签即可
             return sb.toString();
         });
 
@@ -460,5 +443,16 @@ public class HexoRegisterHooks {
             ArticleDetailPageVO pageVO = (ArticleDetailPageVO) basePageInfo;
             return HexoConvertUtils.getNextLog(pageVO);
         });
+
+        bindings.putMember("wordcount", (ProxyExecutable) args -> {
+            ArticleDetailPageVO pageVO = (ArticleDetailPageVO) basePageInfo;
+            return pageVO.getLog().getMarkdown().length();
+        });
+        bindings.putMember("min2read", (ProxyExecutable) args -> {
+            ArticleDetailPageVO pageVO = (ArticleDetailPageVO) basePageInfo;
+            return pageVO.getLog().getMarkdown().length() / 75;
+        });
+
+        bindings.putMember("tagcloud", new HexoTagCloud(basePageInfo.getInit().getTags()));
     }
 }

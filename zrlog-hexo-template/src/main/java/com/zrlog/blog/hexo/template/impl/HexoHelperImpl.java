@@ -2,6 +2,8 @@ package com.zrlog.blog.hexo.template.impl;
 
 import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
+import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
+import com.zrlog.blog.web.template.vo.BasePageInfo;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
 import java.util.Arrays;
@@ -12,22 +14,28 @@ import java.util.stream.Collectors;
 public class HexoHelperImpl {
     private final HexoTemplate engine;
     private final TemplateResolver resolver;
+    private final BasePageInfo basePageInfo;
 
-    public HexoHelperImpl(HexoTemplate engine, TemplateResolver resolver) {
+    public HexoHelperImpl(HexoTemplate engine, TemplateResolver resolver, BasePageInfo basePageInfo) {
         this.engine = engine;
         this.resolver = resolver;
+        this.basePageInfo = basePageInfo;
     }
 
     // 对应 EJS 中的 partial(path, locals)
     public String partial(String path, Map<String, Object> data) throws Exception {
-        // 1. 解析真实路径 (处理 ../ 等)
         String absolutePath = resolver.resolve(path);
+        //拦截
+        if (path.equals("_partials/comments/comment") && basePageInfo instanceof ArticleDetailPageVO) {
+            return "<plugin name=\"" + basePageInfo.getWebs().getComment_plugin_name() + "\" view=\"widget\" param=\"articleId=" + ((ArticleDetailPageVO) basePageInfo).getLog().getLogId() + "\"/>\n";
+        }
         // 注意：Hexo 的 partial 路径通常是相对于当前模板目录的
         try {
             // 3. 递归渲染
             // 注意：这里需要确保 render 方法不会清空之前的全局 helpers
-            return engine.doRender(absolutePath.substring(engine.getTemplate().length()).replace(".ejs", ""), data);
+            return engine.doRender(absolutePath.substring(engine.getTemplate().length()), data);
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("Partial 渲染失败: " + path + " -> " + e.getMessage());
             return e.getMessage();
         } finally {

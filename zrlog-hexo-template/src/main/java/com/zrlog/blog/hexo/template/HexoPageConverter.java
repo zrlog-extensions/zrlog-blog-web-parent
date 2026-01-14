@@ -8,14 +8,13 @@ import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.common.cache.dto.LogNavDTO;
 import com.zrlog.data.dto.ArticleBasicDTO;
 import com.zrlog.data.dto.ArticleDetailDTO;
-import org.graalvm.polyglot.Context;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class HexoPageConverter {
 
-    public static Map<String, Object> toIndexMap(BasePageInfo pageInfo, String layout, Context context) {
+    public static Map<String, Object> toIndexMap(BasePageInfo pageInfo, String layout) {
         Map<String, Object> map = new HashMap<>();
         map.put("title", pageInfo.getWebs().getTitle());
 
@@ -32,7 +31,7 @@ public class HexoPageConverter {
             }
         }
         Map<String, Object> theme = Objects.nonNull(pageInfo.getTheme()) ? pageInfo.getTheme() : new HashMap<>();
-        if (Objects.nonNull(layout)) {
+        if (Objects.isNull(layout)) {
             Map<String, Object> themeMap = new HashMap<>();
             theme.put("title", pageInfo.getTitle());
             theme.put("sub_title", "");
@@ -40,14 +39,22 @@ public class HexoPageConverter {
         }
         if (pageInfo instanceof ArticleListPageVO) {
             PageData<ArticleBasicDTO> data = ((ArticleListPageVO) pageInfo).getData();
+            List<Map<String, Object>> list = new ArrayList<>();
             if (Objects.nonNull(data)) {
                 List<ArticleBasicDTO> rows = data.getRows();
-                List<Map<String, Object>> list = new ArrayList<>();
                 for (ArticleBasicDTO articleBasicDTO : rows) {
                     Map<String, Object> row = new HashMap<>();
                     row.put("title", articleBasicDTO.getTitle());
                     List<Map<String, Object>> categories = new ArrayList<>();
-                    categories.add(Map.of("length", 0, "name", articleBasicDTO.getTypeName(), "path", articleBasicDTO.getTypeUrl()));
+                    Map<String, Object> cat = new HashMap<>();
+                    cat.put("_id", articleBasicDTO.getTypeId());
+                    cat.put("name", articleBasicDTO.getTypeName()); // 注意：EJS 有 .trim()，所以前后空格没关系
+                    cat.put("path", articleBasicDTO.getTypeUrl());
+                    cat.put("parent", null);   // 顶级分类传 null
+                    pageInfo.getInit().getTypes().stream().filter(e -> e.getTypeName().equals(articleBasicDTO.getTypeName())).findFirst().ifPresent(type -> {
+                        cat.put("length", type.getTypeamount());
+                    });
+                    categories.add(cat);
                     row.put("categories", categories);
                     row.put("tags", articleBasicDTO.getTags().stream().map(e -> Map.of("name", e.getName(), "path", e.getUrl())).collect(Collectors.toList()));
                     row.put("path", articleBasicDTO.getUrl());
@@ -57,27 +64,29 @@ public class HexoPageConverter {
                     row.put("excerpt", articleBasicDTO.getContent());
                     list.add(row);
                 }
-                page.put("posts", list);
-                if (Objects.nonNull(pageInfo.getWebs())) {
-                    page.put("subtitle", pageInfo.getWebs().getSecond_title());
-                }
-                if (Objects.nonNull(((ArticleListPageVO) pageInfo).getPager())) {
-                    page.put("total", ((ArticleListPageVO) pageInfo).getPager().getPageList().size());
-                } else {
-                    page.put("total", 1);
-                }
+            }
+            page.put("posts", list);
+            if (Objects.nonNull(pageInfo.getWebs())) {
+                page.put("subtitle", pageInfo.getWebs().getSecond_title());
+            }
+            if (Objects.nonNull(((ArticleListPageVO) pageInfo).getPager())) {
+                page.put("total", ((ArticleListPageVO) pageInfo).getPager().getPageList().size());
+            } else {
+                page.put("total", 1);
             }
         } else if (pageInfo instanceof ArticleDetailPageVO) {
             Map<String, Object> row = new HashMap<>();
             ArticleDetailDTO log = ((ArticleDetailPageVO) pageInfo).getLog();
             row.put("title", log.getTitle());
+            row.put("articleId", log.getId());
             page.put("post", row);
             page.put("title", log.getTitle());
             page.put("content", log.getContent());
-            page.put("meta", true);
-            page.put("data", log.getReleaseTime());
+            page.put("date", log.getReleaseTime());
             page.put("prev_post", HexoConvertUtils.getPrevLog((ArticleDetailPageVO) pageInfo));
             page.put("next_post", HexoConvertUtils.getNextLog((ArticleDetailPageVO) pageInfo));
+            page.put("comment", pageInfo.getWebs().getComment_plugin_name());
+            page.put("comments", log.getComments());
             /*if (Objects.nonNull(pageInfo.getWebs())) {
                 page.put("sub_title", pageInfo.getWebs().getSecond_title());
             }*/
