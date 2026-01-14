@@ -1,11 +1,13 @@
 package com.zrlog.blog.hexo.template;
 
 import com.hibegin.common.dao.dto.PageData;
+import com.zrlog.blog.hexo.template.util.HexoConvertUtils;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.common.cache.dto.LogNavDTO;
 import com.zrlog.data.dto.ArticleBasicDTO;
+import com.zrlog.data.dto.ArticleDetailDTO;
 import org.graalvm.polyglot.Context;
 
 import java.util.*;
@@ -67,12 +69,15 @@ public class HexoPageConverter {
             }
         } else if (pageInfo instanceof ArticleDetailPageVO) {
             Map<String, Object> row = new HashMap<>();
-            row.put("title", ((ArticleDetailPageVO) pageInfo).getLog().getTitle());
+            ArticleDetailDTO log = ((ArticleDetailPageVO) pageInfo).getLog();
+            row.put("title", log.getTitle());
             page.put("post", row);
-            page.put("title", ((ArticleDetailPageVO) pageInfo).getLog().getTitle());
-            page.put("content", ((ArticleDetailPageVO) pageInfo).getLog().getContent());
+            page.put("title", log.getTitle());
+            page.put("content", log.getContent());
             page.put("meta", true);
-            page.put("data", ((ArticleDetailPageVO) pageInfo).getLog().getReleaseTime());
+            page.put("data", log.getReleaseTime());
+            page.put("prev_post", HexoConvertUtils.getPrevLog((ArticleDetailPageVO) pageInfo));
+            page.put("next_post", HexoConvertUtils.getNextLog((ArticleDetailPageVO) pageInfo));
             /*if (Objects.nonNull(pageInfo.getWebs())) {
                 page.put("sub_title", pageInfo.getWebs().getSecond_title());
             }*/

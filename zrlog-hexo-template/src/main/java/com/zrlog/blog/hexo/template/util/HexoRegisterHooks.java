@@ -6,6 +6,7 @@ import com.zrlog.blog.hexo.template.fluid.FluidConfigExporter;
 import com.zrlog.blog.hexo.template.impl.HexoHelperImpl;
 import com.zrlog.blog.hexo.template.impl.HexoI18nHelperImpl;
 import com.zrlog.blog.hexo.template.impl.HexoPaginator;
+import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import org.graalvm.polyglot.Value;
@@ -451,11 +452,13 @@ public class HexoRegisterHooks {
         });
 
         bindings.putMember("prev_post", (ProxyExecutable) args -> {
-            return "";
+            ArticleDetailPageVO pageVO = (ArticleDetailPageVO) basePageInfo;
+            return HexoConvertUtils.getPrevLog(pageVO);
         });
 
         bindings.putMember("next_post", (ProxyExecutable) args -> {
-            return "";
+            ArticleDetailPageVO pageVO = (ArticleDetailPageVO) basePageInfo;
+            return HexoConvertUtils.getNextLog(pageVO);
         });
     }
 }
