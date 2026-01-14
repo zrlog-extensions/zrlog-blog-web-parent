@@ -19,11 +19,6 @@
             <type>pom</type>
         </dependency>
         <dependency>
-            <groupId>org.graalvm.sdk</groupId>
-            <artifactId>graal-sdk</artifactId>
-            <version>25.0.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.graalvm.polyglot</groupId>
             <artifactId>polyglot</artifactId>
             <version>25.0.1</version>
