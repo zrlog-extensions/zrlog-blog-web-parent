@@ -18,9 +18,9 @@ public class InjectionStorage {
     // 必须是 public，且建议显式允许访问
     @HostAccess.Export
     public void add(String slot, String path) {
-        String rPath = path.substring(this.themeDir.length()).replace(".ejs", "").replace("layout", "");
-        System.out.println("成功捕获注入: [" + slot + "] -> " + rPath);
+        String rPath = path.substring(this.themeDir.length()).replace(".ejs", "").replace("/layout", "");
+        //System.out.println("成功捕获注入: [" + slot + "] -> " + rPath);
         injectionPoints.computeIfAbsent(slot, k -> new ArrayList<>()).add(rPath);
-        System.out.println("injectionPoints = " + injectionPoints);
+        //System.out.println("injectionPoints = " + injectionPoints);
     }
 }

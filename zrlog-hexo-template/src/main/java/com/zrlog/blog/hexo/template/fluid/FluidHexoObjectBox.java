@@ -60,12 +60,12 @@ public class FluidHexoObjectBox implements HexoObjectBox {
 
         // 4. 扫描并执行主题 scripts 目录下的所有脚本
         try {
-            ResourceScanner scanner = new ResourceScanner();
+            ResourceScanner scanner = new ResourceScanner(themeDir);
             // 注意：这里扫描 scripts 目录，让 JS 脚本自己跑
-            List<String> scripts = scanner.listFiles(themeDir);
+            List<String> scripts = scanner.listFiles("scripts/");
             for (String scriptPath : scripts) {
                 String code = readText(scriptPath);
-                if (code.contains("('theme_inject")) {
+                if (code.contains("register('theme_inject")) {
                     try {
                         context.eval("js", code.replace("const path = require('path');", ""));
                     } catch (Exception e) {
@@ -93,7 +93,7 @@ public class FluidHexoObjectBox implements HexoObjectBox {
                 "      };" +
                 "    }" +
                 "  });" +
-                "})").execute(new InjectionStorage(injectionPoints,themeDir));
+                "})").execute(new InjectionStorage(injectionPoints, themeDir));
         return handler;
     }
 

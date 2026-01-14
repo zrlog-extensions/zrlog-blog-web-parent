@@ -1,49 +1,30 @@
 package com.zrlog.blog.hexo.template.util;
 
+import com.zrlog.business.template.util.BlogResourceUtils;
+
 import java.io.File;
-import java.io.IOException;
-import java.net.JarURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 public class ResourceScanner {
-    private final ClassLoader classLoader;
 
-    public ResourceScanner() {
-        this.classLoader = Thread.currentThread().getContextClassLoader();
+    private final String themeRootPath;
+
+    public ResourceScanner(String themeRootPath) {
+        this.themeRootPath = themeRootPath;
     }
 
-
-    public List<String> listFiles(String themeRootPath) throws IOException {
+    public List<String> listFiles(String childPath) {
         List<String> scriptFiles = new ArrayList<>();
-
-        // 1. 寻找锚点文件（每个主题必有 _config.yml）
-        themeRootPath = themeRootPath.replaceAll("classpath:/", "");
-        String anchor = (themeRootPath + "/_config.yml");
-        URL anchorUrl = classLoader.getResource(anchor);
-
-        if (anchorUrl == null) {
-            System.err.println("错误：无法在 Classpath 中定位主题锚点文件: " + anchor);
-            return scriptFiles;
-        }
-
-        String protocol = anchorUrl.getProtocol();
-        String scriptsRelPath = themeRootPath + "/scripts";
-
-        if ("file".equals(protocol)) {
+        if (themeRootPath.startsWith("classpath:")) {
+            scriptFiles.addAll(BlogResourceUtils.searchResources(themeRootPath.replaceAll("classpath:/", "") + "/" + childPath).stream().filter(e -> e.endsWith(".js")).toList());
+        } else {
             // IDE 环境：直接操作文件系统
-            File configFile = new File(anchorUrl.getPath());
-            File scriptsDir = new File(configFile.getParentFile(), "scripts");
+            File configFile = new File(themeRootPath);
+            File scriptsDir = new File(configFile.getParentFile(), childPath);
             if (scriptsDir.exists() && scriptsDir.isDirectory()) {
-                scanLocalDir(scriptsDir, scriptsRelPath, scriptFiles);
+                scanLocalDir(scriptsDir, themeRootPath, scriptFiles);
             }
-        } else if ("jar".equals(protocol)) {
-            // JAR 环境：解开 JAR 链接进行遍历
-            scanJarDir(anchorUrl, scriptsRelPath, scriptFiles);
         }
 
         return scriptFiles;
@@ -67,19 +48,5 @@ public class ResourceScanner {
         }
     }
 
-    private void scanJarDir(URL anchorUrl, String scriptsRelPath, List<String> result) throws IOException {
-        JarURLConnection conn = (JarURLConnection) anchorUrl.openConnection();
-        try (JarFile jarFile = conn.getJarFile()) {
-            Enumeration<JarEntry> entries = jarFile.entries();
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                String name = entry.getName();
-                // 只要路径是以 theme/next/scripts/ 开头且是 .js 文件
-                if (name.startsWith(scriptsRelPath + "/") && name.endsWith(".js")) {
-                    result.add(name);
-                }
-            }
-        }
-    }
 
 }
