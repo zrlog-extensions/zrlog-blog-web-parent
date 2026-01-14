@@ -30,7 +30,7 @@ public class HexoTemplate implements ZrLogTemplate {
                 .option("js.ecmascript-version", "2022") // 建议开启现代语法支持
                 .build();
         context.eval("js", ZrLogResourceLoader.read("classpath:/include/templates/ejs.min.js"));
-        context.eval("js", ZrLogResourceLoader.read("classpath:/include/templates/hooks.js"));
+
     }
 
     public Map<String, Object> getLocals() {
@@ -49,31 +49,10 @@ public class HexoTemplate implements ZrLogTemplate {
         return hexoObjectBox;
     }
 
-    /*public static void main(String[] args) throws Exception {
-        // 使用示例
-        HexoTemplate engine = new HexoTemplate();
-        engine.initClassTemplate("/include/templates/hexo-theme-fluid/");
-        ArticleListPageVO basePageInfo = new ArticleListPageVO();
-        basePageInfo.setTitle("我的博客");
-        PageData<ArticleBasicDTO> data = new PageData<>();
-        List<ArticleBasicDTO> articleBasicDTOList = new ArrayList<>();
-        ArticleBasicDTO articleBasicDTO = new ArticleBasicDTO();
-        articleBasicDTO.setTitle("Test");
-        //articleBasicDTO.setTypeName("Type");
-        articleBasicDTO.setUrl("/test.html");
-        articleBasicDTO.setContent("Content");
-        articleBasicDTOList.add(articleBasicDTO);
-        data.setRows(articleBasicDTOList);
-        basePageInfo.setData(data);
-        basePageInfo.setTemplateUrl("/include/templates/hexo-theme-fluid/");
-        String html = engine.render("/index", basePageInfo);
-        IOUtil.writeBytesToFile(html.getBytes(), new File(PathUtil.getRootPath() + "/classes/1.html"));
-        System.out.println(html);
-    }*/
-
     @Override
     public void init(File path) throws Exception {
-        //this.template =
+        this.rootPath = path.getAbsolutePath();
+        setup();
     }
 
     @Override
@@ -117,16 +96,21 @@ public class HexoTemplate implements ZrLogTemplate {
         }
     }
 
+    private void setup() {
+        this.template = (rootPath + "/layout").replace("//", "/");
+        // 1. 初始化上下文，允许 Host 访问以进行 Java/JS 互操作
+        String configYml = rootPath + "/_config.yml";
+        this.config = YamlLoader.loadConfig(ZrLogResourceLoader.read(configYml));
+        this.resolver = new TemplateResolver(template);
+        this.context.eval("js", ZrLogResourceLoader.read(rootPath + "/hooks.js"));
+        this.hexoObjectBox = new FluidHexoObjectBox(config, rootPath);
+        this.hexoObjectBox.setup(context);
+    }
+
     @Override
     public void initClassTemplate(String templateBase) {
         this.rootPath = "classpath:" + templateBase;
-        this.template = (rootPath + "/layout").replace("//", "/");
-        // 1. 初始化上下文，允许 Host 访问以进行 Java/JS 互操作
-        String configYml = "classpath:" + templateBase + "/_config.yml";
-        this.config = YamlLoader.loadConfig(ZrLogResourceLoader.read(configYml));
-        this.resolver = new TemplateResolver(template);
-        this.hexoObjectBox = new FluidHexoObjectBox(config, rootPath);
-        this.hexoObjectBox.setup(context);
+        setup();
     }
 
     public Context getContext() {
