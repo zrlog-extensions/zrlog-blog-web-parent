@@ -28,8 +28,8 @@ public class BlogNativeImageUtils {
     public static void reg(ZrLogConfig zrLogConfig) {
         try {
             InjectionStorage.class.getMethod("add", String.class, String.class);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         nativeJson();
