@@ -33,7 +33,6 @@ public class HexoTemplate implements ZrLogTemplate {
         this.context = Context.newBuilder("js")
                 .allowHostAccess(HostAccess.ALL)
                 .allowHostClassLookup(s -> true)
-                .option("js.ecmascript-version", "2022") // 建议开启现代语法支持
                 .build();
         try {
             context.eval("js", new String(PathUtil.getConfInputStream("hexo/scripts/ejs.min.js").readAllBytes()));
