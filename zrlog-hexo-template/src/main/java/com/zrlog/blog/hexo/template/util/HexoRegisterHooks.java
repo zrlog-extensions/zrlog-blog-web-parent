@@ -276,31 +276,11 @@ public class HexoRegisterHooks {
         });
 
         bindings.putMember("in_scope", (ProxyExecutable) args -> {
-            if (args.length == 0 || args[0].isNull()) return false;
+            return true;
+        });
 
-            // 1. 获取当前页面的 layout (例如 "post", "index", "archive")
-            Value page = bindings.getMember("page");
-            if (page == null || !page.hasMember("layout")) return false;
-            String currentLayout = page.getMember("layout").asString();
-
-            // 2. 获取函数传入的作用域范围 (可能是一个字符串，也可能是一个数组)
-            Value scope = args[0];
-
-            // 情况 A: 传入的是数组 [ 'post', 'about' ]
-            if (scope.hasArrayElements()) {
-                long size = scope.getArraySize();
-                for (long i = 0; i < size; i++) {
-                    if (currentLayout.equals(scope.getArrayElement(i).asString())) {
-                        return true;
-                    }
-                }
-            }
-            // 情况 B: 传入的是单个字符串 'post'
-            else if (scope.isString()) {
-                return currentLayout.equals(scope.asString());
-            }
-
-            return false;
+        bindings.putMember("is_home", (ProxyExecutable) args -> {
+            return Objects.equals(YamlLoader.getNestedValue(basePageInfo.getTheme(), "page.layout"), "/index");
         });
 
         bindings.putMember("open_graph", (ProxyExecutable) args -> {

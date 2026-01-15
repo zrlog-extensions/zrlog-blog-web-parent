@@ -119,6 +119,7 @@ public class HexoPageConverter {
         }
 
         pageInfo.getTheme().put("language", pageInfo.getLang());
+        pageInfo.getTheme().put("title", pageInfo.getWebs().getTitle());
         map.put("config", pageInfo.getTheme());
         theme.put("apple_touch_icon", "/favicon.ico");
         theme.put("favicon", "/favicon.png");

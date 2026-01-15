@@ -46,14 +46,16 @@ public class HexoHelperImpl {
 
     // 对应 url_for(path)
     public String url_for(String path) {
-        if (Objects.isNull(path) || path.isEmpty()) {
-            return "";
+        String root = basePageInfo.getBaseUrl();
+        if (Objects.isNull(path)) {
+            return root;
         }
-        if (path.startsWith("http:") || path.startsWith("https:")) {
+        if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("//")) {
             return path;
         }
-        String root = "/"; // 实际应从 config 中读取
-        if (path.startsWith("/")) return root + path.substring(1);
+        if (path.startsWith("/")) {
+            return root + path.substring(1);
+        }
         return root + path;
     }
 
