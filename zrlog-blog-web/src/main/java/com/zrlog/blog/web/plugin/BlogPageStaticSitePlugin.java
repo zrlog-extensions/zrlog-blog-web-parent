@@ -145,9 +145,9 @@ public class BlogPageStaticSitePlugin extends BaseLockObject implements StaticSi
             return;
         }
 
-        List<String> resources = templateVO.getStaticResources().stream().map(e -> templateVO.getTemplate() + "/" + e).collect(Collectors.toList());
-        resources.forEach(e -> {
-            BlogResourceUtils.searchResources(e).forEach(this::copyResourceToCacheFolder);
+        templateVO.getStaticResources().forEach(e -> {
+            List<String> searchResources = BlogResourceUtils.searchResources(templatePath.substring(1) + "/" + e).stream().filter(x -> !x.endsWith(".styl")).collect(Collectors.toList());
+            searchResources.forEach(x -> copyResourceToCacheFolder("/" + x));
         });
     }
 

@@ -69,7 +69,7 @@ public class HexoRegisterHooks {
             String key = args[0].asString();
             try {
                 List<Object> objects = new ArrayList<>(Arrays.asList(args).subList(1, args.length));
-                return new HexoI18nHelperImpl(hexoTemplate, basePageInfo.getLang()).i18n(key, objects);
+                return new HexoI18nHelperImpl(hexoTemplate, basePageInfo.getLocal()).i18n(key, objects);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -117,7 +117,7 @@ public class HexoRegisterHooks {
         });
 
         bindings.putMember("is_page", (ProxyExecutable) args -> {
-            return !(basePageInfo instanceof ArticleListPageVO);
+            return basePageInfo instanceof ArticleListPageVO;
         });
 
         bindings.putMember("js_ex", (ProxyExecutable) args -> {

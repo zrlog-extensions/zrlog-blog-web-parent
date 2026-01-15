@@ -42,7 +42,7 @@ class DevZrLogConfig extends ZrLogConfig {
 
     protected DevZrLogConfig(Integer port, Updater updater, String contextPath) {
         super(port, updater, contextPath);
-        webSetups.add(new BlogWebSetup(this, contextPath, false));
+        webSetups.add(new BlogWebSetup(this, contextPath, true));
         webSetups.forEach(WebSetup::setup);
         this.serverConfig.addInterceptor(DefaultInterceptor.class);
     }

@@ -32,13 +32,25 @@ public class HexoPageConverter {
             }
         }
         Map<String, Object> theme = Objects.nonNull(pageInfo.getTheme()) ? pageInfo.getTheme() : new HashMap<>();
-        if (Objects.isNull(layout)) {
-            Map<String, Object> themeMap = new HashMap<>();
-            theme.put("title", pageInfo.getTitle());
-            theme.put("sub_title", "");
-            theme.put("page404", themeMap);
-        }
-        if (pageInfo instanceof ArticleListPageVO) {
+
+        if (layout.equals("detail")) {
+            Map<String, Object> row = new HashMap<>();
+            ArticleDetailDTO log = ((ArticleDetailPageVO) pageInfo).getLog();
+            row.put("title", log.getTitle());
+            row.put("articleId", log.getId());
+            page.put("post", row);
+            page.put("title", log.getTitle());
+            page.put("content", log.getContent());
+            page.put("date", log.getReleaseTime());
+            page.put("next_post", HexoConvertUtils.getNextLog((ArticleDetailPageVO) pageInfo));
+            page.put("prev_post", HexoConvertUtils.getPrevLog((ArticleDetailPageVO) pageInfo));
+            page.put("comment", pageInfo.getWebs().getComment_plugin_name());
+            if (Objects.nonNull(log.getComments())) {
+                page.put("comments", log.getComments());
+            } else {
+                page.put("comments", new ArrayList<>());
+            }
+        } else if (pageInfo instanceof ArticleListPageVO) {
             PageData<ArticleBasicDTO> data = ((ArticleListPageVO) pageInfo).getData();
             List<Map<String, Object>> list = new ArrayList<>();
             if (Objects.nonNull(data)) {
@@ -75,22 +87,8 @@ public class HexoPageConverter {
             } else {
                 page.put("total", 1);
             }
-        } else if (pageInfo instanceof ArticleDetailPageVO) {
-            Map<String, Object> row = new HashMap<>();
-            ArticleDetailDTO log = ((ArticleDetailPageVO) pageInfo).getLog();
-            row.put("title", log.getTitle());
-            row.put("articleId", log.getId());
-            page.put("post", row);
-            page.put("title", log.getTitle());
-            page.put("content", log.getContent());
-            page.put("date", log.getReleaseTime());
-            page.put("prev_post", HexoConvertUtils.getPrevLog((ArticleDetailPageVO) pageInfo));
-            page.put("next_post", HexoConvertUtils.getNextLog((ArticleDetailPageVO) pageInfo));
-            page.put("comment", pageInfo.getWebs().getComment_plugin_name());
-            page.put("comments", log.getComments());
-            /*if (Objects.nonNull(pageInfo.getWebs())) {
-                page.put("sub_title", pageInfo.getWebs().getSecond_title());
-            }*/
+        } else {
+
         }
         if (Objects.nonNull(pageInfo.getInit().getLogNavs())) {
             List<Map<String, Object>> list = new ArrayList<>();

@@ -27,7 +27,6 @@ public class HexoTemplate implements ZrLogTemplate {
     private final Value jsBindings;
     private final Value ejs;
 
-
     public HexoTemplate() {
         this.context = Context.newBuilder("js")
                 .allowHostAccess(HostAccess.ALL)
@@ -90,7 +89,8 @@ public class HexoTemplate implements ZrLogTemplate {
         String path = (template + page + ".ejs").replaceAll("//", "/");
         try {
             Value options = context.eval("js", "({ async: false, cache: false })");
-            Value result = ejs.getMember("render").execute(ZrLogResourceLoader.read(path), jsFriendlyLocals, options);
+            String read = ZrLogResourceLoader.read(path);
+            Value result = ejs.getMember("render").execute(read, jsFriendlyLocals, options);
             return result.asString();
         } catch (Exception e) {
             System.err.println("EJS 渲染出错: " + path + e.getMessage());

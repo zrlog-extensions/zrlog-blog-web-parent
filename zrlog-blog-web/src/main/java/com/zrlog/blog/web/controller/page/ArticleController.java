@@ -138,6 +138,8 @@ public class ArticleController extends Controller {
         ArticleDetailDTO detail = articleService.detail(uri.replace("/", "").replace(".html", ""), request);
         if (Objects.nonNull(detail)) {
             request.getAttr().put("log", detail);
+        } else {
+            request.getAttr().put("log", new ArticleDetailDTO());
         }
         return "detail";
     }

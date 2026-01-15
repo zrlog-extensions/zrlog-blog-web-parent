@@ -4,19 +4,24 @@ import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.hexo.template.ZrLogResourceLoader;
 import com.zrlog.blog.hexo.template.util.YamlLoader;
 
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class HexoI18nHelperImpl {
 
-    private final Map<String, Object> languagesMap;
+    private final Map<String, Object> languagesMap = new TreeMap<>();
 
     public HexoI18nHelperImpl(HexoTemplate hexoTemplate, String lang) {
-        if (Objects.equals(lang, "zh_CN")) {
-            lang = "zh-CN";
+        for (String langAlias : getLangFiles(lang)) {
+            String path = hexoTemplate.getRootPath() + "/languages/" + langAlias + ".yml";
+            if (ZrLogResourceLoader.exists(path)) {
+                languagesMap.putAll(YamlLoader.loadConfig(ZrLogResourceLoader.read(path)));
+                break;
+            }
         }
-        String path = hexoTemplate.getRootPath() + "/languages/" + lang + ".yml";
-        this.languagesMap = YamlLoader.loadConfig(ZrLogResourceLoader.read(path));
+    }
+
+    private List<String> getLangFiles(String lang) {
+        return Arrays.asList(lang.split("-")[0], lang, lang.replace("_", "-"));
     }
 
     /**

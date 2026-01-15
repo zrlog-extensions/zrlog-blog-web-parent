@@ -3,6 +3,7 @@ package com.zrlog.blog.hexo.template;
 import com.hibegin.common.util.IOUtil;
 
 import java.io.File;
+import java.util.Objects;
 
 public class ZrLogResourceLoader {
     public static String read(String fullPath) {
@@ -14,5 +15,12 @@ public class ZrLogResourceLoader {
         } catch (Exception e) {
             throw new RuntimeException("无法读取模板文件: " + fullPath, e);
         }
+    }
+
+    public static boolean exists(String fullPath) {
+        if (fullPath.startsWith("classpath:")) {
+            return Objects.nonNull(ZrLogResourceLoader.class.getResourceAsStream(fullPath.split("classpath:")[1]));
+        }
+        return new File(fullPath).exists();
     }
 }
