@@ -9,11 +9,14 @@ import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.web.plugin.TemplateDownloadPlugin;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.business.plugin.BodySaveResponse;
+import com.zrlog.business.service.TemplateInfoHelper;
 import com.zrlog.business.template.HtmlTemplateProcessor;
+import com.zrlog.business.type.TemplateType;
 import com.zrlog.common.Constants;
 import com.zrlog.common.TokenService;
 import com.zrlog.common.exception.NotImplementException;
 import com.zrlog.common.vo.AdminTokenVO;
+import com.zrlog.common.vo.TemplateVO;
 import com.zrlog.plugin.BaseStaticSitePlugin;
 
 import java.io.File;
@@ -36,35 +39,37 @@ public class ZrLogTemplateRender implements TemplateRender {
     }
 
     private ZrLogTemplate setupTemplate() throws Exception {
-        ZrLogTemplate template;
-        if (Objects.equals(pageInfo.getTemplate(), Constants.DEFAULT_HEXO_TEMPLATE_PATH)) {
-            template = new HexoTemplate();
-            template.initClassTemplate(pageInfo.getTemplate());
-            return template;
-        } else if (Objects.equals(pageInfo.getTemplate(), Constants.DEFAULT_TEMPLATE_PATH)) {
-            template = new FreemarkerZrLogTemplate();
-            template.initClassTemplate(pageInfo.getTemplate());
-            return template;
-        }
         TemplateDownloadPlugin templateDownloadPlugin = Constants.zrLogConfig.getPlugin(TemplateDownloadPlugin.class);
         if (Objects.nonNull(templateDownloadPlugin)) {
             templateDownloadPlugin.precheckTemplate(pageInfo.getTemplate());
         }
-        File path = PathUtil.getStaticFile(pageInfo.getTemplate());
-        if (path.exists()) {
+        ZrLogTemplate template;
+        TemplateVO templateVO = TemplateInfoHelper.loadTemplateVO(pageInfo.getTemplate());
+        if (templateVO.getTemplateType() == TemplateType.NODE_JS) {
+            template = new HexoTemplate();
+        } else if (templateVO.getTemplateType() == TemplateType.STANDARD) {
             template = new FreemarkerZrLogTemplate();
-            template.init(path);
-            return template;
+        } else {
+            throw new NotImplementException();
         }
-        throw new RuntimeException("missing template files -> " + path.getName());
+        if (TemplateInfoHelper.isDefaultTemplate(templateVO.getTemplate())) {
+            template.initClassTemplate(pageInfo.getTemplate());
+        } else {
+            File path = PathUtil.getStaticFile(pageInfo.getTemplate());
+            if (!path.exists()) {
+                throw new RuntimeException("missing template files -> " + path.getName());
+            }
+            template.init(path);
+        }
+        return template;
     }
 
     private boolean existsByTemplateName(String templateName) {
         File path = PathUtil.getStaticFile(pageInfo.getTemplate());
-        if (path.exists() && !Objects.equals(pageInfo.getTemplate(), Constants.DEFAULT_TEMPLATE_PATH)) {
+        if (path.exists() && !TemplateInfoHelper.isDefaultTemplate(pageInfo.getTemplate())) {
             return Arrays.stream(Objects.requireNonNull(path.listFiles())).anyMatch(e -> e.getName().startsWith(templateName + "."));
         } else {
-            return Objects.nonNull(ZrLogTemplateRender.class.getResourceAsStream(Constants.DEFAULT_TEMPLATE_PATH + "/" + templateName + ".ftl"));
+            return Objects.nonNull(ZrLogTemplateRender.class.getResourceAsStream(pageInfo.getTemplate() + "/" + templateName + ".ftl"));
         }
     }
 

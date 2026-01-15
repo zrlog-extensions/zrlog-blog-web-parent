@@ -12,7 +12,6 @@ import com.zrlog.business.service.TemplateInfoHelper;
 import com.zrlog.business.template.util.BlogResourceUtils;
 import com.zrlog.common.Constants;
 import com.zrlog.common.vo.PublicWebSiteInfo;
-import com.zrlog.common.vo.TemplateVO;
 import com.zrlog.data.dto.FaviconBase64DTO;
 import com.zrlog.model.WebSite;
 
@@ -136,16 +135,11 @@ public class BlogPageStaticSitePlugin extends BaseLockObject implements StaticSi
 
 
     private void copyDefaultTemplateAssets(String templatePath) {
-        TemplateVO templateVO;
-        if (Objects.equals(templatePath, Constants.DEFAULT_TEMPLATE_PATH)) {
-            templateVO = TemplateInfoHelper.getDefaultTemplateVO();
-        } else if (templatePath.equals(Constants.DEFAULT_HEXO_TEMPLATE_PATH)) {
-            templateVO = TemplateInfoHelper.getDefaultHexoTemplateVO();
-        } else {
+        boolean defaultTemplate = TemplateInfoHelper.isDefaultTemplate(templatePath);
+        if (!defaultTemplate) {
             return;
         }
-
-        templateVO.getStaticResources().forEach(e -> {
+        TemplateInfoHelper.loadTemplateVO(templatePath).getStaticResources().forEach(e -> {
             List<String> searchResources = BlogResourceUtils.searchResources(templatePath.substring(1) + "/" + e).stream().filter(x -> !x.endsWith(".styl")).collect(Collectors.toList());
             searchResources.forEach(x -> copyResourceToCacheFolder("/" + x));
         });

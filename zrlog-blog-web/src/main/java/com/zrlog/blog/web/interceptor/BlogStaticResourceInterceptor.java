@@ -7,6 +7,7 @@ import com.hibegin.http.server.api.HttpResponse;
 import com.hibegin.http.server.util.MimeTypeUtil;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.web.plugin.BlogPageStaticSitePlugin;
+import com.zrlog.business.service.TemplateInfoHelper;
 import com.zrlog.common.Constants;
 import com.zrlog.common.exception.UnknownException;
 import com.zrlog.plugin.BaseStaticSitePlugin;
@@ -43,9 +44,7 @@ public class BlogStaticResourceInterceptor implements HandleAbleInterceptor {
             return false;
         }
         //默认主题的静态文件
-        if (request.getUri().startsWith(Constants.DEFAULT_TEMPLATE_PATH)
-                || request.getUri().startsWith(Constants.DEFAULT_HEXO_TEMPLATE_PATH)
-                || request.getUri().startsWith("/assets/")) {
+        if (TemplateInfoHelper.isDefaultTemplateStartWith(request.getUri()) || request.getUri().startsWith("/assets/")) {
             try (InputStream resourceAsStream = BlogStaticResourceInterceptor.class.getResourceAsStream(request.getUri())) {
                 if (Objects.nonNull(resourceAsStream)) {
                     ZrLogUtil.putLongTimeCache(response);
