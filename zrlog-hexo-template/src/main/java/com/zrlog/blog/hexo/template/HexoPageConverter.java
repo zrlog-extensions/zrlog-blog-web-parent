@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class HexoPageConverter {
 
-    public static Map<String, Object> toIndexMap(BasePageInfo pageInfo, String layout) {
+    public static Map<String, Object> toHexoMap(BasePageInfo pageInfo, String layout) {
         Map<String, Object> map = new HashMap<>();
         map.put("title", pageInfo.getWebs().getTitle());
 

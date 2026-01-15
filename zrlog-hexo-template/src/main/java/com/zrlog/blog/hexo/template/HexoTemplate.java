@@ -3,8 +3,9 @@ package com.zrlog.blog.hexo.template;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
 import com.zrlog.blog.hexo.template.fluid.FluidHexoObjectBox;
+import com.zrlog.blog.hexo.template.fluid.FluidHooks;
 import com.zrlog.blog.hexo.template.util.GraalDataUtils;
-import com.zrlog.blog.hexo.template.util.HexoRegisterHooks;
+import com.zrlog.blog.hexo.template.util.HexoBaseHooks;
 import com.zrlog.blog.hexo.template.util.YamlLoader;
 import com.zrlog.blog.web.template.ZrLogTemplate;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
@@ -80,21 +81,17 @@ public class HexoTemplate implements ZrLogTemplate {
         } else {
             config = YamlLoader.loadConfig(ZrLogResourceLoader.read(rootPath + "/" + TemplateType.NODE_JS.getConfigFile()));
         }
-
-        TemplateResolver resolver = new TemplateResolver(template);
+        pageInfo.setTheme(config);
         this.hexoObjectBox = new FluidHexoObjectBox(config, rootPath);
         this.hexoObjectBox.setup(context);
-
-        pageInfo.setTheme(config);
-        new HexoRegisterHooks(pageInfo, resolver, this).injectHelpers(jsBindings);
-        Map<String, Object> convert = HexoPageConverter.toIndexMap(pageInfo, page);
-
-        for (Map.Entry<String, Object> entry : convert.entrySet()) {
+        new HexoBaseHooks(pageInfo, new TemplateResolver(template), this).inject(jsBindings);
+        new FluidHooks(pageInfo).inject(jsBindings);
+        this.locals = HexoPageConverter.toHexoMap(pageInfo, page);
+        for (Map.Entry<String, Object> entry : locals.entrySet()) {
             jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
         }
-        this.locals = convert;
-        convert.put("body", doRender((String) ((Map<String, Object>) convert.get("page")).get("layout"), convert));
-        return doRender("/layout", convert);
+        this.locals.put("body", doRender((String) ((Map<String, Object>) locals.get("page")).get("layout"), locals));
+        return doRender("/layout", locals);
     }
 
     public String doRender(String page, Object locals) {
