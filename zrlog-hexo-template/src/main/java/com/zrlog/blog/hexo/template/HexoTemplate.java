@@ -90,7 +90,7 @@ public class HexoTemplate implements ZrLogTemplate {
         for (Map.Entry<String, Object> entry : locals.entrySet()) {
             jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
         }
-        this.locals.put("body", doRender((String) ((Map<String, Object>) locals.get("page")).get("layout"), locals));
+        this.locals.put("body", doRender((String) YamlLoader.getNestedValue(locals, "page.layout"), locals));
         return doRender("/layout", locals);
     }
 
