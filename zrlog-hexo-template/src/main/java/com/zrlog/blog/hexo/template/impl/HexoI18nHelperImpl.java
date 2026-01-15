@@ -21,7 +21,7 @@ public class HexoI18nHelperImpl {
     }
 
     private List<String> getLangFiles(String lang) {
-        return Arrays.asList(lang.split("-")[0], lang, lang.replace("_", "-"));
+        return Arrays.asList(lang, lang.replace("_", "-"), lang.split("_")[0]);
     }
 
     /**
