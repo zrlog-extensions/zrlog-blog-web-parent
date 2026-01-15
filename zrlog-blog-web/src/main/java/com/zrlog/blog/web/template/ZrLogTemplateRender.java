@@ -64,7 +64,7 @@ public class ZrLogTemplateRender implements TemplateRender {
         return template;
     }
 
-    private boolean existsByTemplateName(String templateName) {
+    public boolean existsByTemplateName(String templateName) {
         File path = PathUtil.getStaticFile(pageInfo.getTemplate());
         if (path.exists() && !TemplateInfoHelper.isDefaultTemplate(pageInfo.getTemplate())) {
             return Arrays.stream(Objects.requireNonNull(path.listFiles())).anyMatch(e -> e.getName().startsWith(templateName + "."));
