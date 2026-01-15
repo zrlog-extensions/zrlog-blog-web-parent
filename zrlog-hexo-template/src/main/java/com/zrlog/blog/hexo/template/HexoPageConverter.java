@@ -127,6 +127,8 @@ public class HexoPageConverter {
         map.put("page", page);
 
         page.put("banner_img", "https://fluid.s3.bitiful.net/bg/vdysjx.png?w=1920&fmt=webp");
+        page.put("description", pageInfo.getDescription());
+        page.put("keywords", pageInfo.getKeywords());
         Map<String, Object> indexGen = (Map<String, Object>) pageInfo.getTheme().computeIfAbsent("index_generator", k -> new HashMap<>());
         indexGen.putIfAbsent("order_by", "name");
         return map;
