@@ -97,15 +97,10 @@ public class HexoTemplate implements ZrLogTemplate {
     public String doRender(String page, Object locals) {
         Object jsFriendlyLocals = GraalDataUtils.makeJsFriendly(locals);
         String path = (template + page + ".ejs").replaceAll("//", "/");
-        try {
-            Value options = context.eval("js", "({ async: false, cache: false })");
-            String read = ZrLogResourceLoader.read(path);
-            Value result = ejs.getMember("render").execute(read, jsFriendlyLocals, options);
-            return result.asString();
-        } catch (Exception e) {
-            System.err.println("EJS 渲染出错: " + path + e.getMessage());
-            throw e;
-        }
+        Value options = context.eval("js", "({ async: false, cache: false })");
+        String read = ZrLogResourceLoader.read(path);
+        Value result = ejs.getMember("render").execute(read, jsFriendlyLocals, options);
+        return result.asString();
     }
 
     private void setup() {

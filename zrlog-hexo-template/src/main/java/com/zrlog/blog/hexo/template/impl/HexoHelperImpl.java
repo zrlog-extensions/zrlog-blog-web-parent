@@ -34,10 +34,6 @@ public class HexoHelperImpl {
             // 3. 递归渲染
             // 注意：这里需要确保 render 方法不会清空之前的全局 helpers
             return engine.doRender(absolutePath.substring(engine.getTemplate().length()), data);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Partial 渲染失败: " + path + " -> " + e.getMessage());
-            return e.getMessage();
         } finally {
             // 3. 必须出栈，否则路径上下文会乱
             resolver.popPath();
