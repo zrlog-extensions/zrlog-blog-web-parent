@@ -25,15 +25,16 @@ public class HexoHelperImpl {
     // 对应 EJS 中的 partial(path, locals)
     public String partial(String path, Map<String, Object> data) throws Exception {
         String absolutePath = resolver.resolve(path);
-        //拦截
-        if (path.equals("_partials/comments/comment") && basePageInfo instanceof ArticleDetailPageVO) {
-            return "<plugin name=\"" + basePageInfo.getWebs().getComment_plugin_name() + "\" view=\"widget\" param=\"articleId=" + ((ArticleDetailPageVO) basePageInfo).getLog().getLogId() + "\"/>\n";
-        }
+        resolver.pushPath(absolutePath);
         // 注意：Hexo 的 partial 路径通常是相对于当前模板目录的
         try {
+            //拦截
+            if (path.equals("_partials/comments/comment") && basePageInfo instanceof ArticleDetailPageVO) {
+                return "<plugin name=\"" + basePageInfo.getWebs().getComment_plugin_name() + "\" view=\"widget\" param=\"articleId=" + ((ArticleDetailPageVO) basePageInfo).getLog().getLogId() + "\"/>\n";
+            }
             // 3. 递归渲染
             // 注意：这里需要确保 render 方法不会清空之前的全局 helpers
-            return engine.doRender(absolutePath.substring(engine.getTemplate().length()), data);
+            return engine.doRender(path, data);
         } finally {
             // 3. 必须出栈，否则路径上下文会乱
             resolver.popPath();

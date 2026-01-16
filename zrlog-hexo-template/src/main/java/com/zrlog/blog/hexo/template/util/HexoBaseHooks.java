@@ -36,11 +36,8 @@ public class HexoBaseHooks implements HexoHooks {
         bindings.putMember("partial", (ProxyExecutable) args -> {
             String path = args[0].asString();
             try {
-                Map<String, Object> locals = args.length > 1 ? args[1].as(Map.class) : hexoTemplate.getLocals();
-                if (path.contains("_partial/")) {
-                    return hexoHelper.partial(path, locals);
-                }
-                return hexoHelper.partial("_partial/" + path, locals);
+                Map<String, Object> locals = (args.length > 1 && Objects.nonNull(args[1])) ? args[1].as(Map.class) : hexoTemplate.getLocals();
+                return hexoHelper.partial(path, locals);
             } catch (Exception e) {
                 return LoggerUtil.recordStackTraceMsg(e);
             }
@@ -77,6 +74,12 @@ public class HexoBaseHooks implements HexoHooks {
 
         // 映射 url_for
         bindings.putMember("url_for", (ProxyExecutable) args -> {
+            if (args.length > 0) {
+                return hexoHelper.url_for(args[0].asString());
+            }
+            return hexoHelper.url_for(null);
+        });
+        bindings.putMember("url", (ProxyExecutable) args -> {
             if (args.length > 0) {
                 return hexoHelper.url_for(args[0].asString());
             }

@@ -16,6 +16,7 @@ public class TemplateResolver {
     }
 
     public String resolve(String relativePath) {
+        System.out.println("relativePath = " + relativePath);
         String currentDir = directoryStack.peek();
         String result;
 
@@ -33,16 +34,19 @@ public class TemplateResolver {
     }
 
     public void pushPath(String filePath) {
+        String dirToPush;
         if (filePath.startsWith(CLASSPATH_PREFIX)) {
+            // 如果是 classpath，截取最后一个斜杠之前的部分
             int lastSlash = filePath.lastIndexOf('/');
-            if (lastSlash > CLASSPATH_PREFIX.length()) {
-                directoryStack.push(filePath.substring(0, lastSlash));
-            } else {
-                directoryStack.push(CLASSPATH_PREFIX + "/");
-            }
+            dirToPush = (lastSlash > CLASSPATH_PREFIX.length())
+                    ? filePath.substring(0, lastSlash)
+                    : CLASSPATH_PREFIX;
         } else {
-            directoryStack.push(Paths.get(filePath).getParent().toString());
+            // 如果是普通文件，取其 Parent
+            Path p = Paths.get(filePath).getParent();
+            dirToPush = (p != null) ? p.toString() : baseDir;
         }
+        directoryStack.push(dirToPush); // 确保进栈的是目录！
     }
 
     public void popPath() {
