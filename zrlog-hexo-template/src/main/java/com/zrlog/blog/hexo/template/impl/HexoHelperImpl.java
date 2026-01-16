@@ -37,9 +37,9 @@ public class HexoHelperImpl {
             // 3. 递归渲染
             // 注意：这里需要确保 render 方法不会清空之前的全局 helpers
             String renderPath = absolutePath.substring((engine.getTemplate() + "/").length());
-            System.out.println("renderPath = " + renderPath);
+            //System.out.println("renderPath = " + renderPath);
             String testPath = engine.getTemplate() + "/" + path + (path.contains(engine.getTemplateExt()) ? "" : engine.getTemplateExt());
-            System.out.println("testPath = " + testPath);
+            //System.out.println("testPath = " + testPath);
             //为绝对路径，不关心路径
             if (ZrLogResourceLoader.exists(testPath)) {
                 return engine.doRender(path, data);

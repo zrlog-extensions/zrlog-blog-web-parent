@@ -121,11 +121,14 @@ public abstract class HexoObjectBox {
             if (scriptPath.contains("/generators/")) {
                 continue;
             }
+            if (scriptPath.contains("/events/")) {
+                continue;
+            }
             String code = ZrLogResourceLoader.read(scriptPath);
             if (code.contains("register('") || code.contains("register(\"")) {
                 try {
                     context.eval("js", "{" + code + "}");
-                    LOGGER.info("Exec " + scriptPath + " success");
+                    //LOGGER.info("Exec " + scriptPath + " success");
                 } catch (Exception e) {
                     LOGGER.severe("Exec " + scriptPath + " error " + e.getMessage());
                 }
