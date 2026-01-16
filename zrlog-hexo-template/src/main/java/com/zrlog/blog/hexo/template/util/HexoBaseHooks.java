@@ -1,6 +1,5 @@
 package com.zrlog.blog.hexo.template.util;
 
-import com.hibegin.common.util.LoggerUtil;
 import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
 import com.zrlog.blog.hexo.template.impl.HexoHelperImpl;
@@ -36,10 +35,12 @@ public class HexoBaseHooks implements HexoHooks {
         bindings.putMember("partial", (ProxyExecutable) args -> {
             String path = args[0].asString();
             try {
-                Map<String, Object> locals = (args.length > 1 && Objects.nonNull(args[1])) ? args[1].as(Map.class) : hexoTemplate.getLocals();
+                Map<String, Object> locals = (args.length > 1 && !args[1].isNull()) ? args[1].as(Map.class) : hexoTemplate.getLocals();
                 return hexoHelper.partial(path, locals);
             } catch (Exception e) {
-                return LoggerUtil.recordStackTraceMsg(e);
+                /*e.fillInStackTrace();
+                throw new RuntimeException(e);*/
+                return e.getMessage();
             }
         });
         bindings.putMember("_p", (ProxyExecutable) args -> {
@@ -53,7 +54,7 @@ public class HexoBaseHooks implements HexoHooks {
                 Map<String, Object> locals = args.length > 1 ? args[1].as(Map.class) : hexoTemplate.getLocals();
                 return hexoHelper.partial("_partial/" + path, locals);
             } catch (Exception e) {
-                return LoggerUtil.recordStackTraceMsg(e);
+                throw new RuntimeException(e);
             }
         });
         bindings.putMember("__", (ProxyExecutable) args -> {
@@ -251,6 +252,22 @@ public class HexoBaseHooks implements HexoHooks {
                 sb.add(arg.asString());
             }
             return appendCssTag(sb.toString());
+        });
+
+        bindings.putMember("titlecase", (ProxyExecutable) args -> {
+            return args[0];
+        });
+
+        bindings.putMember("list_archives", (ProxyExecutable) args -> {
+            return "list_archives";
+        });
+
+        bindings.putMember("list_categories", (ProxyExecutable) args -> {
+            return "list_categories";
+        });
+
+        bindings.putMember("list_tags", (ProxyExecutable) args -> {
+            return "list_tags";
         });
     }
 

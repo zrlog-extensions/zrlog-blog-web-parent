@@ -16,7 +16,6 @@ public class TemplateResolver {
     }
 
     public String resolve(String relativePath) {
-        System.out.println("relativePath = " + relativePath);
         String currentDir = directoryStack.peek();
         String result;
 
@@ -30,7 +29,7 @@ public class TemplateResolver {
             // 文件系统逻辑
             result = Paths.get(currentDir).resolve(relativePath).normalize().toString();
         }
-        return result.replace(".ejs", "");
+        return result;
     }
 
     public void pushPath(String filePath) {

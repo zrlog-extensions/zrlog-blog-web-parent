@@ -22,8 +22,8 @@ public class InjectionStorage {
         if (Objects.isNull(themeDir)) {
             return;
         }
-        String rPath = path.substring(this.themeDir.length()).replace(".ejs", "").replace("/layout", "");
-        //System.out.println("成功捕获注入: [" + slot + "] -> " + rPath);
+        String rPath = path.substring(this.themeDir.length()).replace("/layout/", "");
+        System.out.println("成功捕获注入: [" + slot + "] -> " + rPath);
         injectionPoints.computeIfAbsent(slot, k -> new ArrayList<>()).add(rPath);
         //System.out.println("injectionPoints = " + injectionPoints);
     }

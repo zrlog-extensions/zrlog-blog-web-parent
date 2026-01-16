@@ -28,6 +28,7 @@ public class HexoTemplate implements ZrLogTemplate {
     private final Value jsBindings;
     private final Value ejs;
     private BasePageInfo pageInfo;
+    private final String templateExt = ".ejs";
 
     public HexoTemplate() {
         this.context = Context.newBuilder("js")
@@ -101,7 +102,7 @@ public class HexoTemplate implements ZrLogTemplate {
             jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
         }
         Object jsFriendlyLocals = GraalDataUtils.makeJsFriendly(locals);
-        String path = (template + page + ".ejs").replaceAll("//", "/");
+        String path = (template + "/" + page + (page.endsWith(templateExt) ? "" : templateExt)).replaceAll("//", "/");
         Value options = context.eval("js", "({ async: false, cache: false })");
         String read = ZrLogResourceLoader.read(path);
         Value result = ejs.getMember("render").execute(read, jsFriendlyLocals, options);
@@ -109,7 +110,7 @@ public class HexoTemplate implements ZrLogTemplate {
     }
 
     private void setup() {
-        this.template = (rootPath + "/layout").replace("//", "/");
+        this.template = (rootPath + "/layout");
     }
 
     @Override
@@ -120,5 +121,9 @@ public class HexoTemplate implements ZrLogTemplate {
 
     public Context getContext() {
         return context;
+    }
+
+    public String getTemplateExt() {
+        return templateExt;
     }
 }

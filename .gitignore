@@ -14,3 +14,6 @@ static/
 .DS_Store
 !zrlog-hexo-template/src/main/resources/include/templates/hexo-theme-fluid/scripts/events/lib
 temp.txt
+zrlog
+zrlog-hexo-template/src/main/resources/include/templates/*
+!zrlog-hexo-template/src/main/resources/include/templates/hexo-theme-fluid

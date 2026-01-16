@@ -1,6 +1,7 @@
 package com.zrlog.blog.hexo.template.impl;
 
 import com.zrlog.blog.hexo.template.HexoTemplate;
+import com.zrlog.blog.hexo.template.ZrLogResourceLoader;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
@@ -25,6 +26,7 @@ public class HexoHelperImpl {
     // 对应 EJS 中的 partial(path, locals)
     public String partial(String path, Map<String, Object> data) throws Exception {
         String absolutePath = resolver.resolve(path);
+        //System.out.println("absolutePath = " + absolutePath);
         resolver.pushPath(absolutePath);
         // 注意：Hexo 的 partial 路径通常是相对于当前模板目录的
         try {
@@ -34,7 +36,16 @@ public class HexoHelperImpl {
             }
             // 3. 递归渲染
             // 注意：这里需要确保 render 方法不会清空之前的全局 helpers
-            return engine.doRender(path, data);
+            String renderPath = absolutePath.substring((engine.getTemplate() + "/").length());
+            System.out.println("renderPath = " + renderPath);
+            String testPath = engine.getTemplate() + "/" + path + (path.contains(engine.getTemplateExt()) ? "" : engine.getTemplateExt());
+            System.out.println("testPath = " + testPath);
+            //为绝对路径，不关心路径
+            if (ZrLogResourceLoader.exists(testPath)) {
+                return engine.doRender(path, data);
+            } else {
+                return engine.doRender(renderPath, data);
+            }
         } finally {
             // 3. 必须出栈，否则路径上下文会乱
             resolver.popPath();

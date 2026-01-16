@@ -52,7 +52,7 @@ public class ZrLogTemplateRender implements TemplateRender {
         } else {
             throw new NotImplementException();
         }
-        if (TemplateInfoHelper.isDefaultTemplate(templateVO.getTemplate())) {
+        if (templateVO.isClasspathTemplate()) {
             template.initClassTemplate(pageInfo.getTemplate());
         } else {
             File path = PathUtil.getStaticFile(pageInfo.getTemplate());
