@@ -1,13 +1,17 @@
 package com.zrlog.blog.hexo.template.fluid;
 
+import com.hibegin.common.util.EnvKit;
+import com.hibegin.common.util.LoggerUtil;
 import org.graalvm.polyglot.HostAccess;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class InjectionStorage {
+    private static final Logger LOGGER = LoggerUtil.getLogger(InjectionStorage.class);
     private final Map<String, List<String>> injectionPoints;
     private final String themeDir;
 
@@ -23,9 +27,10 @@ public class InjectionStorage {
             return;
         }
         String rPath = path.substring(this.themeDir.length()).replace("/layout/", "");
-        System.out.println("成功捕获注入: [" + slot + "] -> " + rPath);
+        if (EnvKit.isDevMode()) {
+            LOGGER.info("成功捕获注入: [" + slot + "] -> " + rPath);
+        }
         injectionPoints.computeIfAbsent(slot, k -> new ArrayList<>()).add(rPath);
-        //System.out.println("injectionPoints = " + injectionPoints);
     }
 
     public List<String> get(String pointName) {

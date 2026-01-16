@@ -149,7 +149,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
      */
     private Value createInjectsProxy(Context context) {
         // 这是一个“万能插槽”处理器，处理诸如 injects.header.file(...) 的调用
-        Value handler = context.eval("js", "(function(storage) {" +
+        return context.eval("js", "(function(storage) {" +
                 "  return new Proxy({}, {" +
                 "    get: function(target, slot) {" +
                 "      return {" +
@@ -160,6 +160,5 @@ public class FluidHexoObjectBox extends HexoObjectBox {
                 "    }" +
                 "  });" +
                 "})").execute(injectionStorage);
-        return handler;
     }
 }
