@@ -1,83 +1,149 @@
 package com.zrlog.blog.hexo.template.fluid;
 
 import com.zrlog.blog.hexo.template.HexoObjectBox;
+import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.hexo.template.InjectionStorage;
-import com.zrlog.blog.hexo.template.util.ResourceScanner;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
-import javax.script.Bindings;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class FluidHexoObjectBox implements HexoObjectBox {
+public class FluidHexoObjectBox extends HexoObjectBox {
 
     // 用于存放注入的模板路径：SlotName -> List<FilePath>
     private final Map<String, List<String>> injectionPoints = new ConcurrentHashMap<>();
-    private final Map<String, Object> themeConfig;
-    private final String themeDir;
+
 
     public FluidHexoObjectBox(Map<String, Object> themeConfig,
-                              String themeDir) {
-        this.themeConfig = themeConfig;
-        this.themeDir = themeDir;
+                              String themeDir,
+                              HexoTemplate hexoTemplate) {
+        super(themeConfig, themeDir, hexoTemplate);
     }
 
     @Override
-    public void setup(Context context) {
-        // 1. 模拟 Node.js 环境的基础工具 (path.join)
-        context.eval("js", "var path = { join: function() { " +
-                "return Array.from(arguments).join('/').replace(/\\/+/g, '/'); " +
-                "} };");
+    protected boolean filterRegister(String name, Value[] values) {
+        if (name.equals("theme_inject")) {
+            Value callback = values[1];
+            // 关键：当脚本运行回调时，传入我们构造的 injects 代理对象
+            callback.execute(createInjectsProxy(context));
+            return true;
+        }
 
-        // 2. 创建并注入 hexo 全局模型
-        Value bindings = context.getBindings("js");
-        Value hexo = context.eval("js", "({})");
-        hexo.putMember("theme_dir", themeDir);
+        return false;
+    }
 
-        // 注入配置
-        Value theme = context.eval("js", "({})");
-        theme.putMember("config", themeConfig);
-        hexo.putMember("theme", theme);
+    @Override
+    protected boolean helperRegister(String name, Value[] values) {
+        switch (name) {
+            case "inject_point" -> {
+                bindings.putMember(name, (ProxyExecutable) args -> {
+                    if (args.length == 0) return "";
+                    String pointName = args[0].asString();
 
-        // 3. 构建注入逻辑的核心 (filter.register)
-        Value extend = context.eval("js", "({})");
-        Value filter = context.eval("js", "({})");
+                    // 1. 从之前 setup 阶段填充的 injectionPoints Map 中获取注册的文件路径列表
+                    // 这里的 injectionPoints 是你存储 List<String> 路径的那个全局 Map
+                    List<String> filePaths = injectionPoints.get(pointName);
 
-        filter.putMember("register", (ProxyExecutable) args -> {
-            String type = args[0].asString();
-            if ("theme_inject".equals(type)) {
-                Value callback = args[1];
-                // 关键：当脚本运行回调时，传入我们构造的 injects 代理对象
-                callback.execute(createInjectsProxy(context));
-            }
-            return null;
-        });
-
-        extend.putMember("filter", filter);
-        hexo.putMember("extend", extend);
-        bindings.putMember("hexo", hexo);
-
-        // 4. 扫描并执行主题 scripts 目录下的所有脚本
-        try {
-            ResourceScanner scanner = new ResourceScanner(themeDir);
-            // 注意：这里扫描 scripts 目录，让 JS 脚本自己跑
-            List<String> scripts = scanner.listFiles("scripts/");
-            for (String scriptPath : scripts) {
-                String code = readText(scriptPath);
-                if (code.contains("register('theme_inject")) {
-                    try {
-                        context.eval("js", code.replace("const path = require('path');", ""));
-                    } catch (Exception e) {
-                        System.err.println("跳过执行脚本加载: " + scriptPath + e.getMessage());
+                    if (filePaths == null || filePaths.isEmpty()) {
+                        return "";
                     }
+
+                    StringBuilder htmlResult = new StringBuilder();
+                    for (String filePath : filePaths) {
+                        String renderedContent = hexoTemplate.doRender(filePath, hexoTemplate.getLocals());
+                        htmlResult.append(renderedContent);
+                    }
+
+                    return htmlResult.toString();
+                });
+                return true;
+            }
+            case "js_ex" -> {
+                jsEx();
+                return true;
+            }
+            case "css_ex" -> {
+                cssEx();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void jsEx() {
+        bindings.putMember("js_ex", (ProxyExecutable) args -> {
+            if (args.length == 0) return "";
+
+            // 1. 获取脚本路径 (例如: /js/main.js)
+            String src = args[0].asString();
+
+            // 2. 处理第二个参数 (属性对象，例如 { async: true, defer: true })
+            StringBuilder attributes = new StringBuilder();
+
+            if (args.length > 1) {
+                // 简单的属性拼接逻辑
+                Value options = args[1];
+                if (options.hasMember("async") && options.getMember("async").asBoolean()) {
+                    attributes.append(" async");
+                }
+                if (options.hasMember("defer") && options.getMember("defer").asBoolean()) {
+                    attributes.append(" defer");
                 }
             }
-        } catch (Exception e) {
-            System.err.println("跳过脚本加载: " + e.getMessage());
-        }
+            // 3. 返回标准的 HTML 标签
+            if (src.startsWith("http")) {
+                return String.format("<script src=\"%s\"%s></script>", src + "/" + args[1], attributes);
+
+            }
+            return String.format("<script src=\"%s\"%s></script>", hexoTemplate.getPageInfo().getTemplateUrl() + "/source" + src + "/" + args[1], attributes);
+
+        });
+    }
+
+    private void cssEx() {
+        bindings.putMember("css_ex", (ProxyExecutable) args -> {
+            if (args.length == 0 || args[0].isNull()) return "";
+
+            // 1. 获取 CSS 路径 (例如: /css/main.css)
+            String href = args[0].asString();
+
+            if (!href.startsWith("http") && !href.startsWith("//")) {
+                href = hexoTemplate.getPageInfo().getTemplateUrl() + "/source" + href;
+            }
+            // 2. 初始化属性字符串
+            StringBuilder attrs = new StringBuilder();
+
+            // 3. 处理第二个可选参数 (配置对象，例如 { media: 'print' })
+            if (args.length > 1) {
+                Value options = args[1];
+                href = href + (href.endsWith("/") ? "" : "/") + args[1];
+
+                // 使用 isMemberReadable 安全读取属性
+                if (options.hasMember("media")) {
+                    String media = options.getMember("media").asString();
+                    attrs.append(String.format(" media=\"%s\"", media));
+                }
+
+                if (options.hasMember("id")) {
+                    attrs.append(String.format(" id=\"%s\"", options.getMember("id").asString()));
+                }
+
+                // 甚至可以处理自定义的 rel 属性
+                if (options.hasMember("rel")) {
+                    attrs.append(String.format(" rel=\"%s\"", options.getMember("rel").asString()));
+                } else {
+                    attrs.append(" rel=\"stylesheet\"");
+                }
+            } else {
+                attrs.append(" rel=\"stylesheet\"");
+            }
+
+            // 4. 返回完整的 HTML 标签
+            return String.format("<link %s href=\"%s\"/>", attrs.toString().trim(), href);
+        });
     }
 
     /**
@@ -97,18 +163,5 @@ public class FluidHexoObjectBox implements HexoObjectBox {
                 "  });" +
                 "})").execute(new InjectionStorage(injectionPoints, themeDir));
         return handler;
-    }
-
-    // 辅助方法：读取 Classpath 文件内容
-    private String readText(String path) throws java.io.IOException {
-        try (var is = getClass().getClassLoader().getResourceAsStream(path)) {
-            if (is == null) return "";
-            return new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-        }
-    }
-
-    @Override
-    public List<String> getInjectionPoints(String partal) {
-        return injectionPoints.get(partal);
     }
 }

@@ -45,6 +45,7 @@ public class HexoPageConverter {
             page.put("next_post", HexoConvertUtils.getNextLog((ArticleDetailPageVO) pageInfo));
             page.put("prev_post", HexoConvertUtils.getPrevLog((ArticleDetailPageVO) pageInfo));
             page.put("comment", pageInfo.getWebs().getComment_plugin_name());
+            page.put("permalink", ((ArticleDetailPageVO) pageInfo).getLog().getNoSchemeUrl());
             if (Objects.nonNull(log.getComments())) {
                 page.put("comments", log.getComments());
             } else {
@@ -79,6 +80,8 @@ public class HexoPageConverter {
                 }
             }
             page.put("posts", list);
+            page.put("categories", new ArrayList<>());
+            page.put("tags", new ArrayList<>());
             if (Objects.nonNull(pageInfo.getWebs())) {
                 page.put("subtitle", pageInfo.getWebs().getSecond_title());
             }
@@ -121,10 +124,13 @@ public class HexoPageConverter {
         pageInfo.getTheme().put("language", pageInfo.getLang());
         pageInfo.getTheme().put("title", pageInfo.getWebs().getTitle());
         map.put("config", pageInfo.getTheme());
+        pageInfo.getTheme().put("root", pageInfo.getBaseWithHostPath());
         theme.put("apple_touch_icon", "/favicon.ico");
         theme.put("favicon", "/favicon.png");
         map.put("theme", theme);
+        map.put("site", page);
         map.put("page", page);
+        map.put("locals", theme);
 
         page.put("banner_img", "https://fluid.s3.bitiful.net/bg/vdysjx.png?w=1920&fmt=webp");
         page.put("description", pageInfo.getDescription());

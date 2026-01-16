@@ -60,6 +60,17 @@
         return Array_forEach.call(Array.from(this), fn);
     };
 
+    if (!Array.prototype.limit) {
+        Array.prototype.limit = function(n) {
+            // 确保 n 是数字
+            const limitNum = parseInt(n, 10);
+            if (isNaN(limitNum)) return this;
+
+            // 使用 slice 从索引 0 开始截取到 n
+            return this.slice(0, limitNum);
+        };
+    }
+
     Array.prototype.findOne = function(query) {
         const res = this.find(query);
         return (res && res.length > 0) ? res[0] : null;

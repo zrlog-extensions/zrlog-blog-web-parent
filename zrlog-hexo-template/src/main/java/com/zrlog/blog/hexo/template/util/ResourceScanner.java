@@ -17,32 +17,29 @@ public class ResourceScanner {
     public List<String> listFiles(String childPath) {
         List<String> scriptFiles = new ArrayList<>();
         if (themeRootPath.startsWith("classpath:")) {
-            scriptFiles.addAll(BlogResourceUtils.searchResources(themeRootPath.replaceAll("classpath:/", "") + "/" + childPath).stream().filter(e -> e.endsWith(".js")).toList());
+            scriptFiles.addAll(BlogResourceUtils.searchResources(themeRootPath.replaceAll("classpath:/", "") + "/" + childPath).stream().filter(e -> e.endsWith(".js")).map(e -> "classpath:/" + e).toList());
         } else {
             // IDE 环境：直接操作文件系统
-            File configFile = new File(themeRootPath);
-            File scriptsDir = new File(configFile.getParentFile(), childPath);
+            File scriptsDir = new File(themeRootPath, childPath);
             if (scriptsDir.exists() && scriptsDir.isDirectory()) {
-                scanLocalDir(scriptsDir, themeRootPath, scriptFiles);
+                scanLocalDir(scriptsDir, scriptFiles);
             }
         }
 
         return scriptFiles;
     }
 
-    private void scanLocalDir(File dir, String relPath, List<String> result) {
+    private void scanLocalDir(File dir, List<String> result) {
         File[] files = dir.listFiles();
         if (files != null) {
             for (File f : files) {
                 // 构造当前文件的相对路径，用于后续 Classpath 加载
-                String currentRelPath = relPath + "/" + f.getName();
-
                 if (f.isDirectory()) {
                     // 【核心：递归调用】进入子文件夹
-                    scanLocalDir(f, currentRelPath, result);
+                    scanLocalDir(f, result);
                 } else if (f.isFile() && f.getName().endsWith(".js")) {
                     // 如果是 JS 文件，加入结果集
-                    result.add(currentRelPath);
+                    result.add(f.toString());
                 }
             }
         }

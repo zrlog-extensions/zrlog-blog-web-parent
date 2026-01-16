@@ -3,7 +3,6 @@ package com.zrlog.blog.hexo.template;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
 import com.zrlog.blog.hexo.template.fluid.FluidHexoObjectBox;
-import com.zrlog.blog.hexo.template.fluid.FluidHooks;
 import com.zrlog.blog.hexo.template.util.GraalDataUtils;
 import com.zrlog.blog.hexo.template.util.HexoBaseHooks;
 import com.zrlog.blog.hexo.template.util.YamlLoader;
@@ -28,6 +27,7 @@ public class HexoTemplate implements ZrLogTemplate {
     private HexoObjectBox hexoObjectBox;
     private final Value jsBindings;
     private final Value ejs;
+    private BasePageInfo pageInfo;
 
     public HexoTemplate() {
         this.context = Context.newBuilder("js")
@@ -35,8 +35,10 @@ public class HexoTemplate implements ZrLogTemplate {
                 .allowHostClassLookup(s -> true)
                 .build();
         try {
+            context.eval("js", "var global = globalThis;");
             context.eval("js", new String(PathUtil.getConfInputStream("hexo/scripts/ejs.min.js").readAllBytes()));
             context.eval("js", new String(PathUtil.getConfInputStream("hexo/scripts/hooks.js").readAllBytes()));
+            context.eval("js", new String(PathUtil.getConfInputStream("hexo/scripts/require.js").readAllBytes()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -65,6 +67,10 @@ public class HexoTemplate implements ZrLogTemplate {
         return hexoObjectBox;
     }
 
+    public BasePageInfo getPageInfo() {
+        return pageInfo;
+    }
+
     @Override
     public void init(File path) throws Exception {
         this.rootPath = path.getAbsolutePath();
@@ -73,6 +79,7 @@ public class HexoTemplate implements ZrLogTemplate {
 
     @Override
     public String render(String page, BasePageInfo pageInfo) throws Exception {
+        this.pageInfo = pageInfo;
         Map<String, Object> configMap = pageInfo.getInit().getTemplateConfigCacheMap().get(pageInfo.getTemplate());
         Map<String, Object> config;
         if (Objects.nonNull(configMap) && configMap.containsKey(Constants.TEMPLATE_CONFIG_STR_KEY)) {
@@ -81,19 +88,18 @@ public class HexoTemplate implements ZrLogTemplate {
             config = YamlLoader.loadConfig(ZrLogResourceLoader.read(rootPath + "/" + TemplateType.NODE_JS.getConfigFile()));
         }
         pageInfo.setTheme(config);
-        this.hexoObjectBox = new FluidHexoObjectBox(config, rootPath);
-        this.hexoObjectBox.setup(context);
+        this.hexoObjectBox = new FluidHexoObjectBox(config, rootPath, this);
+        this.hexoObjectBox.setup();
         new HexoBaseHooks(pageInfo, new TemplateResolver(template), this).inject(jsBindings);
-        new FluidHooks(pageInfo).inject(jsBindings);
         this.locals = HexoPageConverter.toHexoMap(pageInfo, page);
-        for (Map.Entry<String, Object> entry : locals.entrySet()) {
-            jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
-        }
         this.locals.put("body", doRender((String) YamlLoader.getNestedValue(locals, "page.layout"), locals));
         return doRender("/layout", locals);
     }
 
-    public String doRender(String page, Object locals) {
+    public String doRender(String page, Map<String, Object> locals) {
+        for (Map.Entry<String, Object> entry : locals.entrySet()) {
+            jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
+        }
         Object jsFriendlyLocals = GraalDataUtils.makeJsFriendly(locals);
         String path = (template + page + ".ejs").replaceAll("//", "/");
         Value options = context.eval("js", "({ async: false, cache: false })");
