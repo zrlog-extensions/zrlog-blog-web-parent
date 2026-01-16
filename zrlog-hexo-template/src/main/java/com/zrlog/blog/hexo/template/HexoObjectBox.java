@@ -39,6 +39,8 @@ public abstract class HexoObjectBox {
 
     protected abstract boolean helperRegister(String name, Value[] values);
 
+    protected abstract void fillTheme();
+
     public void setup() throws IOException {
         Value hexo = context.eval("js", "({})");
         hexo.putMember("theme_dir", themeDir);
@@ -105,6 +107,7 @@ public abstract class HexoObjectBox {
 
         new HexoBaseHooks(new TemplateResolver(hexoTemplate.getTemplate()), hexoTemplate).inject(bindings);
         scanScripts();
+        fillTheme();
     }
 
     private void scanScripts() throws IOException {

@@ -82,8 +82,8 @@ public class HexoTemplate implements ZrLogTemplate {
             config = YamlLoader.loadConfig(ZrLogResourceLoader.read(rootPath + "/" + TemplateType.NODE_JS.getConfigFile()));
         }
         pageInfo.setTheme(config);
-        new FluidHexoObjectBox(config, rootPath, this).setup();
         this.locals = HexoPageConverter.toHexoMap(pageInfo, page);
+        new FluidHexoObjectBox(config, rootPath, this).setup();
         this.locals.put("body", doRender((String) YamlLoader.getNestedValue(locals, "page.layout"), locals));
         return doRender("/layout", locals);
     }
