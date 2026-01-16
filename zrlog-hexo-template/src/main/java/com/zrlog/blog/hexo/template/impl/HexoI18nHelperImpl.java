@@ -4,10 +4,11 @@ import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.hexo.template.ZrLogResourceLoader;
 import com.zrlog.blog.hexo.template.util.YamlLoader;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
 
 import java.util.*;
 
-public class HexoI18nHelperImpl {
+public class HexoI18nHelperImpl implements ProxyExecutable {
 
     private final Map<String, Object> languagesMap = new TreeMap<>();
 
@@ -25,19 +26,16 @@ public class HexoI18nHelperImpl {
         return Arrays.asList(lang, lang.replace("_", "-"), lang.split("_")[0]);
     }
 
-    /**
-     * 对应 Hexo 的 __() 方法
-     *
-     * @param path 翻译的键值，如 "menu.home"
-     * @param args 动态替换参数 (可选)
-     */
-    public String i18n(String path, Value[] args) {
+    @Override
+    public Object execute(Value... args) {
+        String path = args[0].toString();
         Object nestedValue = YamlLoader.getNestedValue(languagesMap, path);
         if (Objects.isNull(nestedValue)) {
             return path;
         }
         try {
-            return String.format(nestedValue.toString(), Arrays.stream(args).map(e -> e.as(Object.class)).toArray());
+            List<Value> objects = new ArrayList<>(Arrays.asList(args).subList(1, args.length));
+            return String.format(nestedValue.toString(), objects.stream().map(e -> e.as(Object.class)).toArray());
         } catch (Exception e) {
             return e.getMessage();
         }

@@ -4,7 +4,6 @@ import com.hibegin.common.util.EnvKit;
 import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
-import com.zrlog.blog.hexo.template.impl.ScriptProvider;
 import com.zrlog.blog.hexo.template.util.HexoBaseHooks;
 import com.zrlog.blog.hexo.template.util.ResourceScanner;
 import org.graalvm.polyglot.Context;

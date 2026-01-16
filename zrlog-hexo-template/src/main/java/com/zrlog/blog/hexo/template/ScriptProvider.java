@@ -1,4 +1,4 @@
-package com.zrlog.blog.hexo.template.impl;
+package com.zrlog.blog.hexo.template;
 
 import org.graalvm.polyglot.HostAccess;
 

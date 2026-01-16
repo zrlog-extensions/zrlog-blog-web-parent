@@ -15,7 +15,10 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.Objects;
+import java.util.StringJoiner;
 
 public class HexoBaseHooks {
 
@@ -56,15 +59,7 @@ public class HexoBaseHooks {
                 throw new RuntimeException(e);
             }
         });
-        bindings.putMember("__", (ProxyExecutable) args -> {
-            String key = args[0].asString();
-            try {
-                List<Value> objects = new ArrayList<>(Arrays.asList(args).subList(1, args.length));
-                return new HexoI18nHelperImpl(hexoTemplate, basePageInfo.getLocal()).i18n(key, objects.toArray(new Value[0]));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        bindings.putMember("__", new HexoI18nHelperImpl(hexoTemplate, basePageInfo.getLocal()));
 
         if (basePageInfo instanceof ArticleListPageVO) {
             bindings.putMember("paginator", new HexoPaginator(((ArticleListPageVO) basePageInfo).getPager()));
