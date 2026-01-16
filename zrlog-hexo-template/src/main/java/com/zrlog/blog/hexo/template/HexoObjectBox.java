@@ -1,13 +1,17 @@
 package com.zrlog.blog.hexo.template;
 
+import com.hibegin.common.util.EnvKit;
 import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.http.server.util.PathUtil;
+import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
 import com.zrlog.blog.hexo.template.impl.ScriptProvider;
+import com.zrlog.blog.hexo.template.util.HexoBaseHooks;
 import com.zrlog.blog.hexo.template.util.ResourceScanner;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -35,17 +39,14 @@ public abstract class HexoObjectBox {
 
     protected abstract boolean helperRegister(String name, Value[] values);
 
-    public void setup() {
-        // 2. 创建并注入 hexo 全局模型
+    public void setup() throws IOException {
         Value hexo = context.eval("js", "({})");
         hexo.putMember("theme_dir", themeDir);
 
-        // 注入配置
         Value theme = context.eval("js", "({})");
         theme.putMember("config", themeConfig);
         hexo.putMember("theme", theme);
 
-        // 3. 构建注入逻辑的核心 (filter.register)
         Value extend = context.eval("js", "({})");
         Value filter = context.eval("js", "({})");
         Value helper = context.eval("js", "({})");
@@ -61,7 +62,9 @@ public abstract class HexoObjectBox {
             Value callback = args[1];
             if (!filterRegister(type, args)) {
                 bindings.putMember(type, callback);
-                System.out.println("inject filter = " + type);
+                if (EnvKit.isDevMode()) {
+                    LOGGER.info("inject filter = " + type);
+                }
             }
             return null;
         });
@@ -70,7 +73,9 @@ public abstract class HexoObjectBox {
             Value callback = args[1];
             if (!helperRegister(type, args)) {
                 bindings.putMember(type, callback);
-                System.out.println("inject helper = " + type);
+                if (EnvKit.isDevMode()) {
+                    LOGGER.info("inject helper = " + type);
+                }
             }
 
             return null;
@@ -98,33 +103,33 @@ public abstract class HexoObjectBox {
         bindings.putMember("hexo", hexo);
         bindings.putMember("ctx", hexo);
 
-        // 4. 扫描并执行主题 scripts 目录下的所有脚本
-        try {
-            ResourceScanner scanner = new ResourceScanner(themeDir);
-            List<String> scripts = scanner.listFiles("scripts/");
-            scriptProvider.addBaseScript("path", new String(PathUtil.getConfInputStream("hexo/scripts/path.js").readAllBytes()));
-            scriptProvider.addBaseScript("hexo-util", new String(PathUtil.getConfInputStream("hexo/scripts/hexo-util.js").readAllBytes()));
-            scriptProvider.addBaseScript("url", new String(PathUtil.getConfInputStream("hexo/scripts/url.js").readAllBytes()));
-            scriptProvider.addBaseScript("moize", new String(PathUtil.getConfInputStream("hexo/scripts/moize.js").readAllBytes()));
-            for (String script : scripts) {
-                scriptProvider.addScript(script.substring((themeDir + "/scripts/").length()).replaceAll(".js", ""), ZrLogResourceLoader.read(script));
+        new HexoBaseHooks(new TemplateResolver(hexoTemplate.getTemplate()), hexoTemplate).inject(bindings);
+        scanScripts();
+    }
+
+    private void scanScripts() throws IOException {
+        ResourceScanner scanner = new ResourceScanner(themeDir);
+        List<String> scripts = scanner.listFiles("scripts/");
+        scriptProvider.addBaseScript("path", new String(PathUtil.getConfInputStream("hexo/scripts/path.js").readAllBytes()));
+        scriptProvider.addBaseScript("hexo-util", new String(PathUtil.getConfInputStream("hexo/scripts/hexo-util.js").readAllBytes()));
+        scriptProvider.addBaseScript("url", new String(PathUtil.getConfInputStream("hexo/scripts/url.js").readAllBytes()));
+        //scriptProvider.addBaseScript("moize", new String(PathUtil.getConfInputStream("hexo/scripts/moize.js").readAllBytes()));
+        for (String script : scripts) {
+            scriptProvider.addScript(script.substring((themeDir + "/scripts/").length()).replaceAll(".js", ""), ZrLogResourceLoader.read(script));
+        }
+        for (String scriptPath : scripts) {
+            if (scriptPath.contains("/generators/")) {
+                continue;
             }
-            for (String scriptPath : scripts) {
-                if (scriptPath.contains("/generators/")) {
-                    continue;
-                }
-                String code = ZrLogResourceLoader.read(scriptPath);
-                if (code.contains("register('") || code.contains("register(\"")) {
-                    try {
-                        context.eval("js", "{" + code + "}");
-                        LOGGER.info("Exec " + scriptPath + " success");
-                    } catch (Exception e) {
-                        LOGGER.severe("Exec " + scriptPath + " error " + e.getMessage());
-                    }
+            String code = ZrLogResourceLoader.read(scriptPath);
+            if (code.contains("register('") || code.contains("register(\"")) {
+                try {
+                    context.eval("js", "{" + code + "}");
+                    LOGGER.info("Exec " + scriptPath + " success");
+                } catch (Exception e) {
+                    LOGGER.severe("Exec " + scriptPath + " error " + e.getMessage());
                 }
             }
-        } catch (Exception e) {
-            System.err.println("跳过脚本加载: " + e.getMessage());
         }
     }
 }

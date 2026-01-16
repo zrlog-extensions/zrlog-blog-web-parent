@@ -8,7 +8,7 @@ import com.hibegin.http.server.util.FreeMarkerUtil;
 import com.hibegin.http.server.util.HttpRequestBuilder;
 import com.hibegin.http.server.util.NativeImageUtils;
 import com.hibegin.http.server.util.PathUtil;
-import com.zrlog.blog.hexo.template.InjectionStorage;
+import com.zrlog.blog.hexo.template.fluid.InjectionStorage;
 import com.zrlog.blog.web.BlogWebSetup;
 import com.zrlog.blog.web.template.PagerVO;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;

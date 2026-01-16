@@ -2,7 +2,6 @@ package com.zrlog.blog.hexo.template.fluid;
 
 import com.zrlog.blog.hexo.template.HexoObjectBox;
 import com.zrlog.blog.hexo.template.HexoTemplate;
-import com.zrlog.blog.hexo.template.InjectionStorage;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -13,14 +12,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FluidHexoObjectBox extends HexoObjectBox {
 
-    // 用于存放注入的模板路径：SlotName -> List<FilePath>
-    private final Map<String, List<String>> injectionPoints = new ConcurrentHashMap<>();
-
+    private final InjectionStorage injectionStorage;
 
     public FluidHexoObjectBox(Map<String, Object> themeConfig,
                               String themeDir,
                               HexoTemplate hexoTemplate) {
         super(themeConfig, themeDir, hexoTemplate);
+        this.injectionStorage = new InjectionStorage(new ConcurrentHashMap<>(), themeDir);
     }
 
     @Override
@@ -45,7 +43,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
                     // 1. 从之前 setup 阶段填充的 injectionPoints Map 中获取注册的文件路径列表
                     // 这里的 injectionPoints 是你存储 List<String> 路径的那个全局 Map
-                    List<String> filePaths = injectionPoints.get(pointName);
+                    List<String> filePaths = injectionStorage.get(pointName);
 
                     if (filePaths == null || filePaths.isEmpty()) {
                         return "";
@@ -161,7 +159,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
                 "      };" +
                 "    }" +
                 "  });" +
-                "})").execute(new InjectionStorage(injectionPoints, themeDir));
+                "})").execute(injectionStorage);
         return handler;
     }
 }

@@ -1,10 +1,8 @@
 package com.zrlog.blog.hexo.template;
 
 import com.hibegin.http.server.util.PathUtil;
-import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
 import com.zrlog.blog.hexo.template.fluid.FluidHexoObjectBox;
 import com.zrlog.blog.hexo.template.util.GraalDataUtils;
-import com.zrlog.blog.hexo.template.util.HexoBaseHooks;
 import com.zrlog.blog.hexo.template.util.YamlLoader;
 import com.zrlog.blog.web.template.ZrLogTemplate;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
@@ -24,7 +22,6 @@ public class HexoTemplate implements ZrLogTemplate {
     private String template;
     private String rootPath;
     private Map<String, Object> locals;
-    private HexoObjectBox hexoObjectBox;
     private final Value jsBindings;
     private final Value ejs;
     private BasePageInfo pageInfo;
@@ -64,10 +61,6 @@ public class HexoTemplate implements ZrLogTemplate {
         return rootPath;
     }
 
-    public HexoObjectBox getHexoObjectBox() {
-        return hexoObjectBox;
-    }
-
     public BasePageInfo getPageInfo() {
         return pageInfo;
     }
@@ -89,9 +82,7 @@ public class HexoTemplate implements ZrLogTemplate {
             config = YamlLoader.loadConfig(ZrLogResourceLoader.read(rootPath + "/" + TemplateType.NODE_JS.getConfigFile()));
         }
         pageInfo.setTheme(config);
-        this.hexoObjectBox = new FluidHexoObjectBox(config, rootPath, this);
-        this.hexoObjectBox.setup();
-        new HexoBaseHooks(pageInfo, new TemplateResolver(template), this).inject(jsBindings);
+        new FluidHexoObjectBox(config, rootPath, this).setup();
         this.locals = HexoPageConverter.toHexoMap(pageInfo, page);
         this.locals.put("body", doRender((String) YamlLoader.getNestedValue(locals, "page.layout"), locals));
         return doRender("/layout", locals);

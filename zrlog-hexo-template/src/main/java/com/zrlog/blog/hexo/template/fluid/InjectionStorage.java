@@ -1,4 +1,4 @@
-package com.zrlog.blog.hexo.template;
+package com.zrlog.blog.hexo.template.fluid;
 
 import org.graalvm.polyglot.HostAccess;
 
@@ -26,5 +26,9 @@ public class InjectionStorage {
         System.out.println("成功捕获注入: [" + slot + "] -> " + rPath);
         injectionPoints.computeIfAbsent(slot, k -> new ArrayList<>()).add(rPath);
         //System.out.println("injectionPoints = " + injectionPoints);
+    }
+
+    public List<String> get(String pointName) {
+        return injectionPoints.get(pointName);
     }
 }

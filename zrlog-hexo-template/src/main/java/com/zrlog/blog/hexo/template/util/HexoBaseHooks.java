@@ -16,21 +16,20 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class HexoBaseHooks implements HexoHooks {
+public class HexoBaseHooks {
 
-    private final BasePageInfo basePageInfo;
     private final TemplateResolver templateResolver;
     private final HexoTemplate hexoTemplate;
+    private final BasePageInfo basePageInfo;
 
-    public HexoBaseHooks(BasePageInfo basePageInfo, TemplateResolver templateResolver, HexoTemplate hexoTemplate) {
-        this.basePageInfo = basePageInfo;
+    public HexoBaseHooks(TemplateResolver templateResolver, HexoTemplate hexoTemplate) {
         this.templateResolver = templateResolver;
         this.hexoTemplate = hexoTemplate;
+        this.basePageInfo = hexoTemplate.getPageInfo();
     }
 
-    @Override
     public void inject(Value bindings) {
-        HexoHelperImpl hexoHelper = new HexoHelperImpl(hexoTemplate, templateResolver, basePageInfo);
+        HexoHelperImpl hexoHelper = new HexoHelperImpl(hexoTemplate, templateResolver, hexoTemplate.getPageInfo());
         // 映射 partial
         bindings.putMember("partial", (ProxyExecutable) args -> {
             String path = args[0].asString();
@@ -44,8 +43,7 @@ public class HexoBaseHooks implements HexoHooks {
             }
         });
         bindings.putMember("_p", (ProxyExecutable) args -> {
-            String path = args[0].asString();
-            return path;
+            return args[0].asString();
         });
 
         bindings.putMember("partial_lang", (ProxyExecutable) args -> {
