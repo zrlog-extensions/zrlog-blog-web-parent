@@ -27,6 +27,8 @@ public class HexoPageConverter {
         if (Objects.nonNull(layout)) {
             if (layout.equals("detail")) {
                 page.put("layout", "/post");
+            } else if (layout.equals("archives")) {
+                page.put("layout", "/archive");
             } else {
                 page.put("layout", "/" + layout);
             }

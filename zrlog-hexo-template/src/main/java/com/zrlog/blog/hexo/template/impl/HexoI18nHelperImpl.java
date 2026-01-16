@@ -3,6 +3,7 @@ package com.zrlog.blog.hexo.template.impl;
 import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.hexo.template.ZrLogResourceLoader;
 import com.zrlog.blog.hexo.template.util.YamlLoader;
+import org.graalvm.polyglot.Value;
 
 import java.util.*;
 
@@ -30,11 +31,15 @@ public class HexoI18nHelperImpl {
      * @param path 翻译的键值，如 "menu.home"
      * @param args 动态替换参数 (可选)
      */
-    public String i18n(String path, Object... args) {
+    public String i18n(String path, Value[] args) {
         Object nestedValue = YamlLoader.getNestedValue(languagesMap, path);
         if (Objects.isNull(nestedValue)) {
             return path;
         }
-        return String.format(nestedValue.toString(), args);
+        try {
+            return String.format(nestedValue.toString(), Arrays.stream(args).map(e -> e.as(Object.class)).toArray());
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 }

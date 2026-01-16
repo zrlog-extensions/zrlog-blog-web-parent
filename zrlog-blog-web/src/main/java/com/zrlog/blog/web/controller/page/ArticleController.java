@@ -217,4 +217,10 @@ public class ArticleController extends Controller {
         return "links";
     }
 
+    @RequestMethod
+    public String archives() {
+        index();
+        return "archives";
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.zrlog.blog.hexo.template.util;
 
+import com.hibegin.common.util.LoggerUtil;
 import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.hexo.template.ejs.TemplateResolver;
 import com.zrlog.blog.hexo.template.impl.HexoHelperImpl;
@@ -33,13 +34,13 @@ public class HexoBaseHooks {
         // 映射 partial
         bindings.putMember("partial", (ProxyExecutable) args -> {
             String path = args[0].asString();
+            Map<String, Object> locals = (args.length > 1 && !args[1].isNull()) ? args[1].as(Map.class) : hexoTemplate.getLocals();
             try {
-                Map<String, Object> locals = (args.length > 1 && !args[1].isNull()) ? args[1].as(Map.class) : hexoTemplate.getLocals();
                 return hexoHelper.partial(path, locals);
             } catch (Exception e) {
                 /*e.fillInStackTrace();
                 throw new RuntimeException(e);*/
-                return e.getMessage();
+                return LoggerUtil.recordStackTraceMsg(e);
             }
         });
         bindings.putMember("_p", (ProxyExecutable) args -> {
@@ -58,8 +59,8 @@ public class HexoBaseHooks {
         bindings.putMember("__", (ProxyExecutable) args -> {
             String key = args[0].asString();
             try {
-                List<Object> objects = new ArrayList<>(Arrays.asList(args).subList(1, args.length));
-                return new HexoI18nHelperImpl(hexoTemplate, basePageInfo.getLocal()).i18n(key, objects);
+                List<Value> objects = new ArrayList<>(Arrays.asList(args).subList(1, args.length));
+                return new HexoI18nHelperImpl(hexoTemplate, basePageInfo.getLocal()).i18n(key, objects.toArray(new Value[0]));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
