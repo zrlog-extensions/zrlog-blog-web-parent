@@ -10,6 +10,9 @@
     </parent>
 
     <artifactId>zrlog-hexo-template</artifactId>
+    <properties>
+        <compile.graaljs.java.version>17</compile.graaljs.java.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -42,10 +45,28 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
-                    <release>17</release>
+                    <source>${compile.graaljs.java.version}</source>
+                    <target>${compile.graaljs.java.version}</target>
+                    <release>${compile.graaljs.java.version}</release>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.11.2</version>
+                <configuration>
+                    <source>${compile.graaljs.java.version}</source>
+                    <release>${compile.graaljs.java.version}</release>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
