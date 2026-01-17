@@ -8,4 +8,5 @@ cd ${templateResourcePath}
 find "." -type f  | sed 's|^\./||' >> ${basePwd}/temp.txt
 cd ${hexoTemplateResourcePath}
 find "." -type f  | sed 's|^\./||' >> ${basePwd}/temp.txt
+export LC_ALL=C
 sort ${basePwd}/temp.txt > ${webResourcePath}/resource.txt

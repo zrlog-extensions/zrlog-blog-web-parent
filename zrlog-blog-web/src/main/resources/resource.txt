@@ -11,12 +11,18 @@ assets/css/video-js.css
 assets/js/video.js
 conf/hexo/README.md
 conf/hexo/scripts/ejs.min.js
+conf/hexo/scripts/hexo-util.js
 conf/hexo/scripts/hooks.js
+conf/hexo/scripts/moize.js
+conf/hexo/scripts/path.js
+conf/hexo/scripts/require.js
+conf/hexo/scripts/url.js
 favicon.ico
 i18n/blog_en_US.properties
 i18n/blog_zh_CN.properties
-include/templates/default/_common/auto-hljs.ftl
+include/templates/README.md
 include/templates/default/404.ftl
+include/templates/default/_common/auto-hljs.ftl
 include/templates/default/arrange.ftl
 include/templates/default/article.ftl
 include/templates/default/comment.ftl
@@ -37,7 +43,11 @@ include/templates/default/pager.ftl
 include/templates/default/plugin.ftl
 include/templates/default/setting/config-form.json
 include/templates/default/template.properties
+include/templates/hexo-theme-fluid/LICENSE
+include/templates/hexo-theme-fluid/README.md
+include/templates/hexo-theme-fluid/README_en.md
 include/templates/hexo-theme-fluid/_config.yml
+include/templates/hexo-theme-fluid/images/preview.png
 include/templates/hexo-theme-fluid/languages/de.yml
 include/templates/hexo-theme-fluid/languages/en.yml
 include/templates/hexo-theme-fluid/languages/eo.yml
@@ -47,6 +57,7 @@ include/templates/hexo-theme-fluid/languages/ru.yml
 include/templates/hexo-theme-fluid/languages/zh-CN.yml
 include/templates/hexo-theme-fluid/languages/zh-HK.yml
 include/templates/hexo-theme-fluid/languages/zh-TW.yml
+include/templates/hexo-theme-fluid/layout/404.ejs
 include/templates/hexo-theme-fluid/layout/_partials/archive-list.ejs
 include/templates/hexo-theme-fluid/layout/_partials/category-chains.ejs
 include/templates/hexo-theme-fluid/layout/_partials/category-list.ejs
@@ -93,7 +104,6 @@ include/templates/hexo-theme-fluid/layout/_partials/post/sidebar-right.ejs
 include/templates/hexo-theme-fluid/layout/_partials/post/toc.ejs
 include/templates/hexo-theme-fluid/layout/_partials/scripts.ejs
 include/templates/hexo-theme-fluid/layout/_partials/search.ejs
-include/templates/hexo-theme-fluid/layout/404.ejs
 include/templates/hexo-theme-fluid/layout/about.ejs
 include/templates/hexo-theme-fluid/layout/archive.ejs
 include/templates/hexo-theme-fluid/layout/categories.ejs
@@ -106,10 +116,7 @@ include/templates/hexo-theme-fluid/layout/post.ejs
 include/templates/hexo-theme-fluid/layout/tag.ejs
 include/templates/hexo-theme-fluid/layout/tags.ejs
 include/templates/hexo-theme-fluid/layout/test.ejs
-include/templates/hexo-theme-fluid/LICENSE
 include/templates/hexo-theme-fluid/package.json
-include/templates/hexo-theme-fluid/README_en.md
-include/templates/hexo-theme-fluid/README.md
 include/templates/hexo-theme-fluid/scripts/events/index.js
 include/templates/hexo-theme-fluid/scripts/events/lib/compatible-configs.js
 include/templates/hexo-theme-fluid/scripts/events/lib/footnote.js
@@ -207,5 +214,4 @@ include/templates/hexo-theme-fluid/source/js/plugins.js
 include/templates/hexo-theme-fluid/source/js/umami-view.js
 include/templates/hexo-theme-fluid/source/js/utils.js
 include/templates/hexo-theme-fluid/source/xml/local-search.xml
-include/templates/README.md
 resource.txt
