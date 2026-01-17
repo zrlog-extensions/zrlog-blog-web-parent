@@ -1,5 +1,6 @@
 package com.zrlog.blog.hexo.template;
 
+import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.fluid.FluidHexoObjectBox;
 import com.zrlog.blog.hexo.template.util.GraalDataUtils;
@@ -16,8 +17,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class HexoTemplate implements ZrLogTemplate {
+    private static final Logger LOGGER = LoggerUtil.getLogger(HexoTemplate.class);
     private final Context context;
     private String template;
     private String rootPath;
@@ -30,7 +33,10 @@ public class HexoTemplate implements ZrLogTemplate {
     public HexoTemplate() {
         this.context = Context.newBuilder("js")
                 .allowHostAccess(HostAccess.ALL)
+                .allowExperimentalOptions(true)
                 .allowHostClassLookup(s -> true)
+                .logHandler(LOGGER.getHandlers()[0])
+                .option("engine.WarnVirtualThreadSupport", "false")
                 .build();
         try {
             context.eval("js", "var global = globalThis;");
@@ -47,6 +53,7 @@ public class HexoTemplate implements ZrLogTemplate {
         if (ejs == null || ejs.getMember("render").isNull()) {
             throw new RuntimeException("EJS 引擎未初始化，请先加载 ejs.min.js");
         }
+        //context.eval("js", "console.log('Hexo runtime ...')");
     }
 
     public Map<String, Object> getLocals() {
