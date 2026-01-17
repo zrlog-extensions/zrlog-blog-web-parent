@@ -8,6 +8,7 @@ import com.hibegin.http.server.util.FreeMarkerUtil;
 import com.hibegin.http.server.util.HttpRequestBuilder;
 import com.hibegin.http.server.util.NativeImageUtils;
 import com.hibegin.http.server.util.PathUtil;
+import com.zrlog.blog.hexo.template.ScriptProvider;
 import com.zrlog.blog.hexo.template.fluid.InjectionStorage;
 import com.zrlog.blog.web.BlogWebSetup;
 import com.zrlog.blog.web.template.PagerVO;
@@ -30,6 +31,12 @@ public class BlogNativeImageUtils {
         try {
             Method add = InjectionStorage.class.getMethod("add", String.class, String.class);
             add.invoke(new InjectionStorage(null, null), Constants.DEFAULT_TEMPLATE_PATH, Constants.DEFAULT_TEMPLATE_PATH);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            Method load = ScriptProvider.class.getMethod("load", String.class);
+            load.invoke(new ScriptProvider(), "path");
         } catch (Exception e) {
             e.printStackTrace();
         }
