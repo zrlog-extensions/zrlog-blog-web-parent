@@ -39,7 +39,7 @@ public class HexoBaseHooks {
             String path = args[0].asString();
             Map<String, Object> locals = (args.length > 1 && !args[1].isNull()) ? args[1].as(Map.class) : hexoTemplate.getLocals();
             try {
-                return hexoHelper.partial(path, locals);
+                return hexoTemplate.doRender(path, locals);
             } catch (Exception e) {
                 /*e.fillInStackTrace();
                 throw new RuntimeException(e);*/
