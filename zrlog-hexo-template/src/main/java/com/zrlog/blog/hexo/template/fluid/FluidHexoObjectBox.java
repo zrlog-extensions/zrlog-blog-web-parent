@@ -74,7 +74,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
     @Override
     protected void fillTheme() {
         Map<String, Object> page = (Map<String, Object>) themeConfig.get("page");
-        page.put("banner_img", "https://fluid.s3.bitiful.net/bg/vdysjx.png?w=1920&fmt=webp");
+        page.put("banner_img", hexoTemplate.getPageInfo().getTemplateUrl() + "/source/img/default.png");
     }
 
     private void jsEx() {

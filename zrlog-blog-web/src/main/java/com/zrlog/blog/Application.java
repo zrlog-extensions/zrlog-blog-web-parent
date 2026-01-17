@@ -6,6 +6,7 @@ import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.web.BlogWebSetup;
 import com.zrlog.business.plugin.CacheManagerPlugin;
 import com.zrlog.business.plugin.PluginCorePluginImpl;
+import com.zrlog.business.service.DbUpgradeService;
 import com.zrlog.common.Constants;
 import com.zrlog.common.TokenService;
 import com.zrlog.common.Updater;
@@ -52,6 +53,7 @@ class DevZrLogConfig extends ZrLogConfig {
         this.dataSource = super.configDatabase();
         if (Objects.nonNull(this.dataSource)) {
             cacheService = new CacheServiceImpl();
+            new DbUpgradeService(this.dataSource, this.cacheService.getCurrentSqlVersion()).tryDoUpgrade();
         }
         return dataSource;
     }

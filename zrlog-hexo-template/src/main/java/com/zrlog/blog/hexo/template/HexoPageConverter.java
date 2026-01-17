@@ -101,6 +101,7 @@ public class HexoPageConverter {
             for (LogNavDTO logNavDTO : logNavs) {
                 Map<String, Object> row = new HashMap<>();
                 row.put("link", logNavDTO.getUrl());
+                row.put("icon", logNavDTO.getIcon());
                 row.put("key", logNavDTO.getNavName());
                 list.add(row);
             }
@@ -110,12 +111,14 @@ public class HexoPageConverter {
         if (Objects.nonNull(pageInfo.getInit().getLinks())) {
             List<Map<String, Object>> list = new ArrayList<>();
             List<LinkDTO> logNavs = pageInfo.getInit().getLinks();
-            for (LinkDTO logNavDTO : logNavs) {
+            for (LinkDTO linkDTO : logNavs) {
                 Map<String, Object> row = new HashMap<>();
-                row.put("link", logNavDTO.getUrl());
-                row.put("title", logNavDTO.getLinkName());
-                row.put("intro", logNavDTO.getAlt());
-                row.put("avatar", "/favicon.ico");
+                row.put("link", linkDTO.getUrl());
+                row.put("title", linkDTO.getLinkName());
+                row.put("intro", linkDTO.getAlt());
+                row.put("icon", linkDTO.getIcon());
+                row.put("image", linkDTO.getIcon());
+                row.put("avatar", linkDTO.getIcon());
                 list.add(row);
             }
             Map<String, Object> links = new HashMap<>(Map.of("items", list));
