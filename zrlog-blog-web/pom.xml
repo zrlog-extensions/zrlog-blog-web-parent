@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.hibegin</groupId>
         <artifactId>zrlog-blog-web-parent</artifactId>
-        <version>3.3.4</version>
+        <version>3.3.5-SNAPSHOT</version>
     </parent>
     <name>ZrLog Blog web</name>
 
@@ -22,13 +22,13 @@
         <dependency>
             <groupId>com.hibegin</groupId>
             <artifactId>zrlog-freemarker-template</artifactId>
-            <version>3.3.4</version>
+            <version>3.3.5-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.hibegin</groupId>
             <artifactId>zrlog-hexo-template</artifactId>
-            <version>3.3.4</version>
+            <version>3.3.5-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
