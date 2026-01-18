@@ -6,10 +6,11 @@
     <parent>
         <groupId>com.hibegin</groupId>
         <artifactId>zrlog-blog-web-parent</artifactId>
-        <version>3.3.2-SNAPSHOT</version>
+        <version>3.3.0</version>
     </parent>
 
     <artifactId>zrlog-hexo-template</artifactId>
+    <name>ZrLog Hexo Template lib</name>
     <properties>
         <compile.graaljs.java.version>17</compile.graaljs.java.version>
     </properties>
