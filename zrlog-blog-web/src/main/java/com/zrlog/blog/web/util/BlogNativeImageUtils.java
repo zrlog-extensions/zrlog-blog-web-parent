@@ -31,13 +31,13 @@ public class BlogNativeImageUtils {
         try {
             Method add = InjectionStorage.class.getMethod("add", String.class, String.class);
             add.invoke(new InjectionStorage(null, null), Constants.DEFAULT_TEMPLATE_PATH, Constants.DEFAULT_TEMPLATE_PATH);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
         try {
             Method load = ScriptProvider.class.getMethod("load", String.class);
             load.invoke(new ScriptProvider(), "path");
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
 
