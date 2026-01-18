@@ -54,6 +54,11 @@ public class BlogPageInterceptor implements HandleAbleInterceptor {
 
     @Override
     public boolean isHandleAble(HttpRequest request) {
-        return true;
+        String target = request.getUri();
+        if (!target.contains(".")) {
+            return true;
+        }
+        //如果静态文件不为 .html，就扔出 404
+        return target.endsWith(".html");
     }
 }
