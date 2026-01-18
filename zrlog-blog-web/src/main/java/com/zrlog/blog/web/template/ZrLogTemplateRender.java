@@ -39,12 +39,12 @@ public class ZrLogTemplateRender implements TemplateRender {
     }
 
     private ZrLogTemplate setupTemplate() throws Exception {
-        TemplateDownloadPlugin templateDownloadPlugin = Constants.zrLogConfig.getPlugin(TemplateDownloadPlugin.class);
-        if (Objects.nonNull(templateDownloadPlugin)) {
-            templateDownloadPlugin.precheckTemplate(pageInfo.getTemplate());
+
+        TemplateVO templateVO = TemplateInfoHelper.loadTemplateVO(pageInfo.getTemplate());
+        if (Objects.isNull(templateVO)) {
+            throw new RuntimeException("missing template -> " + pageInfo.getTemplate());
         }
         ZrLogTemplate template;
-        TemplateVO templateVO = TemplateInfoHelper.loadTemplateVO(pageInfo.getTemplate());
         if (templateVO.getTemplateType() == TemplateType.NODE_JS) {
             template = new HexoTemplate();
         } else if (templateVO.getTemplateType() == TemplateType.STANDARD) {
