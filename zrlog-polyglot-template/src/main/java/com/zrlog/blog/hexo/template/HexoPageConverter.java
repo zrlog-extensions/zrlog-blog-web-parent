@@ -43,7 +43,7 @@ public class HexoPageConverter {
             page.put("post", row);
             page.put("title", log.getTitle());
             page.put("content", log.getContent());
-            page.put("date", log.getReleaseTime());
+            page.put("date", new HexoDateWrapper(log.getReleaseTime()));
             page.put("next_post", HexoConvertUtils.getNextLog((ArticleDetailPageVO) pageInfo));
             page.put("prev_post", HexoConvertUtils.getPrevLog((ArticleDetailPageVO) pageInfo));
             page.put("comment", pageInfo.getWebs().getComment_plugin_name());
@@ -74,7 +74,7 @@ public class HexoPageConverter {
                     row.put("categories", categories);
                     row.put("tags", articleBasicDTO.getTags().stream().map(e -> Map.of("name", e.getName(), "path", e.getUrl())).collect(Collectors.toList()));
                     row.put("path", articleBasicDTO.getUrl());
-                    row.put("date", articleBasicDTO.getReleaseTime());
+                    row.put("date", new HexoDateWrapper(articleBasicDTO.getReleaseTime()));
                     row.put("index_img", articleBasicDTO.getThumbnail());
                     row.put("description", articleBasicDTO.getContent());
                     row.put("excerpt", articleBasicDTO.getContent());
@@ -129,7 +129,7 @@ public class HexoPageConverter {
         pageInfo.getTheme().put("language", pageInfo.getLang());
         pageInfo.getTheme().put("title", pageInfo.getWebs().getTitle());
         map.put("config", pageInfo.getTheme());
-        pageInfo.getTheme().put("root", pageInfo.getBaseWithHostPath());
+        pageInfo.getTheme().put("root", pageInfo.getBaseWithHostPath().substring(0, pageInfo.getBaseWithHostPath().lastIndexOf("/")));
         theme.put("apple_touch_icon", "/favicon.ico");
         theme.put("favicon", "/favicon.png");
         map.put("theme", theme);

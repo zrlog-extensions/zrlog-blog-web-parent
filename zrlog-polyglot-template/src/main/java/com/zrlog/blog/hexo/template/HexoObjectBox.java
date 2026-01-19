@@ -4,12 +4,11 @@ import com.hibegin.common.util.EnvKit;
 import com.hibegin.common.util.IOUtil;
 import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.http.server.util.PathUtil;
-import com.zrlog.blog.polyglot.resource.ScriptProvider;
-import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
-import com.zrlog.blog.polyglot.resource.TemplateResolver;
-import com.zrlog.blog.polyglot.sytlus.StylusBundler;
 import com.zrlog.blog.hexo.template.util.HexoBaseHooks;
 import com.zrlog.blog.polyglot.resource.ResourceScanner;
+import com.zrlog.blog.polyglot.resource.ScriptProvider;
+import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
+import com.zrlog.blog.polyglot.sytlus.StylusBundler;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -30,11 +29,11 @@ public abstract class HexoObjectBox {
     protected final HexoTemplate hexoTemplate;
     protected final ScriptProvider scriptProvider;
 
-    public HexoObjectBox(Map<String, Object> themeConfig, String themeDir, HexoTemplate hexoTemplate) {
+    public HexoObjectBox(Map<String, Object> themeConfig, String themeDir, HexoTemplate hexoTemplate, Value bindings) {
         this.themeConfig = themeConfig;
         this.themeDir = themeDir;
         this.context = hexoTemplate.getContext();
-        this.bindings = context.getBindings("js");
+        this.bindings = bindings;
         this.hexoTemplate = hexoTemplate;
         this.scriptProvider = new ScriptProvider();
     }
@@ -55,23 +54,33 @@ public abstract class HexoObjectBox {
 
     }
 
+    // Java 预处理：让所有逻辑控制符“靠左站”，但保留它们内部内容的相对缩进
+    public String normalizeLogic(String content) {
+        return content.replaceAll("(?m)^\\s*(if|else|for|unless)\\b", "$1");
+    }
+
     public void compileStyl() throws Exception {
         context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/stylus-renderer.min.js").readAllBytes()));
         context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/stylus-polyfill.js").readAllBytes()));
         for (String compileStyl : getCompileStyl()) {
             // 3. 准备 Stylus 代码
             String styleRoot = hexoTemplate.getRootPath() + getStylRoot();
-            String stylusCode = new StylusBundler(styleRoot).bundle(compileStyl).replaceAll("(?s)/\\*.*?\\*/", "").trim();
-            //System.out.println("stylusCode = " + stylusCode);
-
-            // 4. 调用 JS 逻辑进行编译
-            // 该 bundle 导出了 StylusRenderer 类
-            context.getBindings("js").putMember("myStylusCode", stylusCode.trim());
-            context.eval("js", "var renderer = new StylusRenderer(myStylusCode); ");
-            context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/stylus-hooks.js").readAllBytes()));
-            regStyleHooks();
-            Value renderResult = context.eval("js", "renderer.render();");
-            IOUtil.writeStrToFile(renderResult.asString(), PathUtil.getStaticFile((styleRoot + compileStyl).replaceAll("classpath:/", "").replaceAll(".styl", ".css")));
+            String resourceFile = styleRoot + compileStyl;
+            if (ZrLogResourceLoader.exists(styleRoot + compileStyl)) {
+                String stylusCode = new StylusBundler(styleRoot).bundle(compileStyl).replaceAll("(?s)/\\*.*?\\*/", "").trim();
+                context.getBindings("js").putMember("myStylusCode", normalizeLogic(stylusCode.trim()));
+                context.eval("js", "var renderer = new StylusRenderer(myStylusCode); ");
+                context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/stylus-hooks.js").readAllBytes()));
+                regStyleHooks();
+                try {
+                    Value renderResult = context.eval("js", "renderer.render();");
+                    IOUtil.writeStrToFile(renderResult.asString(), PathUtil.getStaticFile(hexoTemplate.getPageInfo().getTemplate() + getStylRoot() + compileStyl.replace(".styl", ".css")));
+                } catch (Exception e) {
+                    LOGGER.warning(resourceFile + " compile error " + e.getMessage());
+                }
+            } else {
+                LOGGER.warning(resourceFile + " not found");
+            }
         }
 
     }
@@ -140,7 +149,7 @@ public abstract class HexoObjectBox {
         bindings.putMember("hexo", hexo);
         bindings.putMember("ctx", hexo);
 
-        new HexoBaseHooks(new TemplateResolver(hexoTemplate.getTemplate()), hexoTemplate).inject(bindings);
+        new HexoBaseHooks(hexoTemplate).inject(bindings);
         scanScripts();
         fillConfig();
         compileStyl();

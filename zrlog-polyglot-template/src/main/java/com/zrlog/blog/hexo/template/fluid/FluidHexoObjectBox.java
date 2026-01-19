@@ -17,8 +17,9 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     public FluidHexoObjectBox(Map<String, Object> themeConfig,
                               String themeDir,
-                              HexoTemplate hexoTemplate) {
-        super(themeConfig, themeDir, hexoTemplate);
+                              HexoTemplate hexoTemplate,
+                              Value binging) {
+        super(themeConfig, themeDir, hexoTemplate,binging);
         this.injectionStorage = new InjectionStorage(new ConcurrentHashMap<>(), themeDir);
     }
 
@@ -74,7 +75,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     @Override
     public List<String> getCompileStyl() {
-        return Arrays.asList("/main.styl", "/highlight.styl", "/highlight-dark.styl");
+        return Arrays.asList("/main.styl", "/highlight.styl", "/highlight-dark.styl", "/style.styl");
     }
 
     @Override

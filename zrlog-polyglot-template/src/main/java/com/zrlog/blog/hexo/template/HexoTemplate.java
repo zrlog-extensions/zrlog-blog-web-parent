@@ -12,13 +12,14 @@ import com.zrlog.common.Constants;
 import org.graalvm.polyglot.Context;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class HexoTemplate implements ZrLogTemplate {
     private String template;
     private String rootPath;
-    private Map<String, Object> locals;
+    private Map<String, Object> locals = new HashMap<>();
     private BasePageInfo pageInfo;
     private JsTemplateRender jsTemplateRender;
 
@@ -56,15 +57,15 @@ public class HexoTemplate implements ZrLogTemplate {
             config = YamlLoader.loadConfig(ZrLogResourceLoader.read(rootPath + "/" + TemplateType.NODE_JS.getConfigFile()));
         }
         pageInfo.setTheme(config);
-        this.locals = HexoPageConverter.toHexoMap(pageInfo, page);
-        new FluidHexoObjectBox(config, rootPath, this).setup();
+        this.locals = new HashMap<>(HexoPageConverter.toHexoMap(pageInfo, page));
+        this.jsTemplateRender = new EjsTemplateRender(this.template, pageInfo, locals);
+        new FluidHexoObjectBox(config, rootPath, this, jsTemplateRender.getJsBindings()).setup();
         this.locals.put("body", jsTemplateRender.render((String) YamlLoader.getNestedValue(locals, "page.layout"), locals));
         return jsTemplateRender.render("/layout", locals);
     }
 
     private void setup() {
         this.template = (rootPath + "/layout");
-        this.jsTemplateRender = new EjsTemplateRender(this.template);
     }
 
     @Override
