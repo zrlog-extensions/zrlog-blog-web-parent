@@ -37,7 +37,7 @@ public class ResourceScanner {
                 if (f.isDirectory()) {
                     // 【核心：递归调用】进入子文件夹
                     scanLocalDir(f, result);
-                } else if (f.isFile() && f.getName().endsWith(".js")) {
+                } else if (f.isFile()) {
                     // 如果是 JS 文件，加入结果集
                     result.add(f.toString());
                 }
