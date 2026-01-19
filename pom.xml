@@ -16,7 +16,7 @@
     <modules>
         <module>zrlog-blog-web</module>
         <module>zrlog-freemarker-template</module>
-        <module>zrlog-hexo-template</module>
+        <module>zrlog-polyglot-template</module>
     </modules>
 
     <properties>
