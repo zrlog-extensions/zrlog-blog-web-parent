@@ -39,7 +39,7 @@ public class ResourceScanner {
                     scanLocalDir(f, result);
                 } else if (f.isFile() && f.getName().endsWith(".js")) {
                     // 如果是 JS 文件，加入结果集
-                    result.add(f.toString().substring(this.themeRootPath.length()));
+                    result.add(f.toString());
                 }
             }
         }

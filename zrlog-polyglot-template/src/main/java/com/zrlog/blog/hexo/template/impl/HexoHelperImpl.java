@@ -23,7 +23,6 @@ public class HexoHelperImpl {
         this.basePageInfo = basePageInfo;
     }
 
-    // 对应 EJS 中的 partial(path, locals)
     public String partial(String path, Map<String, Object> data) throws Exception {
         String absolutePath = resolver.resolve(path);
         //System.out.println("absolutePath = " + absolutePath);

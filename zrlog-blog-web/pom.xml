@@ -27,7 +27,7 @@
         </dependency>
         <dependency>
             <groupId>com.hibegin</groupId>
-            <artifactId>zrlog-hexo-template</artifactId>
+            <artifactId>zrlog-polyglot-template</artifactId>
             <version>3.3.6-SNAPSHOT</version>
         </dependency>
     </dependencies>
