@@ -3,6 +3,7 @@ package com.zrlog.blog.hexo.template.fluid;
 import com.zrlog.blog.hexo.template.HexoObjectBox;
 import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.util.YamlLoader;
+import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.common.vo.TemplateVO;
 import org.graalvm.polyglot.Context;
@@ -97,6 +98,14 @@ public class FluidHexoObjectBox extends HexoObjectBox {
         Map<String, Object> config = (Map<String, Object>) theme.get("config");
         Map<String, Object> indexGen = (Map<String, Object>) config.computeIfAbsent("index_generator", k -> new HashMap<>());
         indexGen.putIfAbsent("order_by", "name");
+
+        if (basePageInfo instanceof ArticleDetailPageVO) {
+            Map<String, Object> comments = (Map<String, Object>) YamlLoader.getNestedValue(config, "post.comments");
+            if (Objects.equals(((ArticleDetailPageVO) basePageInfo).getLog().getCanComment(), true) && Objects.nonNull(comments)) {
+                comments.put("type", basePageInfo.getWebs().getComment_plugin_name());
+                comments.put("enable", true);
+            }
+        }
     }
 
     private void fixImageUrl(String rootKey, String valueName) {

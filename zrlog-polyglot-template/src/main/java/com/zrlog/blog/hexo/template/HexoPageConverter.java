@@ -40,7 +40,6 @@ public class HexoPageConverter {
             page.put("date", new HexoDateWrapper(log.getReleaseTime()));
             page.put("next_post", HexoConvertUtils.getNextLog((ArticleDetailPageVO) pageInfo));
             page.put("prev_post", HexoConvertUtils.getPrevLog((ArticleDetailPageVO) pageInfo));
-            page.put("comment", pageInfo.getWebs().getComment_plugin_name());
             page.put("permalink", ((ArticleDetailPageVO) pageInfo).getLog().getNoSchemeUrl());
             if (Objects.nonNull(log.getComments())) {
                 page.put("comments", log.getComments());
