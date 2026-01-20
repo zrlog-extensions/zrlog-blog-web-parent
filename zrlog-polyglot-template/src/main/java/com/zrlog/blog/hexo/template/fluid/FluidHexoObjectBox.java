@@ -17,9 +17,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     private final InjectionStorage injectionStorage;
 
-    public FluidHexoObjectBox(Map<String, Object> theme,
-                              String rootPath,
-                              BasePageInfo basePageInfo, TemplateVO templateVO) {
+    public FluidHexoObjectBox(Map<String, Object> theme, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO) {
         super(theme, rootPath, basePageInfo, templateVO);
         this.injectionStorage = new InjectionStorage(new ConcurrentHashMap<>(), rootPath);
     }
@@ -82,9 +80,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     @Override
     public void regStyleHooks(Context context) {
-        context.eval("js", "renderer.define('hexo-config', function(pathNode) {" +
-                "  return hexo_config_java(pathNode.val);" +
-                "});");
+        context.eval("js", "renderer.define('hexo-config', function(pathNode) {" + "  return hexo_config_java(pathNode.val);" + "});");
     }
 
     @Override
@@ -105,7 +101,21 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     private void fixImageUrl(String rootKey, String valueName) {
         Map<String, Object> map = (Map<String, Object>) theme.get(rootKey);
-        map.put(valueName, basePageInfo.getTemplateUrl() + "/source/img/default.png");
+        if (Objects.isNull(map)) {
+            return;
+        }
+        Object value = map.get(valueName);
+        if (Objects.isNull(value)) {
+            return;
+        }
+        if (value instanceof String) {
+            if (((String) value).startsWith("http://") || ((String) value).startsWith("https://")) {
+                return;
+            }
+            if (((String) value).startsWith("/img")) {
+                map.put(valueName, basePageInfo.getTemplateUrl() + "/source" + value);
+            }
+        }
     }
 
     @Override
@@ -208,16 +218,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
      */
     private Value createInjectsProxy(Context context) {
         // 这是一个“万能插槽”处理器，处理诸如 injects.header.file(...) 的调用
-        return context.eval("js", "(function(storage) {" +
-                "  return new Proxy({}, {" +
-                "    get: function(target, slot) {" +
-                "      return {" +
-                "        file: function(name, path) {" +
-                "          storage.add(slot, path);" + // 调用 Java 的 add 方法
-                "        }" +
-                "      };" +
-                "    }" +
-                "  });" +
-                "})").execute(injectionStorage);
+        return context.eval("js", "(function(storage) {" + "  return new Proxy({}, {" + "    get: function(target, slot) {" + "      return {" + "        file: function(name, path) {" + "          storage.add(slot, path);" + // 调用 Java 的 add 方法
+                "        }" + "      };" + "    }" + "  });" + "})").execute(injectionStorage);
     }
 }
