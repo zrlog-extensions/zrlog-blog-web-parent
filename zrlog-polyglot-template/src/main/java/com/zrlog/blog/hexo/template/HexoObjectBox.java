@@ -31,7 +31,7 @@ public abstract class HexoObjectBox {
     protected final Map<String, Object> theme;
     protected final ScriptProvider scriptProvider;
     protected final BasePageInfo basePageInfo;
-    protected final String rooPath;
+    protected final String rootPath;
     private boolean stylusInit = false;
     protected final TemplateVO templateVO;
 
@@ -40,7 +40,7 @@ public abstract class HexoObjectBox {
         this.templateVO = templateVO;
         this.scriptProvider = new ScriptProvider();
         this.basePageInfo = basePageInfo;
-        this.rooPath = rootPath;
+        this.rootPath = rootPath;
         this.fillConfig();
     }
 
@@ -74,7 +74,7 @@ public abstract class HexoObjectBox {
     public void compileStyl(Context context) throws Exception {
         for (String compileStyl : getCompileStyl()) {
             // 3. 准备 Stylus 代码
-            String styleRoot = rooPath + getStylRoot();
+            String styleRoot = rootPath + getStylRoot();
             String resourceFile = styleRoot + compileStyl;
             File staticFile = PathUtil.getStaticFile(basePageInfo.getTemplate() + getStylRoot() + compileStyl.replace(".styl", ".css"));
             if (staticFile.exists()) {
@@ -102,15 +102,15 @@ public abstract class HexoObjectBox {
 
     }
 
-    public void setup(JsTemplateRender jsTemplateRender) throws Exception {
+    private void initHexo(JsTemplateRender jsTemplateRender) {
         Value bindings = jsTemplateRender.getJsBindings();
         Context context = jsTemplateRender.getContext();
-
         Value hexo = context.eval("js", "({})");
-        hexo.putMember("theme_dir", rooPath);
+        hexo.putMember("theme_dir", rootPath);
 
-        hexo.putMember("config", GraalDataUtils.makeJsFriendly(theme));
-        hexo.putMember("theme", GraalDataUtils.makeJsFriendly(theme));
+        Object themeObj = GraalDataUtils.makeJsFriendly(theme);
+        hexo.putMember("config", themeObj);
+        hexo.putMember("theme", themeObj);
 
         Value extend = context.eval("js", "({})");
         Value filter = context.eval("js", "({})");
@@ -119,8 +119,6 @@ public abstract class HexoObjectBox {
         Value tag = context.eval("js", "({})");
         //ignore
         Value generator = context.eval("js", "({})");
-
-        bindings.putMember("scriptProvider", scriptProvider);
 
         filter.putMember("register", (ProxyExecutable) args -> {
             String type = args[0].asString();
@@ -164,22 +162,30 @@ public abstract class HexoObjectBox {
         hexo.putMember("on", on);
         bindings.putMember("hexo", hexo);
         bindings.putMember("ctx", hexo);
-
-        new HexoBaseHooks(rooPath, jsTemplateRender, basePageInfo, theme).inject(bindings);
-        scanScripts(context);
-        regisConfig(bindings);
-        compileStyl(context);
+        bindings.putMember("scriptProvider", scriptProvider);
     }
 
-    private void scanScripts(Context context) throws IOException {
-        ResourceScanner scanner = new ResourceScanner(rooPath);
+    public void setup(JsTemplateRender jsTemplateRender) throws Exception {
+        Value bindings = jsTemplateRender.getJsBindings();
+        Context context = jsTemplateRender.getContext();
+        scanScripts(jsTemplateRender);
+        new HexoBaseHooks(rootPath, jsTemplateRender, basePageInfo, theme).inject(bindings);
+        regisConfig(bindings);
+        compileStyl(context);
+        bindings.putMember("theme", GraalDataUtils.makeJsFriendly(theme));
+    }
+
+    private void scanScripts(JsTemplateRender jsTemplateRender) throws IOException {
+        Context context = jsTemplateRender.getContext();
+        initHexo(jsTemplateRender);
+        ResourceScanner scanner = new ResourceScanner(rootPath);
         List<String> scripts = scanner.listFiles("scripts/").stream().filter(e -> e.endsWith(".js")).toList();
         scriptProvider.addBaseScript("path", new String(PathUtil.getConfInputStream("base/scripts/path.js").readAllBytes()));
         scriptProvider.addBaseScript("hexo-util", new String(PathUtil.getConfInputStream("hexo/scripts/hexo-util.js").readAllBytes()));
         scriptProvider.addBaseScript("url", new String(PathUtil.getConfInputStream("base/scripts/url.js").readAllBytes()));
         //scriptProvider.addBaseScript("moize", new String(PathUtil.getConfInputStream("hexo/scripts/moize.js").readAllBytes()));
         for (String script : scripts) {
-            scriptProvider.addScript(script.substring((rooPath + "/scripts/").length()).replaceAll(".js", ""), ZrLogResourceLoader.read(script));
+            scriptProvider.addScript(script.substring((rootPath + "/scripts/").length()).replaceAll(".js", ""), ZrLogResourceLoader.read(script));
         }
         for (String scriptPath : scripts) {
             if (scriptPath.contains("/generators/")) {

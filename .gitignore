@@ -12,7 +12,6 @@ cache
 conf/plugins
 static/
 .DS_Store
-!zrlog-polyglot-template/src/main/resources/include/templates/polyglot-theme-fluid/scripts/events/lib
 temp.txt
 zrlog-polyglot-template/src/main/resources/include/templates/*
-!zrlog-polyglot-template/src/main/resources/include/templates/polyglot-theme-fluid
+!zrlog-polyglot-template/src/main/resources/include/templates/hexo-theme-fluid
