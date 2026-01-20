@@ -20,5 +20,4 @@ public interface JsTemplateRender {
 
     String getTemplate();
 
-    Map<String, Object> getLocals();
 }

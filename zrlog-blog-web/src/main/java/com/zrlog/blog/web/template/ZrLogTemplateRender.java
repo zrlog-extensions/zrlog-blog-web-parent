@@ -1,12 +1,13 @@
 package com.zrlog.blog.web.template;
 
+import com.hibegin.common.util.EnvKit;
+import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.common.util.StringUtils;
 import com.hibegin.http.server.api.HttpRequest;
 import com.hibegin.http.server.util.PathUtil;
 import com.hibegin.template.TemplateRender;
 import com.zrlog.blog.freemarker.template.FreemarkerZrLogTemplate;
 import com.zrlog.blog.hexo.template.HexoTemplate;
-import com.zrlog.blog.web.plugin.TemplateDownloadPlugin;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.business.plugin.BodySaveResponse;
 import com.zrlog.business.service.TemplateInfoHelper;
@@ -23,8 +24,11 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class ZrLogTemplateRender implements TemplateRender {
+
+    private static final Logger LOGGER = LoggerUtil.getLogger(ZrLogTemplateRender.class);
 
     private final HttpRequest request;
 
@@ -46,7 +50,7 @@ public class ZrLogTemplateRender implements TemplateRender {
         }
         ZrLogTemplate template;
         if (templateVO.getTemplateType() == TemplateType.NODE_JS) {
-            template = new HexoTemplate();
+            template = new HexoTemplate(templateVO);
         } else if (templateVO.getTemplateType() == TemplateType.STANDARD) {
             template = new FreemarkerZrLogTemplate();
         } else {
@@ -102,7 +106,7 @@ public class ZrLogTemplateRender implements TemplateRender {
         if (StringUtils.isNotEmpty(pageInfo.getArrangePlugin()) && existsByTemplateName("arrange")) {
             page = "arrange";
         }
-        //long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         String htmlStr = zrLogTemplate.render(page, pageInfo);
         TokenService tokenService = Constants.zrLogConfig.getTokenService();
         AdminTokenVO adminTokenVO = null;
@@ -112,6 +116,9 @@ public class ZrLogTemplateRender implements TemplateRender {
         HtmlTemplateProcessor pluginTagHande = new HtmlTemplateProcessor(
                 request, adminTokenVO, Objects.requireNonNullElse(pageInfo.getStaticResourceBaseUrl(), "/"));
         String realHtmlStr = pluginTagHande.transform(htmlStr);
+        if (EnvKit.isDevMode()) {
+            LOGGER.info("Render " + request.getUri() + " page, used time " + (System.currentTimeMillis() - start) + "ms");
+        }
         if (!catGeneratorHtml(request)) {
             return realHtmlStr;
         }
@@ -119,7 +126,6 @@ public class ZrLogTemplateRender implements TemplateRender {
         try (BodySaveResponse bodySaveResponse = new BodySaveResponse(request, Constants.zrLogConfig.getResponseConfig(), false)) {
             bodySaveResponse.renderHtmlStr(realHtmlStr);
         }
-        //System.out.println("(System.currentTimeMillis() - start) = " + (System.currentTimeMillis() - start));
         return realHtmlStr;
     }
 }

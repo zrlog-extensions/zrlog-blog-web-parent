@@ -1,8 +1,8 @@
 package com.zrlog.blog.polyglot.sytlus;
 
-import com.zrlog.blog.polyglot.resource.ResourceScanner;
-import com.zrlog.blog.polyglot.resource.TemplateResolver;
 import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
+import com.zrlog.blog.polyglot.resource.TemplateResolver;
+import com.zrlog.blog.polyglot.resource.ResourceScanner;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -22,10 +22,10 @@ public class StylusBundler {
     }
 
     public String bundle(String fileName) throws Exception {
-        return resolveRecursive(fileName, new LinkedHashSet<>(), "");
+        return resolveRecursive(fileName, new LinkedHashSet<>());
     }
 
-    private String resolveRecursive(String fileName, Set<String> visited, String initialIndent) throws Exception {
+    private String resolveRecursive(String fileName, Set<String> visited) throws Exception {
         // 1. 路径规范化
         if (!fileName.endsWith(".styl")) fileName += ".styl";
         String resolve = templateResolver.resolve(fileName);
@@ -40,7 +40,7 @@ public class StylusBundler {
         if (ZrLogResourceLoader.exists(path)) {
             content = ZrLogResourceLoader.read(path);
         } else {
-            content = "";
+            content = "/* ---Not find path " + path + " --- */\n";
         }
 
 
@@ -66,17 +66,16 @@ public class StylusBundler {
             // 这一步对于深层嵌套的目录结构至关重要
             templateResolver.pushPath(resolve);
             try {
-                String basePath = path.substring(0, path.lastIndexOf("/"));
                 if (importedPath.contains("/*")) {
+                    String basePath = path.substring(0, path.lastIndexOf("/"));
                     List<String> strings = new ResourceScanner(basePath).listFiles(importedPath.replace("*", ""));
-                    for (String file : strings) {
+                    for (String string : strings) {
                         // 递归插入被导入文件的内容
-                        String fPath = file.substring(basePath.length() + 1);
-                        sb.append(safeAppend(fPath, initialIndent + "  ", visited));
+                        sb.append(resolveRecursive(string.substring(basePath.length() + 1), visited));
                     }
                 } else {
                     // 递归插入被导入文件的内容
-                    sb.append(safeAppend(importedPath, initialIndent + "  ", visited));
+                    sb.append(resolveRecursive(importedPath, visited));
                 }
             } finally {
                 templateResolver.popPath();
@@ -91,15 +90,6 @@ public class StylusBundler {
         //sb.append("\n/* --- END IMPORT: ").append(path).append(" --- */\n");
         //log.info("sb.toString() = {}", sb.toString());
 
-        return sb.toString();
-    }
-
-    private String safeAppend(String file, String initialIndent, Set<String> visited) throws Exception {
-        List<String> lines = List.of(resolveRecursive(file, visited, initialIndent).split("\n"));
-        StringBuilder sb = new StringBuilder();
-        for (String line : lines) {
-            sb.append(initialIndent).append(line).append("\n");
-        }
         return sb.toString();
     }
 }

@@ -1,11 +1,11 @@
 package com.zrlog.blog.hexo.template.util;
 
 import com.hibegin.common.util.LoggerUtil;
-import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.hexo.template.impl.HexoHelperImpl;
 import com.zrlog.blog.hexo.template.impl.HexoI18nHelperImpl;
 import com.zrlog.blog.hexo.template.impl.HexoPaginator;
 import com.zrlog.blog.hexo.template.impl.HexoTagCloud;
+import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.util.YamlLoader;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.ArticleListPageVO;
@@ -19,12 +19,16 @@ import java.util.*;
 
 public class HexoBaseHooks {
 
-    private final HexoTemplate hexoTemplate;
     private final BasePageInfo basePageInfo;
+    private final JsTemplateRender jsTemplateRender;
+    private final String rootPath;
+    private final Map<String, Object> theme;
 
-    public HexoBaseHooks(HexoTemplate hexoTemplate) {
-        this.hexoTemplate = hexoTemplate;
-        this.basePageInfo = hexoTemplate.getPageInfo();
+    public HexoBaseHooks(String rootPath, JsTemplateRender jsTemplateRender, BasePageInfo basePageInfo, Map<String, Object> theme) {
+        this.jsTemplateRender = jsTemplateRender;
+        this.rootPath = rootPath;
+        this.basePageInfo = basePageInfo;
+        this.theme = theme;
     }
 
     public void inject(Value bindings) {
@@ -32,18 +36,18 @@ public class HexoBaseHooks {
         for (String fun : Arrays.asList("partial", "partial_lang")) {
             bindings.putMember(fun, (ProxyExecutable) args -> {
                 String path = args[0].asString();
-                Map<String, Object> locals = (args.length > 1 && !args[1].isNull()) ? args[1].as(Map.class) : hexoTemplate.getLocals();
+                Map<String, Object> locals = (args.length > 1 && !args[1].isNull()) ? args[1].as(Map.class) : null;
                 try {
-                    return hexoTemplate.getJsTemplateRender().includeRender(path, locals);
+                    return jsTemplateRender.includeRender(path, locals);
                 } catch (Exception e) {
-                    return LoggerUtil.recordStackTraceMsg(e);
+                    return "page -> " + path + "\n" + LoggerUtil.recordStackTraceMsg(e);
                 }
             });
         }
         bindings.putMember("_p", (ProxyExecutable) args -> {
             return args[0].asString();
         });
-        bindings.putMember("__", new HexoI18nHelperImpl(hexoTemplate, basePageInfo.getLocal()));
+        bindings.putMember("__", new HexoI18nHelperImpl(rootPath, basePageInfo.getLocal()));
 
         if (basePageInfo instanceof ArticleListPageVO) {
             bindings.putMember("paginator", new HexoPaginator(((ArticleListPageVO) basePageInfo).getPager()));
@@ -51,7 +55,7 @@ public class HexoBaseHooks {
         bindings.putMember("tagcloud", new HexoTagCloud(basePageInfo.getInit().getTags()));
         bindings.putMember("url_join", HexoHelperImpl.getUrlJoinProvider());
 
-        HexoHelperImpl hexoHelper = new HexoHelperImpl(hexoTemplate.getPageInfo());
+        HexoHelperImpl hexoHelper = new HexoHelperImpl(basePageInfo);
         // 映射 url_for
         bindings.putMember("url_for", (ProxyExecutable) args -> {
             if (args.length > 0) {
@@ -127,7 +131,7 @@ public class HexoBaseHooks {
         js(bindings);
 
         bindings.putMember("is_home", (ProxyExecutable) args -> {
-            return Objects.equals(YamlLoader.getNestedValue(basePageInfo.getTheme(), "page.layout"), "/index");
+            return Objects.equals(YamlLoader.getNestedValue(theme, "page.layout"), "/index");
         });
         bindings.putMember("is_category", (ProxyExecutable) args -> {
             return false;
@@ -310,7 +314,7 @@ public class HexoBaseHooks {
                 return String.format("<script src=\"%s\"%s></script>", src, attributes);
 
             }
-            return String.format("<script src=\"%s\"%s></script>", hexoTemplate.getPageInfo().getTemplateUrl() + "/source/" + src + (src.endsWith(".js") ? "" : ".js"), attributes);
+            return String.format("<script src=\"%s\"%s></script>", basePageInfo.getTemplateUrl() + "/source/" + src + (src.endsWith(".js") ? "" : ".js"), attributes);
 
         });
     }

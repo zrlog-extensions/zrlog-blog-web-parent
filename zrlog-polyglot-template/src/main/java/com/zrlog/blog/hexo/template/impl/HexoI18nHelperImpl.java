@@ -1,6 +1,5 @@
 package com.zrlog.blog.hexo.template.impl;
 
-import com.zrlog.blog.hexo.template.HexoTemplate;
 import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
 import com.zrlog.blog.polyglot.util.YamlLoader;
 import org.graalvm.polyglot.Value;
@@ -12,9 +11,9 @@ public class HexoI18nHelperImpl implements ProxyExecutable {
 
     private final Map<String, Object> languagesMap = new TreeMap<>();
 
-    public HexoI18nHelperImpl(HexoTemplate hexoTemplate, String lang) {
+    public HexoI18nHelperImpl(String rootPath, String lang) {
         for (String langAlias : getLangFiles(lang)) {
-            String path = hexoTemplate.getRootPath() + "/languages/" + langAlias + ".yml";
+            String path = rootPath + "/languages/" + langAlias + ".yml";
             if (ZrLogResourceLoader.exists(path)) {
                 languagesMap.putAll(YamlLoader.loadConfig(ZrLogResourceLoader.read(path)));
                 break;

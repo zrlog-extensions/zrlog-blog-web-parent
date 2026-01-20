@@ -3,7 +3,7 @@ package com.zrlog.blog.polyglot.ejs;
 import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.polyglot.JsTemplateRender;
-import com.zrlog.blog.polyglot.hooks.TemplateHooks;
+import com.zrlog.blog.polyglot.hooks.IncludeHook;
 import com.zrlog.blog.polyglot.resource.TemplateResolver;
 import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
 import com.zrlog.blog.polyglot.util.GraalDataUtils;
@@ -11,10 +11,10 @@ import com.zrlog.blog.web.template.vo.BasePageInfo;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public class EjsTemplateRender implements JsTemplateRender {
@@ -26,11 +26,13 @@ public class EjsTemplateRender implements JsTemplateRender {
     private final Value ejs;
     private final String templateExt = ".ejs";
     private final String template;
-    private final TemplateHooks templateHooks;
-    private final Map<String, Object> locals;
+    private final IncludeHook includeHook;
+    private final Map<String,Object> locals;
 
     public EjsTemplateRender(String template, BasePageInfo basePageInfo, Map<String, Object> locals) {
         this.template = template;
+        this.includeHook = new IncludeHook(this, new TemplateResolver(template), basePageInfo);
+        locals.put("include", includeHook);
         this.locals = locals;
         this.context = Context.newBuilder("js")
                 .allowHostAccess(HostAccess.ALL)
@@ -52,10 +54,9 @@ public class EjsTemplateRender implements JsTemplateRender {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        this.templateHooks = new TemplateHooks(this, new TemplateResolver(template), basePageInfo);
-        locals.put("include", (ProxyExecutable) args -> {
-            return templateHooks.handleInclude(args[0].asString(), args.length > 1 ? args[1] : Value.asValue(null));
-        });
+        for (Map.Entry<String, Object> entry : locals.entrySet()) {
+            jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
+        }
     }
 
     @Override
@@ -74,30 +75,30 @@ public class EjsTemplateRender implements JsTemplateRender {
     }
 
     @Override
-    public String render(String page, Map<String, Object> locals) {
-        for (Map.Entry<String, Object> entry : locals.entrySet()) {
-            jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
+    public String render(String page, Map<String, Object> data) {
+        if (Objects.nonNull(data)) {
+            for (Map.Entry<String, Object> entry : data.entrySet()) {
+                if (locals.containsKey(entry.getKey())) {
+                    continue;
+                }
+                jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
+                locals.put(entry.getKey(), entry.getValue());
+            }
         }
-        Object jsFriendlyLocals = GraalDataUtils.makeJsFriendly(locals);
         String path = (template + "/" + page + (page.endsWith(templateExt) ? "" : templateExt)).replaceAll("//", "/");
         Value options = context.eval("js", "({ async: false, cache: false })");
         String read = ZrLogResourceLoader.read(path);
-        Value result = ejs.getMember("render").execute(read, jsFriendlyLocals, options);
+        Value result = ejs.getMember("render").execute(read, locals, options);
         return result.asString();
     }
 
     @Override
     public String includeRender(String page, Map<String, Object> data) {
-        return templateHooks.handleInclude(page, Value.asValue(data));
+        return includeHook.execute(Value.asValue(page), Value.asValue(data)).toString();
     }
 
     @Override
     public String getTemplate() {
         return template;
-    }
-
-    @Override
-    public Map<String, Object> getLocals() {
-        return locals;
     }
 }

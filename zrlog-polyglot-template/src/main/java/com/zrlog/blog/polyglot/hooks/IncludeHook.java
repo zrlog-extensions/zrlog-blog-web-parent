@@ -6,27 +6,31 @@ import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
 
 import java.util.Map;
 import java.util.Objects;
 
 // Java 侧定义 Hook 逻辑
-public class TemplateHooks {
+public class IncludeHook implements ProxyExecutable {
 
     private final JsTemplateRender jsTemplateRender;
     private final TemplateResolver resolver;
     private final BasePageInfo basePageInfo;
 
-    public TemplateHooks(JsTemplateRender jsTemplateRender, TemplateResolver resolver, BasePageInfo basePageInfo) {
+    public IncludeHook(JsTemplateRender jsTemplateRender, TemplateResolver resolver, BasePageInfo basePageInfo) {
         this.jsTemplateRender = jsTemplateRender;
         this.resolver = resolver;
         this.basePageInfo = basePageInfo;
     }
 
-    public String handleInclude(String path, Value options) {
+    @Override
+    public Object execute(Value... arguments) {
+        String path = arguments[0].toString();
+        Value options = arguments[1];
         String absolutePath = resolver.resolve(path);
         resolver.pushPath(absolutePath);
-        Map<String, Object> data = (Objects.nonNull(options) && !options.isNull()) ? options.as(Map.class) : jsTemplateRender.getLocals();
+        Map<String, Object> data = (Objects.nonNull(options) && !options.isNull()) ? options.as(Map.class) : null;
         // 注意：Hexo 的 partial 路径通常是相对于当前模板目录的
         try {
             //拦截

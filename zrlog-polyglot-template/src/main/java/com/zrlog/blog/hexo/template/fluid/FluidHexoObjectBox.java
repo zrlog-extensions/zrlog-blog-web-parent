@@ -1,8 +1,10 @@
 package com.zrlog.blog.hexo.template.fluid;
 
 import com.zrlog.blog.hexo.template.HexoObjectBox;
-import com.zrlog.blog.hexo.template.HexoTemplate;
+import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.util.YamlLoader;
+import com.zrlog.blog.web.template.vo.BasePageInfo;
+import com.zrlog.common.vo.TemplateVO;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -15,16 +17,15 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     private final InjectionStorage injectionStorage;
 
-    public FluidHexoObjectBox(Map<String, Object> themeConfig,
-                              String themeDir,
-                              HexoTemplate hexoTemplate,
-                              Value binging) {
-        super(themeConfig, themeDir, hexoTemplate,binging);
-        this.injectionStorage = new InjectionStorage(new ConcurrentHashMap<>(), themeDir);
+    public FluidHexoObjectBox(Map<String, Object> theme,
+                              String rootPath,
+                              BasePageInfo basePageInfo, TemplateVO templateVO) {
+        super(theme, rootPath, basePageInfo, templateVO);
+        this.injectionStorage = new InjectionStorage(new ConcurrentHashMap<>(), rootPath);
     }
 
     @Override
-    protected boolean filterRegister(String name, Value[] values) {
+    protected boolean filterRegister(Context context, String name, Value[] values) {
         if (name.equals("theme_inject")) {
             Value callback = values[1];
             // 关键：当脚本运行回调时，传入我们构造的 injects 代理对象
@@ -36,7 +37,8 @@ public class FluidHexoObjectBox extends HexoObjectBox {
     }
 
     @Override
-    protected boolean helperRegister(String name, Value[] values) {
+    protected boolean helperRegister(JsTemplateRender jsTemplateRender, String name, Value[] values) {
+        Value bindings = jsTemplateRender.getJsBindings();
         switch (name) {
             case "inject_point" -> {
                 bindings.putMember(name, (ProxyExecutable) args -> {
@@ -53,7 +55,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
                     StringBuilder htmlResult = new StringBuilder();
                     for (String filePath : filePaths) {
-                        String renderedContent = hexoTemplate.getJsTemplateRender().render(filePath, hexoTemplate.getLocals());
+                        String renderedContent = jsTemplateRender.render(filePath, null);
                         htmlResult.append(renderedContent);
                     }
 
@@ -62,11 +64,11 @@ public class FluidHexoObjectBox extends HexoObjectBox {
                 return true;
             }
             case "js_ex" -> {
-                jsEx();
+                jsEx(bindings);
                 return true;
             }
             case "css_ex" -> {
-                cssEx();
+                cssEx(bindings);
                 return true;
             }
         }
@@ -79,7 +81,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
     }
 
     @Override
-    public void regStyleHooks() {
+    public void regStyleHooks(Context context) {
         context.eval("js", "renderer.define('hexo-config', function(pathNode) {" +
                 "  return hexo_config_java(pathNode.val);" +
                 "});");
@@ -92,8 +94,22 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     @Override
     protected void fillConfig() {
-        Map<String, Object> page = (Map<String, Object>) themeConfig.get("page");
-        page.put("banner_img", hexoTemplate.getPageInfo().getTemplateUrl() + "/source/img/default.png");
+        for (String key : Arrays.asList("index", "page", "tag", "about", "page404", "links", "archive", "post", "category")) {
+            fixImageUrl(key, "banner_img");
+        }
+
+        Map<String, Object> config = (Map<String, Object>) theme.get("config");
+        Map<String, Object> indexGen = (Map<String, Object>) config.computeIfAbsent("index_generator", k -> new HashMap<>());
+        indexGen.putIfAbsent("order_by", "name");
+    }
+
+    private void fixImageUrl(String rootKey, String valueName) {
+        Map<String, Object> map = (Map<String, Object>) theme.get(rootKey);
+        map.put(valueName, basePageInfo.getTemplateUrl() + "/source/img/default.png");
+    }
+
+    @Override
+    protected void regisConfig(Value bindings) {
         bindings.putMember("hexo_config_java", (Function<String, Object>) key -> {
             if (Objects.equals("injects.variable", key)) {
                 return new ArrayList<>();
@@ -104,41 +120,47 @@ public class FluidHexoObjectBox extends HexoObjectBox {
             if (Objects.equals("injects.style", key)) {
                 return new ArrayList<>();
             }
-            return YamlLoader.getNestedValue(themeConfig, key);
+            return YamlLoader.getNestedValue(theme, key);
         });
+        bindings.putMember("fluid_version", templateVO.getVersion());
+        Map<String, Object> nestedValue = (Map<String, Object>) YamlLoader.getNestedValue(theme, "index.slogan");
+        nestedValue.put("text", basePageInfo.getWebs().getSecond_title());
     }
 
-    private void jsEx() {
+    private String buildJsScript(Value... args) {
+        if (args.length == 0) return "";
+
+        // 1. 获取脚本路径 (例如: /js/main.js)
+        String src = args[0].asString();
+
+        // 2. 处理第二个参数 (属性对象，例如 { async: true, defer: true })
+        StringBuilder attributes = new StringBuilder();
+
+        if (args.length > 1 && !args[1].isNull()) {
+            // 简单的属性拼接逻辑
+            Value options = args[1];
+            if (options.hasMember("async") && options.getMember("async").asBoolean()) {
+                attributes.append(" async");
+            }
+            if (options.hasMember("defer") && options.getMember("defer").asBoolean()) {
+                attributes.append(" defer");
+            }
+        }
+        // 3. 返回标准的 HTML 标签
+        if (src.startsWith("http")) {
+            return String.format("<script src=\"%s\"%s></script>", src + args[1], attributes);
+
+        }
+        return String.format("<script src=\"%s\"%s></script>", basePageInfo.getTemplateUrl() + "/source" + src + "/" + args[1], attributes);
+    }
+
+    private void jsEx(Value bindings) {
         bindings.putMember("js_ex", (ProxyExecutable) args -> {
-            if (args.length == 0) return "";
-
-            // 1. 获取脚本路径 (例如: /js/main.js)
-            String src = args[0].asString();
-
-            // 2. 处理第二个参数 (属性对象，例如 { async: true, defer: true })
-            StringBuilder attributes = new StringBuilder();
-
-            if (args.length > 1) {
-                // 简单的属性拼接逻辑
-                Value options = args[1];
-                if (options.hasMember("async") && options.getMember("async").asBoolean()) {
-                    attributes.append(" async");
-                }
-                if (options.hasMember("defer") && options.getMember("defer").asBoolean()) {
-                    attributes.append(" defer");
-                }
-            }
-            // 3. 返回标准的 HTML 标签
-            if (src.startsWith("http")) {
-                return String.format("<script src=\"%s\"%s></script>", src + args[1], attributes);
-
-            }
-            return String.format("<script src=\"%s\"%s></script>", hexoTemplate.getPageInfo().getTemplateUrl() + "/source" + src + "/" + args[1], attributes);
-
+            return buildJsScript(args[0], args[1]);
         });
     }
 
-    private void cssEx() {
+    private void cssEx(Value bindings) {
         bindings.putMember("css_ex", (ProxyExecutable) args -> {
             if (args.length == 0 || args[0].isNull()) return "";
 
@@ -146,7 +168,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
             String href = args[0].asString();
 
             if (!href.startsWith("http") && !href.startsWith("//")) {
-                href = hexoTemplate.getPageInfo().getTemplateUrl() + "/source" + href;
+                href = basePageInfo.getTemplateUrl() + "/source" + href;
             }
             // 2. 初始化属性字符串
             StringBuilder attrs = new StringBuilder();

@@ -15,15 +15,10 @@ import java.util.stream.Collectors;
 
 public class HexoPageConverter {
 
-    public static Map<String, Object> toHexoMap(BasePageInfo pageInfo, String layout) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("title", pageInfo.getWebs().getTitle());
-
-        Map<String, Object> page = (Map<String, Object>) pageInfo.getTheme().get("page");
-        if (Objects.isNull(page)) {
-            page = new HashMap<>();
-            pageInfo.getTheme().put("page", page);
-        }
+    public static Map<String, Object> toThemeMap(BasePageInfo pageInfo, String layout, Map<String, Object> config) {
+        Map<String, Object> theme = new HashMap<>(config);
+        theme.put("title", pageInfo.getWebs().getTitle());
+        Map<String, Object> page = new HashMap<>();
         if (Objects.nonNull(layout)) {
             if (layout.equals("detail")) {
                 page.put("layout", "/post");
@@ -33,7 +28,6 @@ public class HexoPageConverter {
                 page.put("layout", "/" + layout);
             }
         }
-        Map<String, Object> theme = Objects.nonNull(pageInfo.getTheme()) ? pageInfo.getTheme() : new HashMap<>();
 
         if (layout.equals("detail")) {
             Map<String, Object> row = new HashMap<>();
@@ -92,6 +86,7 @@ public class HexoPageConverter {
             } else {
                 page.put("total", 1);
             }
+            page.put("title", pageInfo.getWebs().getTitle());
         } else {
 
         }
@@ -105,7 +100,7 @@ public class HexoPageConverter {
                 row.put("key", logNavDTO.getNavName());
                 list.add(row);
             }
-            pageInfo.getTheme().put("navbar", Map.of("menu", list, "blog_title", pageInfo.getWebs().getTitle()));
+            theme.put("navbar", Map.of("menu", list, "blog_title", pageInfo.getWebs().getTitle()));
         }
 
         if (Objects.nonNull(pageInfo.getInit().getLinks())) {
@@ -122,24 +117,21 @@ public class HexoPageConverter {
                 list.add(row);
             }
             Map<String, Object> links = new HashMap<>(Map.of("items", list));
-            pageInfo.getTheme().put("links", links);
+            theme.put("links", links);
             links.put("comments", Map.of("type", ""));
         }
 
-        pageInfo.getTheme().put("language", pageInfo.getLang());
-        pageInfo.getTheme().put("title", pageInfo.getWebs().getTitle());
-        map.put("config", pageInfo.getTheme());
-        pageInfo.getTheme().put("root", pageInfo.getBaseWithHostPath().substring(0, pageInfo.getBaseWithHostPath().lastIndexOf("/")));
+        theme.put("language", pageInfo.getLang());
+        theme.put("config", config);
+        config.put("root", pageInfo.getBaseWithHostPath().substring(0, pageInfo.getBaseWithHostPath().lastIndexOf("/")));
+        config.put("title", pageInfo.getWebs().getTitle());
+        config.put("page", page);
         theme.put("apple_touch_icon", "/favicon.ico");
         theme.put("favicon", "/favicon.png");
-        map.put("theme", theme);
-        map.put("site", page);
-        map.put("page", page);
-        map.put("locals", theme);
+        theme.put("site", page);
+        theme.put("page", page);
         page.put("description", pageInfo.getDescription());
         page.put("keywords", pageInfo.getKeywords());
-        Map<String, Object> indexGen = (Map<String, Object>) pageInfo.getTheme().computeIfAbsent("index_generator", k -> new HashMap<>());
-        indexGen.putIfAbsent("order_by", "name");
-        return map;
+        return theme;
     }
 }

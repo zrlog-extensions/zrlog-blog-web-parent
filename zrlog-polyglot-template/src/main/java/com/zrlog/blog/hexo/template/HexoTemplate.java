@@ -4,12 +4,13 @@ import com.zrlog.blog.hexo.template.fluid.FluidHexoObjectBox;
 import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.ejs.EjsTemplateRender;
 import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
+import com.zrlog.blog.polyglot.util.GraalDataUtils;
 import com.zrlog.blog.polyglot.util.YamlLoader;
 import com.zrlog.blog.web.template.ZrLogTemplate;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.business.type.TemplateType;
 import com.zrlog.common.Constants;
-import org.graalvm.polyglot.Context;
+import com.zrlog.common.vo.TemplateVO;
 
 import java.io.File;
 import java.util.HashMap;
@@ -19,14 +20,9 @@ import java.util.Objects;
 public class HexoTemplate implements ZrLogTemplate {
     private String template;
     private String rootPath;
-    private Map<String, Object> locals = new HashMap<>();
     private BasePageInfo pageInfo;
+    private TemplateVO templateVO;
     private JsTemplateRender jsTemplateRender;
-
-
-    public Map<String, Object> getLocals() {
-        return locals;
-    }
 
     public String getTemplate() {
         return template;
@@ -38,6 +34,10 @@ public class HexoTemplate implements ZrLogTemplate {
 
     public BasePageInfo getPageInfo() {
         return pageInfo;
+    }
+
+    public HexoTemplate(TemplateVO templateVO) {
+        this.templateVO = templateVO;
     }
 
     @Override
@@ -56,12 +56,13 @@ public class HexoTemplate implements ZrLogTemplate {
         } else {
             config = YamlLoader.loadConfig(ZrLogResourceLoader.read(rootPath + "/" + TemplateType.NODE_JS.getConfigFile()));
         }
-        pageInfo.setTheme(config);
-        this.locals = new HashMap<>(HexoPageConverter.toHexoMap(pageInfo, page));
-        this.jsTemplateRender = new EjsTemplateRender(this.template, pageInfo, locals);
-        new FluidHexoObjectBox(config, rootPath, this, jsTemplateRender.getJsBindings()).setup();
-        this.locals.put("body", jsTemplateRender.render((String) YamlLoader.getNestedValue(locals, "page.layout"), locals));
-        return jsTemplateRender.render("/layout", locals);
+        Map<String, Object> theme = new HashMap<>(HexoPageConverter.toThemeMap(pageInfo, page, config));
+        FluidHexoObjectBox fluidHexoObjectBox = new FluidHexoObjectBox(theme, rootPath, pageInfo, templateVO);
+        this.jsTemplateRender = new EjsTemplateRender(this.template, pageInfo, theme);
+        fluidHexoObjectBox.setup(jsTemplateRender);
+        this.getJsTemplateRender().getJsBindings().putMember("theme", GraalDataUtils.makeJsFriendly(theme));
+        this.getJsTemplateRender().getJsBindings().putMember("body", jsTemplateRender.render((String) YamlLoader.getNestedValue(theme, "page.layout"), theme));
+        return jsTemplateRender.render("/layout", theme);
     }
 
     private void setup() {
@@ -76,13 +77,5 @@ public class HexoTemplate implements ZrLogTemplate {
 
     public JsTemplateRender getJsTemplateRender() {
         return jsTemplateRender;
-    }
-
-    public Context getContext() {
-        return jsTemplateRender.getContext();
-    }
-
-    public String getTemplateExt() {
-        return jsTemplateRender.getTemplateExt();
     }
 }
