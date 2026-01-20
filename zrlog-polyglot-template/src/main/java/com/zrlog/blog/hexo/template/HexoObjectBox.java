@@ -78,25 +78,25 @@ public abstract class HexoObjectBox {
             String resourceFile = styleRoot + compileStyl;
             File staticFile = PathUtil.getStaticFile(basePageInfo.getTemplate() + getStylRoot() + compileStyl.replace(".styl", ".css"));
             if (staticFile.exists()) {
-                return;
+                continue;
             }
-            if (ZrLogResourceLoader.exists(styleRoot + compileStyl)) {
-                initStylus(context);
-                String stylusCode = new StylusBundler(styleRoot).bundle(compileStyl).replaceAll("(?s)/\\*.*?\\*/", "").trim();
-                context.getBindings("js").putMember("myStylusCode", stylusCode.trim());
-                context.eval("js", "var renderer = new StylusRenderer(myStylusCode); ");
-                context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/stylus-hooks.js").readAllBytes()));
-                regStyleHooks(context);
-                try {
-                    String renderResult = context.eval("js", "renderer.render();").asString();
-                    if (Objects.nonNull(renderResult) && !renderResult.trim().isEmpty()) {
-                        IOUtil.writeStrToFile(renderResult, staticFile);
-                    }
-                } catch (Exception e) {
-                    LOGGER.warning(resourceFile + " compile error " + e.getMessage());
-                }
-            } else {
+            if (!ZrLogResourceLoader.exists(styleRoot + compileStyl)) {
                 LOGGER.warning(resourceFile + " not found");
+                continue;
+            }
+            initStylus(context);
+            String stylusCode = new StylusBundler(styleRoot).bundle(compileStyl).replaceAll("(?s)/\\*.*?\\*/", "").trim();
+            context.getBindings("js").putMember("myStylusCode", stylusCode.trim());
+            context.eval("js", "var renderer = new StylusRenderer(myStylusCode); ");
+            context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/stylus-hooks.js").readAllBytes()));
+            regStyleHooks(context);
+            try {
+                String renderResult = context.eval("js", "renderer.render();").asString();
+                if (Objects.nonNull(renderResult) && !renderResult.trim().isEmpty()) {
+                    IOUtil.writeStrToFile(renderResult, staticFile);
+                }
+            } catch (Exception e) {
+                LOGGER.warning(resourceFile + " compile error " + e.getMessage());
             }
         }
 
@@ -198,7 +198,9 @@ public abstract class HexoObjectBox {
             if (code.contains("register('") || code.contains("register(\"")) {
                 try {
                     context.eval("js", "{" + code + "}");
-                    //LOGGER.info("Exec " + scriptPath + " success");
+                    if (EnvKit.isDevMode()) {
+                        LOGGER.info("Exec " + scriptPath + " success");
+                    }
                 } catch (Exception e) {
                     LOGGER.severe("Exec " + scriptPath + " error " + e.getMessage());
                 }
