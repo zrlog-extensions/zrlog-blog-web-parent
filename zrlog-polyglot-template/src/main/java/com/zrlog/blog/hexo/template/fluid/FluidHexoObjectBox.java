@@ -106,6 +106,13 @@ public class FluidHexoObjectBox extends HexoObjectBox {
                 comments.put("enable", true);
             }
         }
+        Map<String, Object> footer = (Map<String, Object>) YamlLoader.getNestedValue(config, "footer");
+        if (Objects.nonNull(footer)) {
+            Object content = footer.get("content");
+            if (Objects.nonNull(content) && content.toString().contains("Hexo")) {
+                footer.put("content", content.toString().replace("Hexo", "hexo").replace("hexo.io", "www.zrlog.com"));
+            }
+        }
     }
 
     private void fixImageUrl(String rootKey, String valueName) {
