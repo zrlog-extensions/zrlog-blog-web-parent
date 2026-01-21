@@ -46,6 +46,7 @@ public class HexoPageConverter {
             } else {
                 page.put("comments", new ArrayList<>());
             }
+            page.put("posts", new ArrayList<>());
         } else if (pageInfo instanceof ArticleListPageVO) {
             PageData<ArticleBasicDTO> data = ((ArticleListPageVO) pageInfo).getData();
             List<Map<String, Object>> list = new ArrayList<>();
@@ -75,8 +76,6 @@ public class HexoPageConverter {
                 }
             }
             page.put("posts", list);
-            page.put("categories", new ArrayList<>());
-            page.put("tags", new ArrayList<>());
             if (Objects.nonNull(pageInfo.getWebs())) {
                 page.put("subtitle", pageInfo.getWebs().getSecond_title());
             }
@@ -124,9 +123,12 @@ public class HexoPageConverter {
         theme.put("config", config);
         config.put("root", pageInfo.getBaseWithHostPath().substring(0, pageInfo.getBaseWithHostPath().lastIndexOf("/")));
         config.put("title", pageInfo.getWebs().getTitle());
+        config.put("language", pageInfo.getLang());
         config.put("page", page);
         theme.put("apple_touch_icon", "/favicon.ico");
         theme.put("favicon", "/favicon.png");
+        page.put("categories", new ArrayList<>());
+        page.put("tags", new ArrayList<>());
         theme.put("site", page);
         theme.put("page", page);
         page.put("description", pageInfo.getDescription());

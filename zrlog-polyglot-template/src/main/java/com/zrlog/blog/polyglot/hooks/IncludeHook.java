@@ -2,9 +2,9 @@ package com.zrlog.blog.polyglot.hooks;
 
 import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.resource.TemplateResolver;
-import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
+import com.zrlog.common.resource.ZrLogResourceLoader;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 

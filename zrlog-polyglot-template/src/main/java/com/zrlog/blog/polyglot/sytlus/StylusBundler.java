@@ -1,8 +1,8 @@
 package com.zrlog.blog.polyglot.sytlus;
 
-import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
 import com.zrlog.blog.polyglot.resource.TemplateResolver;
-import com.zrlog.blog.polyglot.resource.ResourceScanner;
+import com.zrlog.common.resource.ResourceScanner;
+import com.zrlog.common.resource.ZrLogResourceLoader;
 
 import java.util.LinkedHashSet;
 import java.util.List;

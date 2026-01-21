@@ -4,8 +4,8 @@ import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.hooks.IncludeHook;
+import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.blog.polyglot.resource.TemplateResolver;
-import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
 import com.zrlog.blog.polyglot.util.GraalDataUtils;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import org.graalvm.polyglot.Context;
@@ -13,6 +13,7 @@ import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -27,10 +28,12 @@ public class EjsTemplateRender implements JsTemplateRender {
     private final String templateExt = ".ejs";
     private final String template;
     private final IncludeHook includeHook;
-    private final Map<String,Object> locals;
+    private final Map<String, Object> locals;
+    private final ScriptProvider scriptProvider;
 
     public EjsTemplateRender(String template, BasePageInfo basePageInfo, Map<String, Object> locals) {
         this.template = template;
+        this.scriptProvider = new ScriptProvider();
         this.includeHook = new IncludeHook(this, new TemplateResolver(template), basePageInfo);
         locals.put("include", includeHook);
         this.locals = locals;
@@ -42,15 +45,16 @@ public class EjsTemplateRender implements JsTemplateRender {
                 .option("engine.WarnVirtualThreadSupport", "false")
                 .build();
         try {
-            context.eval("js", "var global = globalThis;");
-            context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/ejs.min.js").readAllBytes()));
             this.jsBindings = context.getBindings("js");
+            this.jsBindings.putMember("scriptProvider", new SimpleDateFormat());
+            context.eval("js", "var global = globalThis;");
+            context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/require.js").readAllBytes()));
+            context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/ejs.min.js").readAllBytes()));
             this.ejs = jsBindings.getMember("ejs");
             if (ejs == null || ejs.getMember("render").isNull()) {
                 throw new RuntimeException("EJS 引擎未初始化，请先加载 ejs.min.js");
             }
             context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/hooks.js").readAllBytes()));
-            context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/require.js").readAllBytes()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -86,9 +90,8 @@ public class EjsTemplateRender implements JsTemplateRender {
             }
         }
         String path = (template + "/" + page + (page.endsWith(templateExt) ? "" : templateExt)).replaceAll("//", "/");
-        Value options = context.eval("js", "({ async: false, cache: false })");
-        String read = ZrLogResourceLoader.read(path);
-        Value result = ejs.getMember("render").execute(read, locals, options);
+        //Value options = context.eval("js", "({ async: false, cache: false })");
+        Value result = ejs.getMember("renderFile").execute(path, locals);
         return result.asString();
     }
 
@@ -100,5 +103,10 @@ public class EjsTemplateRender implements JsTemplateRender {
     @Override
     public String getTemplate() {
         return template;
+    }
+
+    @Override
+    public ScriptProvider getScriptProvider() {
+        return scriptProvider;
     }
 }

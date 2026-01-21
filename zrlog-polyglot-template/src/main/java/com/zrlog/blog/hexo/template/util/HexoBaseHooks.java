@@ -44,13 +44,18 @@ public class HexoBaseHooks {
                 }
             });
         }
-        bindings.putMember("_p", (ProxyExecutable) args -> {
-            return args[0].asString();
-        });
+        bindings.putMember("_p", new HexoI18nHelperImpl(rootPath, basePageInfo.getLocal()));
         bindings.putMember("__", new HexoI18nHelperImpl(rootPath, basePageInfo.getLocal()));
+        bindings.putMember("trim", (ProxyExecutable) args -> {
+            return args[0].asString().trim();
+        });
 
         if (basePageInfo instanceof ArticleListPageVO) {
             bindings.putMember("paginator", new HexoPaginator(((ArticleListPageVO) basePageInfo).getPager()));
+        } else {
+            bindings.putMember("paginator", (ProxyExecutable) args -> {
+                return "paginator";
+            });
         }
         bindings.putMember("tagcloud", new HexoTagCloud(basePageInfo.getInit().getTags()));
         bindings.putMember("url_join", HexoHelperImpl.getUrlJoinProvider());

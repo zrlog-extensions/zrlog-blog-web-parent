@@ -6,12 +6,12 @@ import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.util.HexoBaseHooks;
 import com.zrlog.blog.polyglot.JsTemplateRender;
-import com.zrlog.blog.polyglot.resource.ResourceScanner;
 import com.zrlog.blog.polyglot.resource.ScriptProvider;
-import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
 import com.zrlog.blog.polyglot.sytlus.StylusBundler;
 import com.zrlog.blog.polyglot.util.GraalDataUtils;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
+import com.zrlog.common.resource.ResourceScanner;
+import com.zrlog.common.resource.ZrLogResourceLoader;
 import com.zrlog.common.vo.TemplateVO;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -25,11 +25,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-public abstract class HexoObjectBox {
+public class HexoObjectBox {
 
     private static final Logger LOGGER = LoggerUtil.getLogger(HexoObjectBox.class);
     protected final Map<String, Object> theme;
-    protected final ScriptProvider scriptProvider;
     protected final BasePageInfo basePageInfo;
     protected final String rootPath;
     private boolean stylusInit = false;
@@ -38,21 +37,30 @@ public abstract class HexoObjectBox {
     public HexoObjectBox(Map<String, Object> theme, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO) {
         this.theme = theme;
         this.templateVO = templateVO;
-        this.scriptProvider = new ScriptProvider();
         this.basePageInfo = basePageInfo;
         this.rootPath = rootPath;
         this.fillConfig();
     }
 
-    protected abstract boolean filterRegister(Context context, String name, Value[] values);
+    protected boolean filterRegister(Context context, String name, Value[] values) {
+        return false;
+    }
 
-    protected abstract boolean helperRegister(JsTemplateRender jsTemplateRender, String name, Value[] values);
+    protected boolean helperRegister(JsTemplateRender jsTemplateRender, String name, Value[] values) {
+        return false;
+    }
 
-    public abstract String getStylRoot();
+    protected String getStylRoot() {
+        return "/source/css";
+    }
 
-    protected abstract void fillConfig();
+    protected void fillConfig() {
 
-    protected abstract void regisConfig(Value bindings);
+    }
+
+    protected void regisConfig(Value bindings) {
+
+    }
 
     public List<String> getCompileStyl() {
         return new ArrayList<>();
@@ -75,6 +83,7 @@ public abstract class HexoObjectBox {
         for (String compileStyl : getCompileStyl()) {
             // 3. 准备 Stylus 代码
             String styleRoot = rootPath + getStylRoot();
+            System.out.println("styleRoot = " + styleRoot);
             String resourceFile = styleRoot + compileStyl;
             File staticFile = PathUtil.getStaticFile(basePageInfo.getTemplate() + getStylRoot() + compileStyl.replace(".styl", ".css"));
             if (staticFile.exists()) {
@@ -99,6 +108,10 @@ public abstract class HexoObjectBox {
                 LOGGER.warning(resourceFile + " compile error " + e.getMessage());
             }
         }
+
+    }
+
+    public void initScript(ScriptProvider scriptProvider) {
 
     }
 
@@ -162,7 +175,8 @@ public abstract class HexoObjectBox {
         hexo.putMember("on", on);
         bindings.putMember("hexo", hexo);
         bindings.putMember("ctx", hexo);
-        bindings.putMember("scriptProvider", scriptProvider);
+
+        initScript(jsTemplateRender.getScriptProvider());
     }
 
     public void setup(JsTemplateRender jsTemplateRender) throws Exception {
@@ -179,6 +193,7 @@ public abstract class HexoObjectBox {
         Context context = jsTemplateRender.getContext();
         initHexo(jsTemplateRender);
         ResourceScanner scanner = new ResourceScanner(rootPath);
+        ScriptProvider scriptProvider = jsTemplateRender.getScriptProvider();
         List<String> scripts = scanner.listFiles("scripts/").stream().filter(e -> e.endsWith(".js")).toList();
         scriptProvider.addBaseScript("path", new String(PathUtil.getConfInputStream("base/scripts/path.js").readAllBytes()));
         scriptProvider.addBaseScript("hexo-util", new String(PathUtil.getConfInputStream("hexo/scripts/hexo-util.js").readAllBytes()));

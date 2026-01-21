@@ -1,7 +1,7 @@
 package com.zrlog.blog.hexo.template.impl;
 
-import com.zrlog.blog.polyglot.resource.ZrLogResourceLoader;
 import com.zrlog.blog.polyglot.util.YamlLoader;
+import com.zrlog.common.resource.ZrLogResourceLoader;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
