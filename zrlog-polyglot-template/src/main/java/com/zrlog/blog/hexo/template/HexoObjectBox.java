@@ -192,12 +192,12 @@ public class HexoObjectBox {
         ResourceScanner scanner = new ResourceScanner(rootPath);
         ScriptProvider scriptProvider = jsTemplateRender.getScriptProvider();
         List<String> scripts = scanner.listFiles("scripts/").stream().filter(e -> e.endsWith(".js")).toList();
-        scriptProvider.addBaseScript("path", new String(PathUtil.getConfInputStream("base/scripts/path.js").readAllBytes()));
-        scriptProvider.addBaseScript("hexo-util", new String(PathUtil.getConfInputStream("hexo/scripts/hexo-util.js").readAllBytes()));
-        scriptProvider.addBaseScript("url", new String(PathUtil.getConfInputStream("base/scripts/url.js").readAllBytes()));
+        scriptProvider.addBaseScriptByPath("path", "base/scripts/path.js");
+        scriptProvider.addBaseScriptByPath("hexo-util", "hexo/scripts/hexo-util.js");
+        scriptProvider.addBaseScriptByPath("url", "base/scripts/url.js");
         //scriptProvider.addBaseScript("moize", new String(PathUtil.getConfInputStream("hexo/scripts/moize.js").readAllBytes()));
         for (String script : scripts) {
-            scriptProvider.addScript(script.substring((rootPath + "/scripts/").length()).replaceAll(".js", ""), ZrLogResourceLoader.read(script));
+            scriptProvider.addScript(script.substring((rootPath + "/scripts/").length()).replaceAll(".js", ""), script);
         }
         for (String scriptPath : scripts) {
             if (scriptPath.contains("/generators/")) {

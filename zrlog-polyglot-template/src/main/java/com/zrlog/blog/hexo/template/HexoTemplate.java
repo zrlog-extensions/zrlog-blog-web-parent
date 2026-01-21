@@ -53,14 +53,14 @@ public class HexoTemplate implements ZrLogTemplate {
         String body = jsTemplateRender.render((String) YamlLoader.getNestedValue(theme, "page.layout"), theme);
         jsTemplateRender.getJsBindings().putMember("body", body);
         if (jsTemplateRender instanceof EjsTemplateRender) {
-            return jsTemplateRender.render("/layout", theme);
+            return jsTemplateRender.render("layout", theme);
         }
         return body;
     }
 
     private HexoObjectBox buildHexoObjectByTemplate(Map<String, Object> theme, BasePageInfo pageInfo) {
         if (this.templateVO.getTemplate().endsWith("/hexo-theme-fluid")) {
-            return new FluidHexoObjectBox(theme, rootPath, pageInfo, templateVO);
+            return new FluidHexoObjectBox(theme, rootPath, pageInfo, templateVO, template);
         }
         if (this.templateVO.getTemplate().endsWith("/hexo-theme-butterfly")) {
             return new ButterflyHexoObjectBox(theme, rootPath, pageInfo, templateVO);

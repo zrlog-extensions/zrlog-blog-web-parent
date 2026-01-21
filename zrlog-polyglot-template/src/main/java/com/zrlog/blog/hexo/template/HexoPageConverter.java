@@ -21,11 +21,11 @@ public class HexoPageConverter {
         Map<String, Object> page = new HashMap<>();
         if (Objects.nonNull(layout)) {
             if (layout.equals("detail")) {
-                page.put("layout", "/post");
+                page.put("layout", "post");
             } else if (layout.equals("archives")) {
-                page.put("layout", "/archive");
+                page.put("layout", "archive");
             } else {
-                page.put("layout", "/" + layout);
+                page.put("layout",  layout);
             }
         }
 

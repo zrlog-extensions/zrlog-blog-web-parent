@@ -36,7 +36,7 @@ public class PugTemplateRender implements JsTemplateRender {
 
     public PugTemplateRender(String template, BasePageInfo basePageInfo, Map<String, Object> locals) {
         this.template = template;
-        this.scriptProvider = new ScriptProvider();
+        this.scriptProvider = ScriptProvider.getInstance();
         this.includeHook = new IncludeHook(this, new TemplateResolver(template), basePageInfo);
         locals.put("include", includeHook);
         this.locals = locals;
@@ -60,7 +60,7 @@ public class PugTemplateRender implements JsTemplateRender {
             context.eval("js", "var global = globalThis;");
             String fullPugCode = new String(PathUtil.getConfInputStream("base/scripts/pug.js").readAllBytes());
             Source source = Source.create("js", fullPugCode);
-            System.out.println("fullPugCode = " + fullPugCode.substring(8187,8445));
+            System.out.println("fullPugCode = " + fullPugCode.substring(8187, 8445));
             // 执行文件，此时 require=function... 已经在 JS 运行了
             context.eval(source);
             // 4. 验证
@@ -76,7 +76,7 @@ public class PugTemplateRender implements JsTemplateRender {
             }
             context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/require.js").readAllBytes()));
             context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/hooks.js").readAllBytes()));
-            scriptProvider.addBaseScript("fs", new String(PathUtil.getConfInputStream("base/scripts/fs.js").readAllBytes()));
+            scriptProvider.addBaseScriptByPath("fs", "base/scripts/fs.js");
             jsBindings.putMember("javaReadSync", (ProxyExecutable) args -> {
                 System.out.println("args = " + args[0]);
                 return ZrLogResourceLoader.read(args[0].asString());
