@@ -83,7 +83,7 @@ public class HexoObjectBox {
         for (String compileStyl : getCompileStyl()) {
             // 3. 准备 Stylus 代码
             String styleRoot = rootPath + getStylRoot();
-            System.out.println("styleRoot = " + styleRoot);
+            //System.out.println("styleRoot = " + styleRoot);
             String resourceFile = styleRoot + compileStyl;
             File staticFile = PathUtil.getStaticFile(basePageInfo.getTemplate() + getStylRoot() + compileStyl.replace(".styl", ".css"));
             if (staticFile.exists()) {
