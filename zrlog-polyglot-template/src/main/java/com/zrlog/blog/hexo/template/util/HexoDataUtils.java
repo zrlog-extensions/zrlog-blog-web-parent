@@ -1,4 +1,4 @@
-package com.zrlog.blog.polyglot.util;
+package com.zrlog.blog.hexo.template.util;
 
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
