@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Logger;
 
 public class HexoObjectBox {
@@ -101,9 +100,7 @@ public class HexoObjectBox {
             regStyleHooks(context);
             try {
                 String renderResult = context.eval("js", "renderer.render();").asString();
-                if (Objects.nonNull(renderResult) && !renderResult.trim().isEmpty()) {
-                    IOUtil.writeStrToFile(renderResult, staticFile);
-                }
+                IOUtil.writeStrToFile(renderResult, staticFile);
             } catch (Exception e) {
                 LOGGER.warning(resourceFile + " compile error " + e.getMessage());
             }
