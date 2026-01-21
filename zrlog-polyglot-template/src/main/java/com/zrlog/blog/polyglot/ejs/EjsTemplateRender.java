@@ -8,6 +8,7 @@ import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.blog.polyglot.resource.TemplateResolver;
 import com.zrlog.blog.polyglot.util.GraalDataUtils;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
+import com.zrlog.common.resource.ZrLogResourceLoader;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
@@ -46,7 +47,7 @@ public class EjsTemplateRender implements JsTemplateRender {
                 .build();
         try {
             this.jsBindings = context.getBindings("js");
-            this.jsBindings.putMember("scriptProvider", new SimpleDateFormat());
+            this.jsBindings.putMember("scriptProvider", scriptProvider);
             context.eval("js", "var global = globalThis;");
             context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/require.js").readAllBytes()));
             context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/ejs.min.js").readAllBytes()));
@@ -90,8 +91,9 @@ public class EjsTemplateRender implements JsTemplateRender {
             }
         }
         String path = (template + "/" + page + (page.endsWith(templateExt) ? "" : templateExt)).replaceAll("//", "/");
-        //Value options = context.eval("js", "({ async: false, cache: false })");
-        Value result = ejs.getMember("renderFile").execute(path, locals);
+        Value options = context.eval("js", "({ async: false, cache: false })");
+        String read = ZrLogResourceLoader.read(path);
+        Value result = ejs.getMember("render").execute(read, locals, options);
         return result.asString();
     }
 
