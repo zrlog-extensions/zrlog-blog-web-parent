@@ -158,11 +158,11 @@ public class HexoBaseHooks {
         });
 
         bindings.putMember("full_date", (ProxyExecutable) args -> {
-            return HexoDateObjUtils.toDateString(args[0].as(Object.class), args[1].as(Object.class), "yyyy-MM-dd HH:mm:ss");
+            return HexoDateObjUtils.toDateString(args[0].as(Object.class), args[1].as(Object.class), "yyyy-MM-dd HH:mm:ss", basePageInfo.getLocal());
         });
 
         bindings.putMember("date", (ProxyExecutable) args -> {
-            return HexoDateObjUtils.toDateString(args[0].as(Object.class), args[1].as(Object.class), "yyyy-MM-dd");
+            return HexoDateObjUtils.toDateString(args[0].as(Object.class), args[1].as(Object.class), "yyyy-MM-dd", basePageInfo.getLocal());
         });
         bindings.putMember("date_xml", (ProxyExecutable) args -> {
             if (args.length == 0 || args[0].isNull()) return "";

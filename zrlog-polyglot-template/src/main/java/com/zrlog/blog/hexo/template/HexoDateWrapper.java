@@ -12,7 +12,11 @@ public class HexoDateWrapper {
 
     public HexoDateWrapper(String dateStr) {
         try {
-            this.date = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
+            if (dateStr.contains(":")) {
+                this.date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateStr);
+            } else {
+                this.date = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
+            }
             this.rawDate = dateStr;
         } catch (ParseException e) {
             throw new RuntimeException(e);

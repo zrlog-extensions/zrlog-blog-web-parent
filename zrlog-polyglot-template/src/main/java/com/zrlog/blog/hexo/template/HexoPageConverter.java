@@ -41,7 +41,7 @@ public class HexoPageConverter {
             page.put("post", row);
             page.put("title", log.getTitle());
             page.put("content", log.getContent());
-            page.put("date", new HexoDateWrapper(log.getReleaseTime()));
+            page.put("date", new HexoDateWrapper(log.getFullReleaseTime()));
             page.put("next_post", HexoConvertUtils.getNextLog((ArticleDetailPageVO) pageInfo));
             page.put("prev_post", HexoConvertUtils.getPrevLog((ArticleDetailPageVO) pageInfo));
             page.put("permalink", ((ArticleDetailPageVO) pageInfo).getLog().getNoSchemeUrl());
@@ -72,7 +72,7 @@ public class HexoPageConverter {
                     row.put("categories", categories);
                     row.put("tags", articleBasicDTO.getTags().stream().map(e -> Map.of("name", e.getName(), "path", e.getUrl())).collect(Collectors.toList()));
                     row.put("path", articleBasicDTO.getUrl());
-                    row.put("date", new HexoDateWrapper(articleBasicDTO.getReleaseTime()));
+                    row.put("date", new HexoDateWrapper(articleBasicDTO.getFullReleaseTime()));
                     row.put("index_img", articleBasicDTO.getThumbnail());
                     row.put("description", articleBasicDTO.getContent());
                     row.put("excerpt", articleBasicDTO.getContent());
