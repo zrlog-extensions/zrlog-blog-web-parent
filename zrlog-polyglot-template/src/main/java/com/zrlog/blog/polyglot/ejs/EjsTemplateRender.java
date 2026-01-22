@@ -109,4 +109,9 @@ public class EjsTemplateRender implements JsTemplateRender {
     public ScriptProvider getScriptProvider() {
         return scriptProvider;
     }
+
+    @Override
+    public void close() throws Exception {
+        this.context.close();
+    }
 }

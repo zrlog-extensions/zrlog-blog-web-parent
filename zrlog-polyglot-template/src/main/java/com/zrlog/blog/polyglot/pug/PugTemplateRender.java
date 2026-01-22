@@ -60,7 +60,7 @@ public class PugTemplateRender implements JsTemplateRender {
             context.eval("js", "var global = globalThis;");
             String fullPugCode = new String(PathUtil.getConfInputStream("base/scripts/pug.js").readAllBytes());
             Source source = Source.create("js", fullPugCode);
-            System.out.println("fullPugCode = " + fullPugCode.substring(8187,8445));
+            System.out.println("fullPugCode = " + fullPugCode.substring(8187, 8445));
             // 执行文件，此时 require=function... 已经在 JS 运行了
             context.eval(source);
             // 4. 验证
@@ -134,5 +134,10 @@ public class PugTemplateRender implements JsTemplateRender {
     @Override
     public ScriptProvider getScriptProvider() {
         return scriptProvider;
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.context.close();
     }
 }

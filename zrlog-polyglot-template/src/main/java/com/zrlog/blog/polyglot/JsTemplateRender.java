@@ -6,7 +6,7 @@ import org.graalvm.polyglot.Value;
 
 import java.util.Map;
 
-public interface JsTemplateRender {
+public interface JsTemplateRender extends AutoCloseable {
 
 
     Value getJsBindings();

@@ -48,14 +48,15 @@ public class HexoTemplate implements ZrLogTemplate {
         }
         Map<String, Object> theme = HexoPageConverter.toThemeMap(pageInfo, page, config);
         HexoObjectBox hexoObjectBox = buildHexoObjectByTemplate(theme, pageInfo);
-        JsTemplateRender jsTemplateRender = buildJsTemplateRender(theme, pageInfo);
-        hexoObjectBox.setup(jsTemplateRender);
-        String body = jsTemplateRender.render((String) YamlLoader.getNestedValue(theme, "page.layout"), theme);
-        jsTemplateRender.getJsBindings().putMember("body", body);
-        if (jsTemplateRender instanceof EjsTemplateRender) {
-            return jsTemplateRender.render("/layout", theme);
+        try (JsTemplateRender jsTemplateRender = buildJsTemplateRender(theme, pageInfo)) {
+            hexoObjectBox.setup(jsTemplateRender);
+            String body = jsTemplateRender.render((String) YamlLoader.getNestedValue(theme, "page.layout"), theme);
+            jsTemplateRender.getJsBindings().putMember("body", body);
+            if (jsTemplateRender instanceof EjsTemplateRender) {
+                return jsTemplateRender.render("/layout", theme);
+            }
+            return body;
         }
-        return body;
     }
 
     private HexoObjectBox buildHexoObjectByTemplate(Map<String, Object> theme, BasePageInfo pageInfo) {
