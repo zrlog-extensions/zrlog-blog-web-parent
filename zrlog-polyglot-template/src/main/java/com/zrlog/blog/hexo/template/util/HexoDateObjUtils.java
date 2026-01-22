@@ -41,6 +41,8 @@ public class HexoDateObjUtils {
 
             if (formatStr.equalsIgnoreCase("LL a")) {
                 formatStr = "yyyy-MM-dd B";
+            } else if (formatStr.equalsIgnoreCase("LL")) {
+                formatStr = "yyyy-MM-dd";
             }
 
             // 简单处理：将 Hexo 的 YYYY 转换为 Java 的 yyyy
