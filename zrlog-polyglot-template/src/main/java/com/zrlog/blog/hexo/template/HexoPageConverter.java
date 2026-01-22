@@ -134,8 +134,8 @@ public class HexoPageConverter {
         config.put("title", pageInfo.getWebs().getTitle());
         config.put("language", pageInfo.getLang());
         config.put("page", page);
-        theme.put("apple_touch_icon", "/favicon.ico");
-        theme.put("favicon", "/favicon.png");
+        theme.put("apple_touch_icon", "/favicon.png");
+        theme.put("favicon", "/favicon.ico");
         page.put("categories", new ArrayList<>());
         page.put("tags", new ArrayList<>());
         theme.put("site", page);
