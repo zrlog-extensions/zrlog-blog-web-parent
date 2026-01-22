@@ -1,5 +1,6 @@
 package com.zrlog.blog.hexo.template.impl;
 
+import com.hibegin.common.util.LoggerUtil;
 import com.zrlog.common.cache.dto.TagDTO;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -17,58 +18,61 @@ public class HexoTagCloud implements ProxyExecutable {
 
     @Override
     public Object execute(Value... args) {
-        // 1. 获取参数 (JS 传入的 tags 集合和 options)
-        if (args.length == 0) return "";
-        if (tagList.isEmpty()) return "";
-        // 假设第一个参数是 site.tags，第二个是配置对象
-        Map<String, Object> options = args[0].as(Map.class);
+        try {
+            // 1. 获取参数 (JS 传入的 tags 集合和 options)
+            if (args.length == 0) return "";
+            if (tagList.isEmpty()) return "";
+            // 假设第一个参数是 site.tags，第二个是配置对象
+            Map<String, Object> options = args[0].as(Map.class);
 
-        // 配置默认值
-        int minFont = (int) options.getOrDefault("min_font", 12);
-        int maxFont = (int) options.getOrDefault("max_font", 30);
-        String unit = (String) options.getOrDefault("unit", "px");
-        String orderby = (String) options.getOrDefault("orderby", "name");
-        int order = (int) options.getOrDefault("order", 1); // 1 asc, -1 desc
+            // 配置默认值
+            double minFont = Double.parseDouble(options.getOrDefault("min_font", 12) + "");
+            double maxFont = Double.parseDouble(options.getOrDefault("max_font", 30) + "");
+            String unit = (String) options.getOrDefault("unit", "px");
+            String orderby = (String) options.getOrDefault("orderby", "name");
+            double order = Double.parseDouble(options.getOrDefault("order", 1) + ""); // 1 asc, -1 desc
 
-        // 颜色配置: 默认灰色到深灰色，或者由用户传入如 #ccc 到 #111
-        String startColor = (String) options.getOrDefault("start_color", "");
-        String endColor = (String) options.getOrDefault("end_color", "");
-        boolean colorEnabled = !startColor.isEmpty() && !endColor.isEmpty();
+            // 颜色配置: 默认灰色到深灰色，或者由用户传入如 #ccc 到 #111
+            String startColor = (String) options.getOrDefault("start_color", "");
+            String endColor = (String) options.getOrDefault("end_color", "");
+            boolean colorEnabled = !startColor.isEmpty() && !endColor.isEmpty();
 
 
-        // 3. 计算 count 极值
-        int minCount = tagList.stream().mapToInt(t -> t.getCount().intValue()).min().orElse(0);
-        int maxCount = tagList.stream().mapToInt(t -> t.getCount().intValue()).max().orElse(0);
-        int range = maxCount - minCount;
+            // 3. 计算 count 极值
+            int minCount = tagList.stream().mapToInt(t -> t.getCount().intValue()).min().orElse(0);
+            int maxCount = tagList.stream().mapToInt(t -> t.getCount().intValue()).max().orElse(0);
+            int range = maxCount - minCount;
 
-        // 4. 排序
-        tagList.sort((a, b) -> {
-            int res = (orderby.equals("count")) ?
-                    Long.compare(a.getCount(), b.getCount()) : a.getText().compareTo(b.getText());
-            return res * order;
-        });
+            // 4. 排序
+            tagList.sort((a, b) -> {
+                int res = (orderby.equals("count")) ?
+                        Long.compare(a.getCount(), b.getCount()) : a.getText().compareTo(b.getText());
+                return res * (int) order;
+            });
 
-        // 5. 生成 HTML
-        StringBuilder sb = new StringBuilder();
-        for (TagDTO tag : tagList) {
-            double size = (range == 0) ? minFont :
-                    minFont + ((double) (tag.getCount() - minCount) / range) * (maxFont - minFont);
-            double ratio = (range == 0) ? 0.5 : (double) (tag.getCount() - minCount) / range;
+            // 5. 生成 HTML
+            StringBuilder sb = new StringBuilder();
+            for (TagDTO tag : tagList) {
+                double size = (range == 0) ? minFont :
+                        minFont + ((double) (tag.getCount() - minCount) / range) * (maxFont - minFont);
+                double ratio = (range == 0) ? 0.5 : (double) (tag.getCount() - minCount) / range;
 // 计算颜色
-            String colorAttr = "";
-            if (colorEnabled) {
-                colorAttr = String.format("color: %s;", interpolateColor(startColor, endColor, ratio));
-            } else if (options.containsKey("color")) {
-                // 如果开启了默认彩色模式
-                colorAttr = String.format("color: %s;", getRandomColor());
+                String colorAttr = "";
+                if (colorEnabled) {
+                    colorAttr = String.format("color: %s;", interpolateColor(startColor, endColor, ratio));
+                } else if (options.containsKey("color")) {
+                    // 如果开启了默认彩色模式
+                    colorAttr = String.format("color: %s;", getRandomColor());
+                }
+                sb.append(String.format(
+                        "<a href=\"%s\" style=\"font-size: %.2f%s; %s\">%s</a>\n",
+                        tag.getUrl(), size, unit, colorAttr, tag.getText()
+                ));
             }
-            sb.append(String.format(
-                    "<a href=\"%s\" style=\"font-size: %.2f%s; %s\">%s</a>\n",
-                    tag.getUrl(), size, unit, colorAttr, tag.getText()
-            ));
+            return sb.toString();
+        } catch (Exception e) {
+            return LoggerUtil.recordStackTraceMsg(e);
         }
-
-        return sb.toString();
     }
 
     // RGB 插值核心算法

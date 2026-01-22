@@ -1,12 +1,10 @@
 package com.zrlog.blog.hexo.template.util;
 
+import com.hibegin.common.util.LoggerUtil;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HexoDataUtils {
 
@@ -43,19 +41,24 @@ public class HexoDataUtils {
             return wrapper;
         });
 
-        wrapper.put("each", (ProxyExecutable) args -> {
-            Value callback = args[0];
-            // 假设你的数据存在一个 List 里
-            for (int i = 0; i < data.size(); i++) {
-                // 手动执行回调，传入 (当前项, 当前索引)
-                callback.execute(data.get(i), i);
-            }
-            return wrapper;
-        });
-        wrapper.put("forEach", wrapper.get("each"));
+        for (String str : Arrays.asList("each", "forEach")) {
+            wrapper.put(str, (ProxyExecutable) args -> {
+                Value callback = args[0];
+                // 假设你的数据存在一个 List 里
+                for (int i = 0; i < data.size(); i++) {
+                    // 手动执行回调，传入 (当前项, 当前索引)
+                    try {
+                        callback.execute(data.get(i), i);
+                    } catch (Exception e) {
+                        LoggerUtil.recordStackTraceMsg(e);
+                    }
+                }
+                return wrapper;
+            });
+        }
 
         wrapper.put("limit", (ProxyExecutable) args -> {
-            return wrap(data.stream().limit(args[0].asInt()).toList());
+            return wrap(data.stream().limit(Math.min(args[0].asInt(), data.size())).toList());
         });
 
         wrapper.put("filter", (ProxyExecutable) args -> {

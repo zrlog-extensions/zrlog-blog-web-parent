@@ -25,11 +25,15 @@ function htmlTag(str) {
 
 }
 
+function truncate(string, {length}) {
+    return string.substring(0, Math.min(length, string.length));
+}
+
 // 导出为对象
 module.exports = {
     stripHTML: stripHTML,
     decodeURL: decodeURL,
     Cache: Cache,
     htmlTag: htmlTag,
-
+    truncate: truncate,
 };

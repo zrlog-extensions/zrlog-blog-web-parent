@@ -8,6 +8,8 @@ import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.common.cache.dto.LinkDTO;
 import com.zrlog.common.cache.dto.LogNavDTO;
+import com.zrlog.common.cache.dto.TagDTO;
+import com.zrlog.common.cache.dto.TypeDTO;
 import com.zrlog.data.dto.ArticleBasicDTO;
 import com.zrlog.data.dto.ArticleDetailDTO;
 
@@ -50,7 +52,7 @@ public class HexoPageConverter {
             } else {
                 page.put("comments", new ArrayList<>());
             }
-            page.put("posts", new ArrayList<>());
+            page.put("posts", HexoDataUtils.wrap(new ArrayList<>()));
         } else if (pageInfo instanceof ArticleListPageVO) {
             PageData<ArticleBasicDTO> data = ((ArticleListPageVO) pageInfo).getData();
             List<Map<String, Object>> list = new ArrayList<>();
@@ -62,7 +64,7 @@ public class HexoPageConverter {
                     List<Map<String, Object>> categories = new ArrayList<>();
                     Map<String, Object> cat = new HashMap<>();
                     cat.put("_id", articleBasicDTO.getTypeId());
-                    cat.put("name", articleBasicDTO.getTypeName()); // 注意：EJS 有 .trim()，所以前后空格没关系
+                    cat.put("name", articleBasicDTO.getTypeName());
                     cat.put("path", articleBasicDTO.getTypeUrl());
                     cat.put("parent", null);   // 顶级分类传 null
                     pageInfo.getInit().getTypes().stream().filter(e -> e.getTypeName().equals(articleBasicDTO.getTypeName())).findFirst().ifPresent(type -> {
@@ -76,6 +78,7 @@ public class HexoPageConverter {
                     row.put("index_img", articleBasicDTO.getThumbnail());
                     row.put("description", articleBasicDTO.getContent());
                     row.put("excerpt", articleBasicDTO.getContent());
+                    row.put("content", articleBasicDTO.getContent());
                     list.add(row);
                 }
             }
@@ -127,6 +130,32 @@ public class HexoPageConverter {
             theme.put("links", links);
             links.put("comments", Map.of("type", ""));
         }
+        if (Objects.nonNull(pageInfo.getInit().getTypes())) {
+            List<Map<String, Object>> list = new ArrayList<>();
+            List<TypeDTO> typeDTOS = pageInfo.getInit().getTypes();
+            for (TypeDTO typeDTO : typeDTOS) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("path", typeDTO.getUrl());
+                row.put("name", typeDTO.getTypeName());
+                row.put("_id", typeDTO.getId());
+                row.put("parent", null);
+                list.add(row);
+            }
+            page.put("categories", HexoDataUtils.wrap(list));
+        }
+
+        if (Objects.nonNull(pageInfo.getInit().getTags())) {
+            List<Map<String, Object>> list = new ArrayList<>();
+            List<TagDTO> typeDTOS = pageInfo.getInit().getTags();
+            for (TagDTO tagDTO : typeDTOS) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("path", tagDTO.getUrl());
+                row.put("name", tagDTO.getText());
+                row.put("_id", tagDTO.getId());
+                list.add(row);
+            }
+            page.put("tags", HexoDataUtils.wrap(list));
+        }
 
         theme.put("language", pageInfo.getLang());
         theme.put("config", config);
@@ -136,8 +165,6 @@ public class HexoPageConverter {
         config.put("page", page);
         theme.put("apple_touch_icon", "/favicon.png");
         theme.put("favicon", "/favicon.ico");
-        page.put("categories", new ArrayList<>());
-        page.put("tags", new ArrayList<>());
         theme.put("site", page);
         theme.put("page", page);
         page.put("description", pageInfo.getDescription());

@@ -129,7 +129,7 @@ public class HexoObjectBox {
 
     }
 
-    public void initScript(ScriptProvider scriptProvider) {
+    public void initScript(ScriptProvider scriptProvider, JsTemplateRender jsTemplateRender) {
 
     }
 
@@ -194,7 +194,7 @@ public class HexoObjectBox {
         bindings.putMember("hexo", hexo);
         bindings.putMember("ctx", hexo);
 
-        initScript(jsTemplateRender.getScriptProvider());
+        initScript(jsTemplateRender.getScriptProvider(),jsTemplateRender);
     }
 
     public void setup(JsTemplateRender jsTemplateRender) throws Exception {

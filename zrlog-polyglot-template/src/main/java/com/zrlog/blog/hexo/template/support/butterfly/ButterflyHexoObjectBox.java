@@ -1,16 +1,19 @@
 package com.zrlog.blog.hexo.template.support.butterfly;
 
 import com.zrlog.blog.hexo.template.HexoObjectBox;
-import com.zrlog.blog.hexo.template.util.HexoDataUtils;
+import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.resource.ScriptProvider;
-import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.common.cache.dto.LogNavDTO;
+import com.zrlog.common.resource.ZrLogResourceLoader;
 import com.zrlog.common.vo.TemplateVO;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ButterflyHexoObjectBox extends HexoObjectBox {
 
@@ -45,11 +48,6 @@ public class ButterflyHexoObjectBox extends HexoObjectBox {
         fixImageUrl("error_img", "flink");
         fixImageUrl("error_img", "post_img");
         fixImageUrl("error_404", "background");
-    }
-
-    @Override
-    public void initScript(ScriptProvider scriptProvider) {
-        //scriptProvider.addBaseScript("package.json", ZrLogResourceLoader.read(rootPath + "/package.json"));
     }
 
     @Override
