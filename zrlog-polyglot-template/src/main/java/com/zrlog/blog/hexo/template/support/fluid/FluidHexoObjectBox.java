@@ -18,7 +18,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     private final InjectionStorage injectionStorage;
 
-    public FluidHexoObjectBox(Map<String, Object> theme, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO,String templateDir) {
+    public FluidHexoObjectBox(Map<String, Object> theme, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO, String templateDir) {
         super(theme, rootPath, basePageInfo, templateVO);
         this.injectionStorage = new InjectionStorage(new ConcurrentHashMap<>(), templateDir);
     }
@@ -104,13 +104,13 @@ public class FluidHexoObjectBox extends HexoObjectBox {
         Map<String, Object> footer = (Map<String, Object>) YamlLoader.getNestedValue(config, "footer");
         if (Objects.nonNull(footer)) {
             Object content = footer.get("content");
+            String webCm = "<div style='display:none'>" + basePageInfo.getWebs().getWebCm() + "</div>";
             if (Objects.nonNull(content) && content.toString().contains("Hexo")) {
-                footer.put("content", content.toString().replace("Hexo", "hexo").replace("hexo.io", "www.zrlog.com"));
+                content = content.toString().replace("Hexo", "hexo").replace("hexo.io", "www.zrlog.com");
             }
+            footer.put("content", content + webCm);
         }
     }
-
-
 
     @Override
     protected void regisConfig(Value bindings) {
