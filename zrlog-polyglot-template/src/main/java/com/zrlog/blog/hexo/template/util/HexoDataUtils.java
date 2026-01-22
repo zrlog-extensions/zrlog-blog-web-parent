@@ -26,16 +26,20 @@ public class HexoDataUtils {
         return matches;
     }
 
+    public static Map<String, Object> wrap(List<?> list) {
+        return wrap(list, list.size());
+    }
+
     /**
      * 将普通的 List 封装成带 .data 属性的 Map
      */
-    public static Map<String, Object> wrap(List<?> list) {
+    public static Map<String, Object> wrap(List<?> list, int totalLength) {
         Map<String, Object> wrapper = new HashMap<>();
         List<?> data = list != null ? list : List.of();
         // 如果 list 为 null，我们也给一个空数组，防止 Pug 报错 Cannot convert null to object
         wrapper.put("data", data);
         // 模拟 Hexo 集合常用的 length 属性（可选）
-        wrapper.put("length", list != null ? list.size() : 0);
+        wrapper.put("length", totalLength);
         wrapper.put("sort", (ProxyExecutable) args -> {
             //未实现
             return wrapper;
@@ -58,7 +62,7 @@ public class HexoDataUtils {
         }
 
         wrapper.put("limit", (ProxyExecutable) args -> {
-            return wrap(data.stream().limit(Math.min(args[0].asInt(), data.size())).toList());
+            return wrap(data.stream().limit(Math.min(args[0].asInt(), data.size())).toList(), totalLength);
         });
 
         wrapper.put("filter", (ProxyExecutable) args -> {
@@ -71,20 +75,24 @@ public class HexoDataUtils {
 
                 if (predicate.canExecute()) {
                     // 情况 A: 传入的是函数 .filter(item => item.show !== false)
-                    matches = isTrue(predicate.execute(item, i));
+                    System.out.println( predicate.toString());
+                    Value execute = predicate.execute(item, i);
+                    matches = isTrue(execute);
                 } else if (predicate.hasMembers()) {
+
+
                     // 情况 B: 传入的是匹配对象 .filter({ category: 'Tech' })
                     matches = matches(item, predicate);
                 }
 
                 if (matches) {
-                    resultList.add(item);
+                    resultList.add(data.get(i));
                 }
             }
 
             // 关键点：返回一个被 wrap 过的对象，而不是 List 本身
             // 这样返回的对象依然拥有 .filter, .find, .each, .data 等方法
-            return wrap(resultList);
+            return wrap(resultList, totalLength);
         });
 
 
@@ -102,7 +110,7 @@ public class HexoDataUtils {
                         items.add(item);
                     }
                 }
-                return wrap(items);
+                return wrap(items, totalLength);
             }
             // 情况 B: 传入的是匹配对象 (如 {id: 1})
             else if (predicate.hasMembers()) {
@@ -113,7 +121,7 @@ public class HexoDataUtils {
                         items.add(datum);
                     }
                 }
-                return wrap(items);
+                return wrap(items, totalLength);
             }
             return null;
         });
