@@ -8,10 +8,10 @@ import com.zrlog.blog.polyglot.hooks.IncludeHook;
 import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.blog.polyglot.resource.TemplateResolver;
 import com.zrlog.blog.polyglot.util.GraalDataUtils;
+import com.zrlog.blog.polyglot.util.PolyglotContextUtils;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.common.resource.ZrLogResourceLoader;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -40,13 +40,7 @@ public class PugTemplateRender implements JsTemplateRender {
         this.includeHook = new IncludeHook(this, new TemplateResolver(template), basePageInfo);
         locals.put("include", includeHook);
         this.locals = locals;
-        this.context = Context.newBuilder("js")
-                .allowHostAccess(HostAccess.ALL)
-                .allowExperimentalOptions(true)
-                .allowHostClassLookup(s -> true)
-                .logHandler(LOGGER.getHandlers()[0])
-                .option("engine.WarnVirtualThreadSupport", "false")
-                .build();
+        this.context = PolyglotContextUtils.buildJsContext();
         this.jsBindings = context.getBindings("js");
         try {
             this.jsBindings.putMember("scriptProvider", scriptProvider);
