@@ -1,11 +1,8 @@
 package com.zrlog.blog.hexo.template.support.butterfly;
 
 import com.zrlog.blog.hexo.template.HexoObjectBox;
-import com.zrlog.blog.polyglot.JsTemplateRender;
-import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.common.cache.dto.LogNavDTO;
-import com.zrlog.common.resource.ZrLogResourceLoader;
 import com.zrlog.common.vo.TemplateVO;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -44,7 +41,8 @@ public class ButterflyHexoObjectBox extends HexoObjectBox {
         Map<String, Object> site = (Map<String, Object>) theme.get("site");
         site.put("data", Map.of("widget", Map.of("title", basePageInfo.getWebs().getTitle())));
 
-        fixImageUrl("avatar", "img");
+        Map<String, Object> avatar = (Map<String, Object>) theme.get("avatar");
+        avatar.put("img", "/favicon.ico");
         fixImageUrl("error_img", "flink");
         fixImageUrl("error_img", "post_img");
         fixImageUrl("error_404", "background");
