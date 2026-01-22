@@ -75,7 +75,7 @@ public class HexoDataUtils {
 
                 if (predicate.canExecute()) {
                     // 情况 A: 传入的是函数 .filter(item => item.show !== false)
-                    System.out.println( predicate.toString());
+                    System.out.println(predicate.toString());
                     Value execute = predicate.execute(item, i);
                     matches = isTrue(execute);
                 } else if (predicate.hasMembers()) {
@@ -102,26 +102,22 @@ public class HexoDataUtils {
 
             // 情况 A: 传入的是函数 (callback)
             if (predicate.canExecute()) {
-                List<Object> items = new ArrayList<>();
                 for (int i = 0; i < data.size(); i++) {
                     Value item = Value.asValue(data.get(i));
                     // 执行函数判断，如果返回 true 则返回该项
                     if (predicate.execute(item, i).asBoolean()) {
-                        items.add(item);
+                        return wrap(Collections.singletonList(data.get(i)), totalLength);
                     }
                 }
-                return wrap(items, totalLength);
             }
             // 情况 B: 传入的是匹配对象 (如 {id: 1})
             else if (predicate.hasMembers()) {
-                List<Object> items = new ArrayList<>();
                 for (Object datum : data) {
                     Value item = Value.asValue(datum);
                     if (matches(item, predicate)) {
-                        items.add(datum);
+                        return wrap(Collections.singletonList(datum), totalLength);
                     }
                 }
-                return wrap(items, totalLength);
             }
             return null;
         });
