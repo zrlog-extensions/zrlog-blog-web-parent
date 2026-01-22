@@ -1,6 +1,9 @@
-### hexo templates
+### polyglot templates
 
-#### folder name start hexo-*
+- use graaljs run other templates
 
-- use graaljs run ejs
+#### hexo
+
+- folder name start hexo-*
+- ejs/pug templates supported
 - hooks hexo function
