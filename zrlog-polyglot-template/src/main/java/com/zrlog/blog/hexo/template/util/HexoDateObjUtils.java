@@ -9,9 +9,10 @@ import java.util.*;
 
 public class HexoDateObjUtils {
 
-    private static final Map<String, Locale> locales = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private static final HexoDateObjUtils instance = new HexoDateObjUtils();
+    private final Map<String, Locale> locales = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-    static {
+    public HexoDateObjUtils() {
         locales.put("zh", Locale.CHINA);
         locales.put("zhCN", Locale.CHINA);
         locales.put("zhTw", Locale.TAIWAN);
@@ -19,7 +20,11 @@ public class HexoDateObjUtils {
         locales.put("enUS", Locale.ENGLISH);
     }
 
-    public static String toDateString(Object dateObj, Object format, String defaultFormat, String lang) {
+    public static HexoDateObjUtils getInstance() {
+        return instance;
+    }
+
+    public String toDateString(Object dateObj, Object format, String defaultFormat, String local) {
         if (Objects.isNull(dateObj)) return "";
 
         // 获取日期对象（可能是 Long 时间戳或 Java Date）
@@ -48,7 +53,7 @@ public class HexoDateObjUtils {
             // 简单处理：将 Hexo 的 YYYY 转换为 Java 的 yyyy
             formatStr = formatStr.replace("YYYY", "yyyy").replace("YY", "yy").replace("DD", "dd");
 
-            return zonedDateTime.format(DateTimeFormatter.ofPattern(formatStr, ObjectHelpers.requireNonNullElse(locales.get(lang.replace("_", "")), Locale.ENGLISH)));
+            return zonedDateTime.format(DateTimeFormatter.ofPattern(formatStr, ObjectHelpers.requireNonNullElse(locales.get(local.replace("_", "")), Locale.getDefault())));
         } catch (Exception e) {
             return "Invalid Date" + e.getMessage();
         }

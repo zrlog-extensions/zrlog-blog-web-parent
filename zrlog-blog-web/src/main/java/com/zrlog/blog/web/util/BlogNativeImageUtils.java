@@ -9,6 +9,7 @@ import com.hibegin.http.server.util.HttpRequestBuilder;
 import com.hibegin.http.server.util.NativeImageUtils;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.support.fluid.InjectionStorage;
+import com.zrlog.blog.hexo.template.util.HexoDateObjUtils;
 import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.blog.web.BlogWebSetup;
 import com.zrlog.blog.web.template.PagerVO;
@@ -37,6 +38,11 @@ public class BlogNativeImageUtils {
         try {
             Method load = ScriptProvider.class.getMethod("load", String.class);
             load.invoke(new ScriptProvider(), "path");
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        try {
+            HexoDateObjUtils.getInstance();
         } catch (Throwable e) {
             e.printStackTrace();
         }
