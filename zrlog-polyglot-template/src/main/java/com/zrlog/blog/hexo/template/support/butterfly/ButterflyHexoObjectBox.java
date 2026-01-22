@@ -1,8 +1,8 @@
 package com.zrlog.blog.hexo.template.support.butterfly;
 
 import com.zrlog.blog.hexo.template.HexoObjectBox;
-import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.blog.hexo.template.util.HexoDataUtils;
+import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.common.cache.dto.LogNavDTO;
@@ -16,7 +16,7 @@ public class ButterflyHexoObjectBox extends HexoObjectBox {
 
     public ButterflyHexoObjectBox(Map<String, Object> theme, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO) {
         super(theme, rootPath, basePageInfo, templateVO);
-        theme.put("asset", Map.of("main_css", templateVO.getTemplate() + "/source/css/index.css", "fontawesome", "https://jsd.012700.xyz/npm/@fortawesome/fontawesome-free/css/all.min.css"));
+        theme.put("asset", Map.of("main_css", templateVO.getTemplate() + getStylRoot() + "/index.css", "fontawesome", getStylRoot() + "/fontawesome.css"));
         //Map<String, Object> o = (Map<String, Object>) theme.get("site");
         //o.put("data", Map.of("article",theme.get("posts")));
         Map<String, Object> config = (Map<String, Object>) theme.get("config");
