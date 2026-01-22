@@ -110,24 +110,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
         }
     }
 
-    private void fixImageUrl(String rootKey, String valueName) {
-        Map<String, Object> map = (Map<String, Object>) theme.get(rootKey);
-        if (Objects.isNull(map)) {
-            return;
-        }
-        Object value = map.get(valueName);
-        if (Objects.isNull(value)) {
-            return;
-        }
-        if (value instanceof String) {
-            if (((String) value).startsWith("http://") || ((String) value).startsWith("https://")) {
-                return;
-            }
-            if (((String) value).startsWith("/img")) {
-                map.put(valueName, basePageInfo.getTemplateUrl() + "/source" + value);
-            }
-        }
-    }
+
 
     @Override
     protected void regisConfig(Value bindings) {

@@ -247,6 +247,8 @@ include/templates/hexo-theme-butterfly/source/css/_tags/series.styl
 include/templates/hexo-theme-butterfly/source/css/_tags/tabs.styl
 include/templates/hexo-theme-butterfly/source/css/_tags/timeline.styl
 include/templates/hexo-theme-butterfly/source/css/_third-party/normalize.min.css
+include/templates/hexo-theme-butterfly/source/css/fontawesome.css
+include/templates/hexo-theme-butterfly/source/css/index.css
 include/templates/hexo-theme-butterfly/source/css/index.styl
 include/templates/hexo-theme-butterfly/source/css/var.styl
 include/templates/hexo-theme-butterfly/source/img/404.jpg
@@ -259,6 +261,9 @@ include/templates/hexo-theme-butterfly/source/js/search/algolia.js
 include/templates/hexo-theme-butterfly/source/js/search/local-search.js
 include/templates/hexo-theme-butterfly/source/js/tw_cn.js
 include/templates/hexo-theme-butterfly/source/js/utils.js
+include/templates/hexo-theme-butterfly/source/webfonts/fa-brands-400.woff2
+include/templates/hexo-theme-butterfly/source/webfonts/fa-regular-400.woff2
+include/templates/hexo-theme-butterfly/source/webfonts/fa-solid-900.woff2
 include/templates/hexo-theme-fluid/LICENSE
 include/templates/hexo-theme-fluid/README.md
 include/templates/hexo-theme-fluid/README_en.md

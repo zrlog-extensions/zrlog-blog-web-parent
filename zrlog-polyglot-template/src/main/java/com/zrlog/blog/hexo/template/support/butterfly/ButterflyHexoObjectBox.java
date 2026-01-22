@@ -16,22 +16,23 @@ public class ButterflyHexoObjectBox extends HexoObjectBox {
 
     public ButterflyHexoObjectBox(Map<String, Object> theme, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO) {
         super(theme, rootPath, basePageInfo, templateVO);
-        theme.put("asset", Map.of("main_css", templateVO.getTemplate() + getStylRoot() + "/index.css", "fontawesome", getStylRoot() + "/fontawesome.css"));
+    }
+
+    @Override
+    protected void fillConfig() {
+        theme.put("asset", Map.of("main_css", basePageInfo.getTemplateUrl() + getStylRoot() + "/index.css", "fontawesome", basePageInfo.getTemplateUrl() + getStylRoot() + "/fontawesome.css"));
         //Map<String, Object> o = (Map<String, Object>) theme.get("site");
         //o.put("data", Map.of("article",theme.get("posts")));
         Map<String, Object> config = (Map<String, Object>) theme.get("config");
         config.put("author", basePageInfo.getWebs().getTitle());
         config.put("prismjs", Map.of("enable", false));
         config.put("highlight", Map.of("enable", false));
-        if (basePageInfo instanceof ArticleListPageVO) {
+        /*if (basePageInfo instanceof ArticleListPageVO) {
             Map<String, Object> page = (Map<String, Object>) theme.get("page");
             List<Map<String, Object>> posts = (List<Map<String, Object>>) page.get("posts");
             List<Map<String, Object>> wraps = new ArrayList<>();
-            for (Map<String, Object> post : posts) {
-                wraps.add(HexoDataUtils.wrapArticle(post));
-            }
-            page.put("posts", HexoDataUtils.wrap(wraps));
-        }
+
+        }*/
         Map<String, Object> menu = new LinkedHashMap<>();
         for (LogNavDTO logNav : basePageInfo.getInit().getLogNavs()) {
             menu.put(logNav.getNavName(), logNav.getUrl() + " || " + logNav.getIcon());
@@ -39,6 +40,11 @@ public class ButterflyHexoObjectBox extends HexoObjectBox {
         theme.put("menu", menu);
         Map<String, Object> site = (Map<String, Object>) theme.get("site");
         site.put("data", Map.of("widget", Map.of("title", basePageInfo.getWebs().getTitle())));
+
+        fixImageUrl("avatar", "img");
+        fixImageUrl("error_img", "flink");
+        fixImageUrl("error_img", "post_img");
+        fixImageUrl("error_404", "background");
     }
 
     @Override

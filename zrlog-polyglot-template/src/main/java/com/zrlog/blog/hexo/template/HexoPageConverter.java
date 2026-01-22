@@ -2,6 +2,7 @@ package com.zrlog.blog.hexo.template;
 
 import com.hibegin.common.dao.dto.PageData;
 import com.zrlog.blog.hexo.template.util.HexoConvertUtils;
+import com.zrlog.blog.hexo.template.util.HexoDataUtils;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
@@ -25,7 +26,7 @@ public class HexoPageConverter {
             } else if (layout.equals("archives")) {
                 page.put("layout", "archive");
             } else {
-                page.put("layout",  layout);
+                page.put("layout", layout);
             }
         }
 
@@ -75,7 +76,12 @@ public class HexoPageConverter {
                     list.add(row);
                 }
             }
-            page.put("posts", list);
+
+            List<Map<String, Object>> wraps = new ArrayList<>();
+            for (Map<String, Object> post : list) {
+                wraps.add(HexoDataUtils.wrapArticle(post));
+            }
+            page.put("posts", HexoDataUtils.wrap(wraps));
             if (Objects.nonNull(pageInfo.getWebs())) {
                 page.put("subtitle", pageInfo.getWebs().getSecond_title());
             }

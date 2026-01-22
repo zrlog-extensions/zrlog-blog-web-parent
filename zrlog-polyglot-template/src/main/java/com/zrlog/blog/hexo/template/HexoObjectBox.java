@@ -9,6 +9,7 @@ import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.blog.polyglot.sytlus.StylusBundler;
 import com.zrlog.blog.polyglot.util.GraalDataUtils;
+import com.zrlog.blog.polyglot.util.YamlLoader;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.common.resource.ResourceScanner;
 import com.zrlog.common.resource.ZrLogResourceLoader;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public class HexoObjectBox {
@@ -51,6 +53,25 @@ public class HexoObjectBox {
 
     protected String getStylRoot() {
         return "/source/css";
+    }
+
+    public void fixImageUrl(String rootKey, String valueName) {
+        Map<String, Object> map = (Map<String, Object>) YamlLoader.getNestedValue(theme, rootKey);
+        if (Objects.isNull(map)) {
+            return;
+        }
+        Object value = map.get(valueName);
+        if (Objects.isNull(value)) {
+            return;
+        }
+        if (value instanceof String) {
+            if (((String) value).startsWith("http://") || ((String) value).startsWith("https://")) {
+                return;
+            }
+            if (((String) value).startsWith("/img")) {
+                map.put(valueName, basePageInfo.getTemplateUrl() + "/source" + value);
+            }
+        }
     }
 
     protected void fillConfig() {
