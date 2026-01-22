@@ -136,7 +136,7 @@ public class HexoBaseHooks {
         js(bindings);
 
         bindings.putMember("is_home", (ProxyExecutable) args -> {
-            return Objects.equals(YamlLoader.getNestedValue(theme, "page.layout"), "/index");
+            return Objects.equals(YamlLoader.getNestedValue(theme, "page.layout"), "index");
         });
         bindings.putMember("is_category", (ProxyExecutable) args -> {
             return false;

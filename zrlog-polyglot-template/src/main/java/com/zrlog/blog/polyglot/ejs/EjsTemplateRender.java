@@ -8,12 +8,12 @@ import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.blog.polyglot.resource.TemplateResolver;
 import com.zrlog.blog.polyglot.util.GraalDataUtils;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
+import com.zrlog.common.resource.ZrLogResourceLoader;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -33,7 +33,7 @@ public class EjsTemplateRender implements JsTemplateRender {
 
     public EjsTemplateRender(String template, BasePageInfo basePageInfo, Map<String, Object> locals) {
         this.template = template;
-        this.scriptProvider = new ScriptProvider();
+        this.scriptProvider = ScriptProvider.getInstance();
         this.includeHook = new IncludeHook(this, new TemplateResolver(template), basePageInfo);
         locals.put("include", includeHook);
         this.locals = locals;
@@ -46,7 +46,7 @@ public class EjsTemplateRender implements JsTemplateRender {
                 .build();
         try {
             this.jsBindings = context.getBindings("js");
-            this.jsBindings.putMember("scriptProvider", new SimpleDateFormat());
+            this.jsBindings.putMember("scriptProvider", scriptProvider);
             context.eval("js", "var global = globalThis;");
             context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/require.js").readAllBytes()));
             context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/ejs.min.js").readAllBytes()));
@@ -80,19 +80,25 @@ public class EjsTemplateRender implements JsTemplateRender {
 
     @Override
     public String render(String page, Map<String, Object> data) {
-        if (Objects.nonNull(data)) {
-            for (Map.Entry<String, Object> entry : data.entrySet()) {
-                if (locals.containsKey(entry.getKey())) {
-                    continue;
+        long start = System.currentTimeMillis();
+        try {
+            if (Objects.nonNull(data)) {
+                for (Map.Entry<String, Object> entry : data.entrySet()) {
+                    if (locals.containsKey(entry.getKey())) {
+                        continue;
+                    }
+                    jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
+                    locals.put(entry.getKey(), entry.getValue());
                 }
-                jsBindings.putMember(entry.getKey(), GraalDataUtils.makeJsFriendly(entry.getValue()));
-                locals.put(entry.getKey(), entry.getValue());
             }
+            String path = (template + "/" + page + (page.endsWith(templateExt) ? "" : templateExt)).replaceAll("//", "/");
+            Value options = context.eval("js", "({ async: false, cache: false })");
+            String read = ZrLogResourceLoader.read(path);
+            Value result = ejs.getMember("render").execute(read, locals, options);
+            return result.asString();
+        } finally {
+            LOGGER.info(page + " used time " + (System.currentTimeMillis() - start) + "ms");
         }
-        String path = (template + "/" + page + (page.endsWith(templateExt) ? "" : templateExt)).replaceAll("//", "/");
-        //Value options = context.eval("js", "({ async: false, cache: false })");
-        Value result = ejs.getMember("renderFile").execute(path, locals);
-        return result.asString();
     }
 
     @Override

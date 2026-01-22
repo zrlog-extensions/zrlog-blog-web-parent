@@ -18,9 +18,9 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     private final InjectionStorage injectionStorage;
 
-    public FluidHexoObjectBox(Map<String, Object> theme, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO) {
+    public FluidHexoObjectBox(Map<String, Object> theme, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO,String templateDir) {
         super(theme, rootPath, basePageInfo, templateVO);
-        this.injectionStorage = new InjectionStorage(new ConcurrentHashMap<>(), rootPath);
+        this.injectionStorage = new InjectionStorage(new ConcurrentHashMap<>(), templateDir);
     }
 
     @Override

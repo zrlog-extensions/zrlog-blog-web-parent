@@ -13,20 +13,20 @@ import java.util.logging.Logger;
 public class InjectionStorage {
     private static final Logger LOGGER = LoggerUtil.getLogger(InjectionStorage.class);
     private final Map<String, List<String>> injectionPoints;
-    private final String themeDir;
+    private final String templateDir;
 
-    public InjectionStorage(Map<String, List<String>> injectionPoints, String themeDir) {
+    public InjectionStorage(Map<String, List<String>> injectionPoints, String templateDir) {
         this.injectionPoints = injectionPoints;
-        this.themeDir = themeDir;
+        this.templateDir = templateDir;
     }
 
     // 必须是 public，且建议显式允许访问
     @HostAccess.Export
     public void add(String slot, String path) {
-        if (Objects.isNull(themeDir)) {
+        if (Objects.isNull(templateDir)) {
             return;
         }
-        String rPath = path.substring(this.themeDir.length()).replace("/layout/", "");
+        String rPath = path.substring(this.templateDir.length() + 1);
         if (EnvKit.isDevMode()) {
             LOGGER.info("成功捕获注入: [" + slot + "] -> " + rPath);
         }

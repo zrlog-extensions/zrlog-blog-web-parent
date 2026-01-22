@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Logger;
 
 public class HexoObjectBox {
@@ -83,7 +82,7 @@ public class HexoObjectBox {
         for (String compileStyl : getCompileStyl()) {
             // 3. 准备 Stylus 代码
             String styleRoot = rootPath + getStylRoot();
-            System.out.println("styleRoot = " + styleRoot);
+            //System.out.println("styleRoot = " + styleRoot);
             String resourceFile = styleRoot + compileStyl;
             File staticFile = PathUtil.getStaticFile(basePageInfo.getTemplate() + getStylRoot() + compileStyl.replace(".styl", ".css"));
             if (staticFile.exists()) {
@@ -101,9 +100,7 @@ public class HexoObjectBox {
             regStyleHooks(context);
             try {
                 String renderResult = context.eval("js", "renderer.render();").asString();
-                if (Objects.nonNull(renderResult) && !renderResult.trim().isEmpty()) {
-                    IOUtil.writeStrToFile(renderResult, staticFile);
-                }
+                IOUtil.writeStrToFile(renderResult, staticFile);
             } catch (Exception e) {
                 LOGGER.warning(resourceFile + " compile error " + e.getMessage());
             }
@@ -195,12 +192,12 @@ public class HexoObjectBox {
         ResourceScanner scanner = new ResourceScanner(rootPath);
         ScriptProvider scriptProvider = jsTemplateRender.getScriptProvider();
         List<String> scripts = scanner.listFiles("scripts/").stream().filter(e -> e.endsWith(".js")).toList();
-        scriptProvider.addBaseScript("path", new String(PathUtil.getConfInputStream("base/scripts/path.js").readAllBytes()));
-        scriptProvider.addBaseScript("hexo-util", new String(PathUtil.getConfInputStream("hexo/scripts/hexo-util.js").readAllBytes()));
-        scriptProvider.addBaseScript("url", new String(PathUtil.getConfInputStream("base/scripts/url.js").readAllBytes()));
+        scriptProvider.addBaseScriptByPath("path", "base/scripts/path.js");
+        scriptProvider.addBaseScriptByPath("hexo-util", "hexo/scripts/hexo-util.js");
+        scriptProvider.addBaseScriptByPath("url", "base/scripts/url.js");
         //scriptProvider.addBaseScript("moize", new String(PathUtil.getConfInputStream("hexo/scripts/moize.js").readAllBytes()));
         for (String script : scripts) {
-            scriptProvider.addScript(script.substring((rootPath + "/scripts/").length()).replaceAll(".js", ""), ZrLogResourceLoader.read(script));
+            scriptProvider.addScript(script.substring((rootPath + "/scripts/").length()).replaceAll(".js", ""), script);
         }
         for (String scriptPath : scripts) {
             if (scriptPath.contains("/generators/")) {
