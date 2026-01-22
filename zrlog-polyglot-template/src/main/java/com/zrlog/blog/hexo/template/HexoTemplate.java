@@ -51,8 +51,8 @@ public class HexoTemplate implements ZrLogTemplate {
         try (JsTemplateRender jsTemplateRender = buildJsTemplateRender(theme, pageInfo)) {
             hexoObjectBox.setup(jsTemplateRender);
             String body = jsTemplateRender.render((String) YamlLoader.getNestedValue(theme, "page.layout"), theme);
-            jsTemplateRender.getJsBindings().putMember("body", body);
-            if (jsTemplateRender instanceof EjsTemplateRender) {
+            if (jsTemplateRender instanceof EjsTemplateRender) {jsTemplateRender.getJsBindings().putMember("body", body);
+
                 return jsTemplateRender.render("layout", theme);
             }
             return body;

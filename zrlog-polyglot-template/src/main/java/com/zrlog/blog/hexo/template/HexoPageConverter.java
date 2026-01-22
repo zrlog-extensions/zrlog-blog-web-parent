@@ -28,6 +28,9 @@ public class HexoPageConverter {
             } else {
                 page.put("layout", layout);
             }
+            if (pageInfo.getReqUriPath().contains("/sort/")) {
+                page.put("layout", "categories");
+            }
         }
 
         if (layout.equals("detail")) {

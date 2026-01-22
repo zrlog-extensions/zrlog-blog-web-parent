@@ -42,6 +42,10 @@ public class HexoDateWrapper {
         return this;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
     // 兼容旧版：支持 date.format('YYYY-MM-DD')
     @HostAccess.Export
     public String format(String pattern) {
