@@ -158,58 +158,11 @@ public class HexoBaseHooks {
         });
 
         bindings.putMember("full_date", (ProxyExecutable) args -> {
-            if (args.length == 0 || args[0].isNull()) return "";
-
-            Object dateObj = args[0].as(Object.class);
-            java.time.LocalDateTime dateTime;
-
-            // 1. 处理不同的日期输入类型
-            if (dateObj instanceof Date) {
-                dateTime = ((Date) dateObj).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            } else if (dateObj instanceof Long) {
-                dateTime = java.time.Instant.ofEpochMilli((Long) dateObj).atZone(ZoneId.systemDefault()).toLocalDateTime();
-            } else {
-                // 如果是字符串或其他，尝试原样返回或解析
-                return dateObj.toString();
-            }
-
-            // 2. 格式化输出 (Hexo 默认: YYYY-MM-DD)
-            // 如果 args.length > 1，通常第二个参数是自定义格式字符串
-            String format = (args.length > 1) ? args[1].asString() : "yyyy-MM-dd HH:mm:ss";
-
-            try {
-                return dateTime.format(DateTimeFormatter.ofPattern(format));
-            } catch (Exception e) {
-                return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            }
+            return HexoDateObjUtils.toDateString(args[0].as(Object.class), args[1].as(Object.class), "yyyy-MM-dd HH:mm:ss");
         });
 
         bindings.putMember("date", (ProxyExecutable) args -> {
-            if (args.length == 0 || args[0].isNull()) return "";
-
-            // 获取日期对象（可能是 Long 时间戳或 Java Date）
-            Object dateObj = args[0].as(Object.class);
-            java.time.ZonedDateTime zonedDateTime;
-
-            try {
-                if (dateObj instanceof Date) {
-                    zonedDateTime = ((Date) dateObj).toInstant().atZone(ZoneId.systemDefault());
-                } else if (dateObj instanceof Long) {
-                    zonedDateTime = java.time.Instant.ofEpochMilli((Long) dateObj).atZone(ZoneId.systemDefault());
-                } else {
-                    return dateObj.toString();
-                }
-
-                // 第二个参数是可选的格式化字符串，例如 date(post.date, 'MMM D, YYYY')
-                String format = (args.length > 1) ? args[1].asString() : "yyyy-MM-dd";
-
-                // 简单处理：将 Hexo 的 YYYY 转换为 Java 的 yyyy
-                format = format.replace("YYYY", "yyyy").replace("YY", "yy").replace("DD", "dd");
-
-                return zonedDateTime.format(DateTimeFormatter.ofPattern(format));
-            } catch (Exception e) {
-                return "Invalid Date";
-            }
+            return HexoDateObjUtils.toDateString(args[0].as(Object.class), args[1].as(Object.class), "yyyy-MM-dd");
         });
         bindings.putMember("date_xml", (ProxyExecutable) args -> {
             if (args.length == 0 || args[0].isNull()) return "";

@@ -25,7 +25,10 @@ public class HexoPageConverter {
             } else if (layout.equals("archives")) {
                 page.put("layout", "archive");
             } else {
-                page.put("layout",  layout);
+                page.put("layout", layout);
+            }
+            if (pageInfo.getReqUriPath().contains("/sort/")) {
+                page.put("layout", "categories");
             }
         }
 
