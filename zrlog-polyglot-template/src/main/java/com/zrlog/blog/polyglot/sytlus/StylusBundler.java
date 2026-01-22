@@ -14,10 +14,8 @@ public class StylusBundler {
     // 匹配 @import "path" 或 @import 'path'
     private static final Pattern IMPORT_PATTERN = Pattern.compile("@import\\s+[\"'](.+?)[\"']");
     private final TemplateResolver templateResolver;
-    private final String rootDirPath;
 
     public StylusBundler(String rootDirPath) {
-        this.rootDirPath = rootDirPath;
         this.templateResolver = new TemplateResolver(rootDirPath);
     }
 
@@ -28,29 +26,22 @@ public class StylusBundler {
     private String resolveRecursive(String fileName, Set<String> visited) throws Exception {
         // 1. 路径规范化
         if (!fileName.endsWith(".styl")) fileName += ".styl";
-        String resolve = templateResolver.resolve(fileName);
+        String path = templateResolver.resolve(fileName);
 
         // 2. 循环引用检查
-        if (visited.contains(resolve)) {
+        if (visited.contains(path)) {
             return "/* 已跳过循环引用: " + fileName + " */\n";
         }
-        visited.add(resolve);
-        String path = rootDirPath + "/" + resolve.replace("classpath:", "");
+        visited.add(path);
         String content;
         if (ZrLogResourceLoader.exists(path)) {
             content = ZrLogResourceLoader.read(path);
         } else {
             content = "/* ---Not find path " + path + " --- */\n";
         }
-
-
-        //System.out.println("content = " + content + "\ndaaa" + resolve);
-
         // 4. 递归处理
         StringBuilder sb = new StringBuilder();
         // 头部标记
-        //sb.append("\n/* --- START IMPORT: ").append(path).append(" --- */\n");
-
         Matcher matcher = IMPORT_PATTERN.matcher(content);
         int lastPos = 0;
 
@@ -64,7 +55,7 @@ public class StylusBundler {
 
             // 处理相对路径：相对于当前正在读取的文件目录
             // 这一步对于深层嵌套的目录结构至关重要
-            templateResolver.pushPath(resolve);
+            templateResolver.pushPath(path);
             try {
                 if (importedPath.contains("/*")) {
                     String basePath = path.substring(0, path.lastIndexOf("/"));

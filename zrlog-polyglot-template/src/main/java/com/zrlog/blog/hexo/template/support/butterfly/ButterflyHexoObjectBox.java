@@ -64,6 +64,6 @@ public class ButterflyHexoObjectBox extends HexoObjectBox {
 
     @Override
     public List<String> getCompileStyl() {
-        return Arrays.asList("/index.styl");
+        return Arrays.asList("index.styl");
     }
 }

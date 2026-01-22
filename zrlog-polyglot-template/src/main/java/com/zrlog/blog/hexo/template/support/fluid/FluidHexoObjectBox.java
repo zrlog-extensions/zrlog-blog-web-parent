@@ -76,7 +76,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     @Override
     public List<String> getCompileStyl() {
-        return Arrays.asList("/main.styl", "/highlight.styl", "/highlight-dark.styl", "/style.styl");
+        return Arrays.asList("main.styl", "highlight.styl", "highlight-dark.styl");
     }
 
     @Override

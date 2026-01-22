@@ -75,7 +75,6 @@ public class HexoDataUtils {
 
                 if (predicate.canExecute()) {
                     // 情况 A: 传入的是函数 .filter(item => item.show !== false)
-                    System.out.println(predicate.toString());
                     Value execute = predicate.execute(item, i);
                     matches = isTrue(execute);
                 } else if (predicate.hasMembers()) {

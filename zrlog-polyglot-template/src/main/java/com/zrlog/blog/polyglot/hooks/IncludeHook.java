@@ -37,16 +37,12 @@ public class IncludeHook implements ProxyExecutable {
             if (path.equals("_partials/comments/comment") && basePageInfo instanceof ArticleDetailPageVO) {
                 return "<plugin name=\"" + basePageInfo.getWebs().getComment_plugin_name() + "\" view=\"widget\" param=\"articleId=" + ((ArticleDetailPageVO) basePageInfo).getLog().getLogId() + "\"/>\n";
             }
-            // 3. 递归渲染
-            // 注意：这里需要确保 render 方法不会清空之前的全局 helpers
-            String renderPath = absolutePath.substring((jsTemplateRender.getTemplate() + "/").length());
-            //System.out.println("renderPath = " + renderPath);
             String testPath = jsTemplateRender.getTemplate() + "/" + path + (path.contains(jsTemplateRender.getTemplateExt()) ? "" : jsTemplateRender.getTemplateExt());
-            //System.out.println("testPath = " + testPath);
             //为绝对路径，不关心路径
             if (ZrLogResourceLoader.exists(testPath)) {
                 return jsTemplateRender.render(path, data);
             } else {
+                String renderPath = absolutePath.substring((jsTemplateRender.getTemplate() + "/").length());
                 return jsTemplateRender.render(renderPath, data);
             }
         } finally {

@@ -3,6 +3,7 @@ package com.zrlog.blog.hexo.template;
 import com.hibegin.common.util.EnvKit;
 import com.hibegin.common.util.IOUtil;
 import com.hibegin.common.util.LoggerUtil;
+import com.hibegin.common.util.StringUtils;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.util.HexoBaseHooks;
 import com.zrlog.blog.polyglot.JsTemplateRender;
@@ -104,23 +105,26 @@ public class HexoObjectBox {
             // 3. 准备 Stylus 代码
             String styleRoot = rootPath + getStylRoot();
             //System.out.println("styleRoot = " + styleRoot);
-            String resourceFile = styleRoot + compileStyl;
-            File staticFile = PathUtil.getStaticFile(basePageInfo.getTemplate() + getStylRoot() + compileStyl.replace(".styl", ".css"));
+            String resourceFile = styleRoot + "/"  + compileStyl;
+            File staticFile = PathUtil.getStaticFile(basePageInfo.getTemplate() + getStylRoot() + "/" + compileStyl.replace(".styl", ".css"));
             if (staticFile.exists()) {
                 continue;
             }
-            if (!ZrLogResourceLoader.exists(styleRoot + compileStyl)) {
+            if (!ZrLogResourceLoader.exists(resourceFile)) {
                 LOGGER.warning(resourceFile + " not found");
                 continue;
             }
-            initStylus(context);
-            String stylusCode = new StylusBundler(styleRoot).bundle(compileStyl).replaceAll("(?s)/\\*.*?\\*/", "").trim();
-            context.getBindings("js").putMember("myStylusCode", stylusCode.trim());
-            context.eval("js", "var renderer = new StylusRenderer(myStylusCode); ");
-            context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/stylus-hooks.js").readAllBytes()));
-            regStyleHooks(context);
             try {
+                initStylus(context);
+                String stylusCode = new StylusBundler(styleRoot).bundle(compileStyl).replaceAll("(?s)/\\*.*?\\*/", "").trim();
+                context.getBindings("js").putMember("myStylusCode", stylusCode.trim());
+                context.eval("js", "var renderer = new StylusRenderer(myStylusCode); ");
+                context.eval("js", new String(PathUtil.getConfInputStream("base/scripts/stylus-hooks.js").readAllBytes()));
+                regStyleHooks(context);
                 String renderResult = context.eval("js", "renderer.render();").asString();
+                if (StringUtils.isEmpty(renderResult)) {
+                    throw new RuntimeException("render " + stylusCode.substring(0, Math.min(stylusCode.length(), 100)) + " error");
+                }
                 IOUtil.writeStrToFile(renderResult, staticFile);
             } catch (Exception e) {
                 LOGGER.warning(resourceFile + " compile error " + e.getMessage());
@@ -194,7 +198,7 @@ public class HexoObjectBox {
         bindings.putMember("hexo", hexo);
         bindings.putMember("ctx", hexo);
 
-        initScript(jsTemplateRender.getScriptProvider(),jsTemplateRender);
+        initScript(jsTemplateRender.getScriptProvider(), jsTemplateRender);
     }
 
     public void setup(JsTemplateRender jsTemplateRender) throws Exception {
