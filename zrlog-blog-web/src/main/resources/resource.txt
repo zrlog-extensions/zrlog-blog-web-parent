@@ -53,6 +53,7 @@ include/templates/hexo-theme-butterfly/LICENSE
 include/templates/hexo-theme-butterfly/README.md
 include/templates/hexo-theme-butterfly/README_CN.md
 include/templates/hexo-theme-butterfly/_config.yml
+include/templates/hexo-theme-butterfly/images/preview.png
 include/templates/hexo-theme-butterfly/languages/default.yml
 include/templates/hexo-theme-butterfly/languages/en.yml
 include/templates/hexo-theme-butterfly/languages/ja.yml

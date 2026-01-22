@@ -106,7 +106,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
             Object content = footer.get("content");
             String webCm = "<div style='display:none'>" + basePageInfo.getWebs().getWebCm() + "</div>";
             if (Objects.nonNull(content) && content.toString().contains("Hexo")) {
-                content = content.toString().replace("Hexo", "hexo").replace("hexo.io", "www.zrlog.com");
+                content = content.toString().replace("Hexo", "ZrLog").replace("hexo.io", "www.zrlog.com");
             }
             footer.put("content", content + webCm);
         }
