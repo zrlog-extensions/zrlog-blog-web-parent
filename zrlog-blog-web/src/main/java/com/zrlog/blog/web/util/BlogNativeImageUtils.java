@@ -21,6 +21,7 @@ import com.zrlog.common.Constants;
 import com.zrlog.common.ZrLogConfig;
 import com.zrlog.data.dto.ArticleBasicDTO;
 import com.zrlog.data.dto.ArticleDetailDTO;
+import com.zrlog.data.dto.VisitorCommentDTO;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -79,7 +80,7 @@ public class BlogNativeImageUtils {
         regWithGetMethod(ArticleDetailPageVO.class, ArticleListPageVO.class,
                 BasePageInfo.class, ArticleBasicDTO.class, ArticleDetailDTO.class,
                 ArticleDetailDTO.LastLogDTO.class, ArticleDetailDTO.NextLogDTO.class,
-                ArticleDetailDTO.TagsDTO.class, PagerVO.PageEntry.class, PagerVO.class, PagerVO.PageEntry.class);
+                ArticleDetailDTO.TagsDTO.class, PagerVO.PageEntry.class, PagerVO.class, PagerVO.PageEntry.class, VisitorCommentDTO.class);
     }
 
     private static void regWithGetMethod(Class<?>... objects) {
