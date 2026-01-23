@@ -81,7 +81,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     @Override
     public void regStyleHooks(Context context) {
-        context.eval("js", "renderer.define('hexo-config', function(pathNode) {" + "  return hexo_config_java(pathNode.val);" + "});");
+        context.eval("js", "renderer.define('hexo-config', function(pathNode) {" + "  return '';" + "});");
        // context.eval("js", "renderer.define('theme-config', function(pathNode) {" + "  return hexo_config_java(pathNode.val);" + "});");
     }
 
