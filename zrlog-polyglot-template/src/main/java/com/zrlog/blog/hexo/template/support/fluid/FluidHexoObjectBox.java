@@ -12,7 +12,6 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 public class FluidHexoObjectBox extends HexoObjectBox {
 
@@ -114,7 +113,8 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     @Override
     protected void regisConfig(Value bindings) {
-        bindings.putMember("hexo_config_java", (Function<String, Object>) key -> {
+        bindings.putMember("hexo_config_java", (ProxyExecutable) args -> {
+            String key = args[0].asString();
             if (Objects.equals("injects.variable", key)) {
                 return new ArrayList<>();
             }
@@ -128,7 +128,9 @@ public class FluidHexoObjectBox extends HexoObjectBox {
         });
         bindings.putMember("fluid_version", templateVO.getVersion());
         Map<String, Object> nestedValue = (Map<String, Object>) YamlLoader.getNestedValue(theme, "index.slogan");
-        nestedValue.put("text", basePageInfo.getWebs().getSecond_title());
+        if (Objects.nonNull(nestedValue)) {
+            nestedValue.put("text", basePageInfo.getWebs().getSecond_title());
+        }
     }
 
     private String buildJsScript(Value... args) {
