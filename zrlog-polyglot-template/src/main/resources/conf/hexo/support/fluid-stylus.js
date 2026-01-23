@@ -3,6 +3,7 @@ renderer.define('hexo-config', function (pathNode) {
     // 1. 从 Java 拿原始数据
     var raw = hexo_config_java(pathNode.val);
 
+    var nodes = this.renderer.nodes;
     // 2. 核心：根据原始类型，封装成 Stylus 识别的 AST 节点
     if (typeof raw === 'boolean') {
         // 这样 Stylus 的 if (hexo-config('...')) 才能正常工作
