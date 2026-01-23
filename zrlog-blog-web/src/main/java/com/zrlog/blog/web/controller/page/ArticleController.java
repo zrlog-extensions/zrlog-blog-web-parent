@@ -3,6 +3,7 @@ package com.zrlog.blog.web.controller.page;
 import com.hibegin.common.dao.dto.PageData;
 import com.hibegin.common.dao.dto.PageRequest;
 import com.hibegin.common.dao.dto.PageRequestImpl;
+import com.hibegin.common.dao.dto.UnPageRequestImpl;
 import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.common.util.StringUtils;
 import com.hibegin.http.HttpMethod;
@@ -219,7 +220,9 @@ public class ArticleController extends Controller {
 
     @RequestMethod
     public String archives() {
-        index();
+        PageRequest pageRequest = new UnPageRequestImpl(1L);
+        PageData<ArticleBasicDTO> data = new Log().visitorFind(pageRequest, null);
+        setPageDataInfo("archives-", data, pageRequest);
         return "archives";
     }
 
