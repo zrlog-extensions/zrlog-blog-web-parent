@@ -1,5 +1,6 @@
 package com.zrlog.blog.hexo.template.support.fluid;
 
+import com.hibegin.common.util.ObjectHelpers;
 import com.zrlog.blog.hexo.template.HexoObjectBox;
 import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.util.YamlLoader;
@@ -81,6 +82,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
     @Override
     public void regStyleHooks(Context context) {
         context.eval("js", "renderer.define('hexo-config', function(pathNode) {" + "  return hexo_config_java(pathNode.val);" + "});");
+        context.eval("js", "renderer.define('theme-config', function(pathNode) {" + "  return hexo_config_java(pathNode.val);" + "});");
     }
 
     @Override
@@ -124,7 +126,7 @@ public class FluidHexoObjectBox extends HexoObjectBox {
             if (Objects.equals("injects.style", key)) {
                 return new ArrayList<>();
             }
-            return YamlLoader.getNestedValue(theme, key);
+            return ObjectHelpers.requireNonNullElse(YamlLoader.getNestedValue(theme, key), "");
         });
         bindings.putMember("fluid_version", templateVO.getVersion());
         Map<String, Object> nestedValue = (Map<String, Object>) YamlLoader.getNestedValue(theme, "index.slogan");
