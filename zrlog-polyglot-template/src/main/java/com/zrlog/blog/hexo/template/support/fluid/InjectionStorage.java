@@ -28,7 +28,7 @@ public class InjectionStorage {
         }
         String rPath = path.substring(this.templateDir.length() + 1);
         if (EnvKit.isDevMode()) {
-            LOGGER.info("成功捕获注入: [" + slot + "] -> " + rPath);
+            LOGGER.info("Inject success: [" + slot + "] -> " + rPath);
         }
         injectionPoints.computeIfAbsent(slot, k -> new ArrayList<>()).add(rPath);
     }
