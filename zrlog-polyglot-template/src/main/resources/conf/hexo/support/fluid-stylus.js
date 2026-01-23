@@ -15,6 +15,19 @@ renderer.define('hexo-config', function (pathNode) {
         return new nodes.Unit(raw);
     }
 
+    // 针对 for 循环专门处理：如果是 injects 相关或者是数组
+    if (Array.isArray(raw)) {
+        // 返回一个空的 Expression 节点，这样 for 循环就能安全跳过而不崩
+        var expr = new nodes.Expression();
+        if (raw && raw.length > 0) {
+            // 如果真的有值，把值塞进去（这里简化处理）
+            raw.forEach(function(item) {
+                expr.push(new nodes.String(item));
+            });
+        }
+        return expr;
+    }
+
     // 3. 默认作为字符串处理
     // String(raw || '') 确保即使 Java 返回 null 也不会导致 node 实例化失败
     var strNode = new nodes.String(String(raw || ''));
