@@ -23,6 +23,7 @@ conf/base/scripts/stylus-renderer.min.js
 conf/base/scripts/url.js
 conf/hexo/README.md
 conf/hexo/scripts/hexo-util.js
+conf/hexo/support/fluid-stylus.js
 favicon.ico
 i18n/blog_en_US.properties
 i18n/blog_zh_CN.properties

@@ -1,6 +1,6 @@
 package com.zrlog.blog.hexo.template.support.fluid;
 
-import com.hibegin.common.util.ObjectHelpers;
+import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.HexoObjectBox;
 import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.util.YamlLoader;
@@ -80,9 +80,9 @@ public class FluidHexoObjectBox extends HexoObjectBox {
     }
 
     @Override
-    public void regStyleHooks(Context context) {
-        context.eval("js", "renderer.define('hexo-config', function(pathNode) {" + "  return '';" + "});");
-       // context.eval("js", "renderer.define('theme-config', function(pathNode) {" + "  return hexo_config_java(pathNode.val);" + "});");
+    public void regStyleHooks(Context context) throws Exception {
+        context.eval("js", new String(PathUtil.getConfInputStream("base/support/fluid-stylus.js").readAllBytes()));
+        // context.eval("js", "renderer.define('theme-config', function(pathNode) {" + "  return hexo_config_java(pathNode.val);" + "});");
     }
 
     @Override

@@ -87,7 +87,7 @@ public class HexoObjectBox {
         return new ArrayList<>();
     }
 
-    public void regStyleHooks(Context context) {
+    public void regStyleHooks(Context context) throws Exception {
 
     }
 
