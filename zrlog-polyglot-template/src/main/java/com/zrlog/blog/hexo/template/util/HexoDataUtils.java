@@ -1,6 +1,7 @@
 package com.zrlog.blog.hexo.template.util;
 
 import com.hibegin.common.util.LoggerUtil;
+import com.zrlog.common.exception.NotImplementException;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
@@ -70,18 +71,15 @@ public class HexoDataUtils {
             Value predicate = args[0];
             // 遍历原始数据
             for (int i = 0; i < data.size(); i++) {
-                Value item = Value.asValue(data.get(i));
                 boolean matches = false;
-
                 if (predicate.canExecute()) {
+                    Value item = Value.asValue(data.get(i));
                     // 情况 A: 传入的是函数 .filter(item => item.show !== false)
                     Value execute = predicate.execute(item, i);
                     matches = isTrue(execute);
                 } else if (predicate.hasMembers()) {
-
-
                     // 情况 B: 传入的是匹配对象 .filter({ category: 'Tech' })
-                    matches = matches(item, predicate);
+                    matches = matches(data.get(i), predicate);
                 }
 
                 if (matches) {
@@ -112,8 +110,7 @@ public class HexoDataUtils {
             // 情况 B: 传入的是匹配对象 (如 {id: 1})
             else if (predicate.hasMembers()) {
                 for (Object datum : data) {
-                    Value item = Value.asValue(datum);
-                    if (matches(item, predicate)) {
+                    if (matches(datum, predicate)) {
                         return wrap(Collections.singletonList(datum), totalLength);
                     }
                 }
@@ -124,29 +121,33 @@ public class HexoDataUtils {
         return wrapper;
     }
 
-    private static boolean matches(Value item, Value criteria) {
+    private static boolean matches(Object item, Value criteria) {
+        if (!(item instanceof Map)) {
+            throw new NotImplementException();
+        }
+        Map map = (Map) item;
         for (String key : criteria.getMemberKeys()) {
             Value criterion = criteria.getMember(key);
             // 1. 处理 {$exists: false} 逻辑
             if (criterion.hasMembers() && criterion.hasMember("$exists")) {
                 boolean shouldExist = criterion.getMember("$exists").asBoolean();
-                if (item.hasMember(key) != shouldExist) {
+                if (map.containsKey(key) != shouldExist) {
                     return false;
                 }
                 continue; // 处理完操作符，跳过普通比较
             }
 
             // 2. 处理普通值比较 (包括 {parent: null})
-            if (!item.hasMember(key)) {
+            if (!map.containsKey(key)) {
                 // 如果查询要求具体的值，但项里根本没这个键，通常返回 false
                 // 除非查询的值本身就是 undefined/null
                 return criterion.isNull();
             }
 
-            Value itemValue = item.getMember(key);
+            Object itemValue = map.get(key);
 
             // 使用 Value 提供的 equals 比较 JS 原始值
-            if (!itemValue.equals(criterion)) {
+            if (!Objects.equals(itemValue, criterion.as(Object.class))) {
                 return false;
             }
         }

@@ -5,21 +5,27 @@ import org.graalvm.polyglot.HostAccess;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 public class HexoDateWrapper {
     private final Date date;
     private final String rawDate;
 
     public HexoDateWrapper(String dateStr) {
-        try {
-            if (dateStr.contains(":")) {
-                this.date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateStr);
-            } else {
-                this.date = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
+        if (Objects.isNull(dateStr)) {
+            this.date = new Date(0);
+            this.rawDate = format("yyyy-MM-dd HH:mm:ss");
+        } else {
+            try {
+                if (dateStr.contains(":")) {
+                    this.date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateStr);
+                } else {
+                    this.date = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
+                }
+                this.rawDate = dateStr;
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
             }
-            this.rawDate = dateStr;
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
         }
     }
 

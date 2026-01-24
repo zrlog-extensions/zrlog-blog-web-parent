@@ -32,7 +32,11 @@ public class HexoPageConverter {
                 page.put("layout", layout);
             }
             if (pageInfo.getReqUriPath().contains("/sort/")) {
-                page.put("layout", "categories");
+                page.put("layout", "category");
+                page.put("category", ((ArticleListPageVO) pageInfo).getTipsName());
+            } else if (pageInfo.getReqUriPath().contains("/tag/")) {
+                page.put("layout", "tag");
+                page.put("tag", ((ArticleListPageVO) pageInfo).getTipsName());
             }
         }
 
@@ -58,7 +62,7 @@ public class HexoPageConverter {
             cat.put("_id", log.getTypeId());
             cat.put("name", log.getTypeName());
             cat.put("path", log.getTypeUrl());
-            cat.put("parent", null);   // 顶级分类传 null
+            //cat.put("parent", null);   // 顶级分类传 null
             List<Map<String, Object>> categories = new ArrayList<>();
             pageInfo.getInit().getTypes().stream().filter(e -> e.getTypeName().equals(log.getTypeName())).findFirst().ifPresent(type -> {
                 cat.put("length", type.getTypeamount());
@@ -77,10 +81,9 @@ public class HexoPageConverter {
                     row.put("title", articleBasicDTO.getTitle());
                     List<Map<String, Object>> categories = new ArrayList<>();
                     Map<String, Object> cat = new HashMap<>();
-                    cat.put("_id", 999999);
+                    cat.put("_id", articleBasicDTO.getTypeId());
                     cat.put("name", articleBasicDTO.getTypeName());
                     cat.put("path", articleBasicDTO.getTypeUrl());
-                    cat.put("parent", 999);   // 顶级分类传 null
                     pageInfo.getInit().getTypes().stream().filter(e -> e.getTypeName().equals(articleBasicDTO.getTypeName())).findFirst().ifPresent(type -> {
                         cat.put("length", type.getTypeamount());
                     });
@@ -109,12 +112,13 @@ public class HexoPageConverter {
 
             if (Objects.nonNull(pageInfo.getInit().getTags())) {
                 List<Map<String, Object>> tags = new ArrayList<>();
-                List<TagDTO> typeDTOS = pageInfo.getInit().getTags();
-                for (TagDTO tagDTO : typeDTOS) {
+                for (TagDTO tagDTO : pageInfo.getInit().getTags()) {
                     Map<String, Object> tag = new HashMap<>();
                     tag.put("path", tagDTO.getUrl());
                     tag.put("name", tagDTO.getText());
                     tag.put("_id", tagDTO.getId());
+                    tag.put("length", tagDTO.getCount());
+                    tag.put("posts", HexoDataUtils.wrap(new ArrayList<>(), Math.toIntExact(tagDTO.getCount())));
                     tags.add(tag);
                 }
                 page.put("tags", HexoDataUtils.wrap(tags));
@@ -128,6 +132,9 @@ public class HexoPageConverter {
                     row.put("path", typeDTO.getUrl());
                     row.put("name", typeDTO.getTypeName());
                     row.put("_id", typeDTO.getId());
+                    row.put("length", typeDTO.getTypeamount());
+                    row.put("posts", HexoDataUtils.wrap(new ArrayList<>(), Math.toIntExact(typeDTO.getTypeamount())));
+                    //row.put("parent", null);
                     types.add(row);
                 }
                 page.put("categories", HexoDataUtils.wrap(types, types.size()));

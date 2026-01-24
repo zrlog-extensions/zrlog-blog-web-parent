@@ -87,7 +87,7 @@ public class HexoObjectBox {
         return new ArrayList<>();
     }
 
-    public void regStyleHooks(Context context) {
+    public void regStyleHooks(Context context) throws Exception {
 
     }
 
@@ -105,7 +105,7 @@ public class HexoObjectBox {
             // 3. 准备 Stylus 代码
             String styleRoot = rootPath + getStylRoot();
             //System.out.println("styleRoot = " + styleRoot);
-            String resourceFile = styleRoot + "/"  + compileStyl;
+            String resourceFile = styleRoot + "/" + compileStyl;
             File staticFile = PathUtil.getStaticFile(basePageInfo.getTemplate() + getStylRoot() + "/" + compileStyl.replace(".styl", ".css"));
             if (staticFile.exists()) {
                 continue;
@@ -127,7 +127,7 @@ public class HexoObjectBox {
                 }
                 IOUtil.writeStrToFile(renderResult, staticFile);
             } catch (Exception e) {
-                LOGGER.warning(resourceFile + " compile error " + e.getMessage());
+                LOGGER.severe(resourceFile + " compile error " + LoggerUtil.recordStackTraceMsg(e));
             }
         }
 

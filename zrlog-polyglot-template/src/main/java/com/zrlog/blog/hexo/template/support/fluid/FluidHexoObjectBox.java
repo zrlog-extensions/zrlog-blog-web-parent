@@ -1,5 +1,6 @@
 package com.zrlog.blog.hexo.template.support.fluid;
 
+import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.HexoObjectBox;
 import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.util.YamlLoader;
@@ -12,7 +13,6 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 public class FluidHexoObjectBox extends HexoObjectBox {
 
@@ -76,12 +76,13 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     @Override
     public List<String> getCompileStyl() {
-        return Arrays.asList("main.styl", "highlight.styl", "highlight-dark.styl");
+        return Arrays.asList("main.styl"/*, "highlight.styl", "highlight-dark.styl"*/);
     }
 
     @Override
-    public void regStyleHooks(Context context) {
-        context.eval("js", "renderer.define('hexo-config', function(pathNode) {" + "  return hexo_config_java(pathNode.val);" + "});");
+    public void regStyleHooks(Context context) throws Exception {
+        context.eval("js", new String(PathUtil.getConfInputStream("hexo/support/fluid-stylus.js").readAllBytes()));
+        // context.eval("js", "renderer.define('theme-config', function(pathNode) {" + "  return hexo_config_java(pathNode.val);" + "});");
     }
 
     @Override
@@ -114,21 +115,12 @@ public class FluidHexoObjectBox extends HexoObjectBox {
 
     @Override
     protected void regisConfig(Value bindings) {
-        bindings.putMember("hexo_config_java", (Function<String, Object>) key -> {
-            if (Objects.equals("injects.variable", key)) {
-                return new ArrayList<>();
-            }
-            if (Objects.equals("injects.mixin", key)) {
-                return new ArrayList<>();
-            }
-            if (Objects.equals("injects.style", key)) {
-                return new ArrayList<>();
-            }
-            return YamlLoader.getNestedValue(theme, key);
-        });
+        bindings.putMember("hexo_config_java", new FluidConfigProxy(this.theme));
         bindings.putMember("fluid_version", templateVO.getVersion());
         Map<String, Object> nestedValue = (Map<String, Object>) YamlLoader.getNestedValue(theme, "index.slogan");
-        nestedValue.put("text", basePageInfo.getWebs().getSecond_title());
+        if (Objects.nonNull(nestedValue)) {
+            nestedValue.put("text", basePageInfo.getWebs().getSecond_title());
+        }
     }
 
     private String buildJsScript(Value... args) {
