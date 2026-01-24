@@ -7,6 +7,7 @@ import com.hibegin.http.server.api.HttpResponse;
 import com.hibegin.http.server.util.MimeTypeUtil;
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.web.plugin.BlogPageStaticSitePlugin;
+import com.zrlog.business.template.util.BlogResourceUtils;
 import com.zrlog.common.Constants;
 import com.zrlog.common.exception.UnknownException;
 import com.zrlog.plugin.BaseStaticSitePlugin;
@@ -21,7 +22,7 @@ import java.util.Objects;
 /**
  * 静态文件读取优先级
  * 1. /static
- * 2. classpath: (仅默认主题)
+ * 2. classpath:/
  * 3. /cache
  */
 public class BlogStaticResourceInterceptor implements HandleAbleInterceptor {
@@ -42,8 +43,8 @@ public class BlogStaticResourceInterceptor implements HandleAbleInterceptor {
             response.writeFile(staticFile);
             return false;
         }
-        //默认主题的静态文件
-        if (request.getUri().startsWith(Constants.TEMPLATE_BASE_PATH) || request.getUri().startsWith("/assets/")) {
+        //静态文件
+        if (BlogResourceUtils.getInstance().existsResource(request.getUri().substring(1))) {
             try (InputStream resourceAsStream = BlogStaticResourceInterceptor.class.getResourceAsStream(request.getUri())) {
                 if (Objects.nonNull(resourceAsStream)) {
                     ZrLogUtil.putLongTimeCache(response);
