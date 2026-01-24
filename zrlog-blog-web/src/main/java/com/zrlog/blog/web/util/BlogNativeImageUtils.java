@@ -48,7 +48,7 @@ public class BlogNativeImageUtils {
         }
 
         nativeJson();
-        List<String> resources = BlogResourceUtils.getResources();
+        List<String> resources = BlogResourceUtils.getInstance().getResources();
         NativeImageUtils.doResourceLoadByResourceNames(resources.stream().filter(StringUtils::isNotEmpty).map(e -> "/" + e).collect(Collectors.toList()));
 
         try {
