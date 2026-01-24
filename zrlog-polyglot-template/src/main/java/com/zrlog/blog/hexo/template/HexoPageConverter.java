@@ -98,8 +98,8 @@ public class HexoPageConverter {
                     row.put("content", articleBasicDTO.getContent());
                     list.add(HexoDataUtils.wrapArticle(row));
                 }
+                page.put("posts", HexoDataUtils.wrap(list, (int) data.getTotalElements()));
             }
-            page.put("posts", HexoDataUtils.wrap(list, (int) data.getTotalElements()));
             if (Objects.nonNull(pageInfo.getWebs())) {
                 page.put("subtitle", pageInfo.getWebs().getSecond_title());
             }
