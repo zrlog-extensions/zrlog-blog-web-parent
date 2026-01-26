@@ -23,8 +23,14 @@ public class HexoHelperImpl {
         if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("//")) {
             return path;
         }
-        if (path.startsWith("/")) {
-            return root + path.substring(1);
+        if (basePageInfo.getContextPath().equals("/") || basePageInfo.getContextPath().isEmpty()) {
+            if (path.startsWith("/")) {
+                return root + path.substring(1);
+            }
+            return root + path;
+        }
+        if (path.startsWith(basePageInfo.getContextPath() + "/")) {
+            return root + path.substring(basePageInfo.getContextPath().length() + 1);
         }
         return root + path;
     }
