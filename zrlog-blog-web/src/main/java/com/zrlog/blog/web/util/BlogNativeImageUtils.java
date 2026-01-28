@@ -8,6 +8,7 @@ import com.hibegin.http.server.util.FreeMarkerUtil;
 import com.hibegin.http.server.util.HttpRequestBuilder;
 import com.hibegin.http.server.util.NativeImageUtils;
 import com.hibegin.http.server.util.PathUtil;
+import com.zrlog.blog.freemarker.template.FreemarkerZrLogTemplate;
 import com.zrlog.blog.hexo.template.support.fluid.InjectionStorage;
 import com.zrlog.blog.hexo.template.util.HexoDateObjUtils;
 import com.zrlog.blog.polyglot.resource.ScriptProvider;
@@ -32,7 +33,7 @@ public class BlogNativeImageUtils {
     public static void reg(ZrLogConfig zrLogConfig) {
         try {
             Method add = InjectionStorage.class.getMethod("add", String.class, String.class);
-            add.invoke(new InjectionStorage(null, null), Constants.DEFAULT_TEMPLATE_PATH, Constants.DEFAULT_TEMPLATE_PATH);
+            add.invoke(new InjectionStorage(null, null), Constants.TEMPLATE_BASE_PATH + "test", Constants.TEMPLATE_BASE_PATH + "test");
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -53,12 +54,12 @@ public class BlogNativeImageUtils {
         NativeImageUtils.doResourceLoadByResourceNames(resources.stream().filter(StringUtils::isNotEmpty).map(e -> "/" + e).collect(Collectors.toList()));
 
         try {
-            FreeMarkerUtil.init(PathUtil.getStaticFile(Constants.DEFAULT_TEMPLATE_PATH).getPath());
+            new FreemarkerZrLogTemplate().init(PathUtil.getStaticFile(Constants.TEMPLATE_BASE_PATH + "default"));
         } catch (Exception e) {
             LoggerUtil.getLogger(BlogWebSetup.class).info("Freemarker init error " + e.getMessage());
         }
         try {
-            FreeMarkerUtil.initClassTemplate(Constants.DEFAULT_TEMPLATE_PATH);
+            new FreemarkerZrLogTemplate().initClassTemplate(Constants.TEMPLATE_BASE_PATH + "default");
         } catch (Exception e) {
             LoggerUtil.getLogger(BlogWebSetup.class).info("Freemarker init error " + e.getMessage());
         }

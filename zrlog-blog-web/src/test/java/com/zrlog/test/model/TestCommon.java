@@ -20,7 +20,7 @@ public class TestCommon {
 
     @Test
     public void testI18n() {
-        I18nUtil.addToRequestWithTemplatePath(Constants.DEFAULT_TEMPLATE_PATH, null);
+        I18nUtil.addToRequestWithTemplatePath(Constants.TEMPLATE_BASE_PATH + "test", null);
         Map<String, Object> backend = I18nUtil.getBackend();
         System.out.println("backend = " + backend);
         assert Objects.nonNull(backend);
