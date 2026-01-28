@@ -2,6 +2,8 @@ package com.zrlog.blog.hexo.template.support.fluid;
 
 import com.hibegin.http.server.util.PathUtil;
 import com.zrlog.blog.hexo.template.HexoObjectBox;
+import com.zrlog.blog.hexo.template.impl.HexoCssExImpl;
+import com.zrlog.blog.hexo.template.impl.HexoJsExImpl;
 import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.util.YamlLoader;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
@@ -63,11 +65,11 @@ public class FluidHexoObjectBox extends HexoObjectBox {
                 return true;
             }
             case "js_ex" -> {
-                jsEx(bindings);
+                bindings.putMember(name, new HexoJsExImpl(basePageInfo));
                 return true;
             }
             case "css_ex" -> {
-                cssEx(bindings);
+                bindings.putMember(name, new HexoCssExImpl(basePageInfo));
                 return true;
             }
         }
@@ -121,82 +123,6 @@ public class FluidHexoObjectBox extends HexoObjectBox {
         if (Objects.nonNull(nestedValue)) {
             nestedValue.put("text", basePageInfo.getWebs().getSecond_title());
         }
-    }
-
-    private String buildJsScript(Value... args) {
-        if (args.length == 0) return "";
-
-        // 1. 获取脚本路径 (例如: /js/main.js)
-        String src = args[0].asString();
-
-        // 2. 处理第二个参数 (属性对象，例如 { async: true, defer: true })
-        StringBuilder attributes = new StringBuilder();
-
-        if (args.length > 1 && !args[1].isNull()) {
-            // 简单的属性拼接逻辑
-            Value options = args[1];
-            if (options.hasMember("async") && options.getMember("async").asBoolean()) {
-                attributes.append(" async");
-            }
-            if (options.hasMember("defer") && options.getMember("defer").asBoolean()) {
-                attributes.append(" defer");
-            }
-        }
-        // 3. 返回标准的 HTML 标签
-        if (src.startsWith("http")) {
-            return String.format("<script src=\"%s\"%s></script>", src + args[1], attributes);
-
-        }
-        return String.format("<script src=\"%s\"%s></script>", basePageInfo.getTemplateUrl() + "/source" + src + "/" + args[1], attributes);
-    }
-
-    private void jsEx(Value bindings) {
-        bindings.putMember("js_ex", (ProxyExecutable) args -> {
-            return buildJsScript(args[0], args[1]);
-        });
-    }
-
-    private void cssEx(Value bindings) {
-        bindings.putMember("css_ex", (ProxyExecutable) args -> {
-            if (args.length == 0 || args[0].isNull()) return "";
-
-            // 1. 获取 CSS 路径 (例如: /css/main.css)
-            String href = args[0].asString();
-
-            if (!href.startsWith("http") && !href.startsWith("//")) {
-                href = basePageInfo.getTemplateUrl() + "/source" + href;
-            }
-            // 2. 初始化属性字符串
-            StringBuilder attrs = new StringBuilder();
-
-            // 3. 处理第二个可选参数 (配置对象，例如 { media: 'print' })
-            if (args.length > 1) {
-                Value options = args[1];
-                href = href + (href.endsWith("/") ? "" : "/") + args[1];
-
-                // 使用 isMemberReadable 安全读取属性
-                if (options.hasMember("media")) {
-                    String media = options.getMember("media").asString();
-                    attrs.append(String.format(" media=\"%s\"", media));
-                }
-
-                if (options.hasMember("id")) {
-                    attrs.append(String.format(" id=\"%s\"", options.getMember("id").asString()));
-                }
-
-                // 甚至可以处理自定义的 rel 属性
-                if (options.hasMember("rel")) {
-                    attrs.append(String.format(" rel=\"%s\"", options.getMember("rel").asString()));
-                } else {
-                    attrs.append(" rel=\"stylesheet\"");
-                }
-            } else {
-                attrs.append(" rel=\"stylesheet\"");
-            }
-
-            // 4. 返回完整的 HTML 标签
-            return String.format("<link %s href=\"%s\"/>", attrs.toString().trim(), href);
-        });
     }
 
     /**
