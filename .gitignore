@@ -7,8 +7,13 @@ log
 pom.xml.versionsBackup
 conf/*.sql
 conf/sqlite-db.properties
+conf/sqlite-db-2.properties
 static
 cache
 conf/plugins
 static/
 .DS_Store
+temp.txt
+zrlog-polyglot-template/src/main/resources/include/templates/*
+!zrlog-polyglot-template/src/main/resources/include/templates/hexo-theme-fluid
+!zrlog-polyglot-template/src/main/resources/include/templates/hexo-theme-butterfly

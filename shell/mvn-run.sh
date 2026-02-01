@@ -1,2 +1,2 @@
-./mvnw -Pjar clean package -U
-java -jar zrlog-blog-web-starter.jar
+./mvnw clean compile -U
+./mvnw -pl zrlog-blog-web exec:java -Dexec.mainClass="com.zrlog.blog.Application"
