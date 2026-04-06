@@ -1,16 +1,19 @@
 package com.zrlog.blog.hexo.template.util;
 
+import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.common.util.ObjectHelpers;
 import com.zrlog.blog.hexo.template.HexoDateWrapper;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class HexoDateObjUtils {
 
     private static final HexoDateObjUtils instance = new HexoDateObjUtils();
     private final Map<String, Locale> locales = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private static final Logger LOGGER = LoggerUtil.getLogger(HexoDateObjUtils.class);
 
     public HexoDateObjUtils() {
         locales.put("zh", Locale.CHINA);
@@ -25,7 +28,9 @@ public class HexoDateObjUtils {
     }
 
     public String toDateString(Object dateObj, Object format, String defaultFormat, String local) {
-        if (Objects.isNull(dateObj)) return "";
+        if (Objects.isNull(dateObj)) {
+            dateObj = new Date();
+        }
 
         // 获取日期对象（可能是 Long 时间戳或 Java Date）
         java.time.ZonedDateTime zonedDateTime;
@@ -48,6 +53,8 @@ public class HexoDateObjUtils {
                 formatStr = "yyyy-MM-dd B";
             } else if (formatStr.equalsIgnoreCase("LL")) {
                 formatStr = "yyyy-MM-dd";
+            } else if (formatStr.equalsIgnoreCase("t")) {
+                formatStr = "yyyy-MM-dd HH:mm:ss";
             }
 
             // 简单处理：将 Hexo 的 YYYY 转换为 Java 的 yyyy
@@ -55,7 +62,8 @@ public class HexoDateObjUtils {
 
             return zonedDateTime.format(DateTimeFormatter.ofPattern(formatStr, ObjectHelpers.requireNonNullElse(locales.get(local.replace("_", "")), Locale.getDefault())));
         } catch (Exception e) {
-            return "Invalid Date" + e.getMessage();
+            LOGGER.warning("Invalid Date " + e.getMessage());
+            return dateObj.toString();
         }
 
     }

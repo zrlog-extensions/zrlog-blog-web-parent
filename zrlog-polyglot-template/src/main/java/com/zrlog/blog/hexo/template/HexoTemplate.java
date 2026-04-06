@@ -2,8 +2,10 @@ package com.zrlog.blog.hexo.template;
 
 import com.zrlog.blog.hexo.template.support.butterfly.ButterflyHexoObjectBox;
 import com.zrlog.blog.hexo.template.support.fluid.FluidHexoObjectBox;
+import com.zrlog.blog.hexo.template.support.next.NextHexoObjectBox;
 import com.zrlog.blog.polyglot.JsTemplateRender;
 import com.zrlog.blog.polyglot.ejs.EjsTemplateRender;
+import com.zrlog.blog.polyglot.njk.NjkTemplateRender;
 import com.zrlog.blog.polyglot.pug.PugTemplateRender;
 import com.zrlog.blog.polyglot.util.YamlLoader;
 import com.zrlog.blog.web.template.ZrLogTemplate;
@@ -39,42 +41,43 @@ public class HexoTemplate implements ZrLogTemplate {
 
     @Override
     public String render(String page, BasePageInfo pageInfo) throws Exception {
-        Map<String, Object> configMap = pageInfo.getInit().getTemplateConfigCacheMap().get(pageInfo.getTemplate());
-        Map<String, Object> config;
-        if (Objects.nonNull(configMap) && configMap.containsKey(Constants.TEMPLATE_CONFIG_STR_KEY)) {
-            config = YamlLoader.loadConfig((String) configMap.get(Constants.TEMPLATE_CONFIG_STR_KEY));
-        } else {
-            config = YamlLoader.loadConfig(ZrLogResourceLoader.read(rootPath + "/" + TemplateType.NODE_JS.getConfigFile()));
-        }
-        Map<String, Object> theme = HexoPageConverter.toThemeMap(pageInfo, page, config);
-        HexoObjectBox hexoObjectBox = buildHexoObjectByTemplate(theme, pageInfo);
-        try (JsTemplateRender jsTemplateRender = buildJsTemplateRender(theme, pageInfo)) {
+        Map<String, Object> root = HexoPageConverter.toRootMap(pageInfo, page, rootPath);
+        HexoObjectBox hexoObjectBox = buildHexoObjectByTemplate(root, pageInfo);
+        try (JsTemplateRender jsTemplateRender = buildJsTemplateRender(root, pageInfo)) {
             hexoObjectBox.setup(jsTemplateRender);
-            String body = jsTemplateRender.render((String) YamlLoader.getNestedValue(theme, "page.layout"), theme);
-            if (jsTemplateRender instanceof EjsTemplateRender) {jsTemplateRender.getJsBindings().putMember("body", body);
+            jsTemplateRender.init(root, hexoObjectBox.getHelperMap());
+            String body = jsTemplateRender.render((String) YamlLoader.getNestedValue(root, "page.layout"), root);
+            if (jsTemplateRender instanceof EjsTemplateRender) {
+                jsTemplateRender.getJsBindings().putMember("body", body);
 
-                return jsTemplateRender.render("layout", theme);
+                return jsTemplateRender.render("layout", root);
             }
             return body;
         }
     }
 
-    private HexoObjectBox buildHexoObjectByTemplate(Map<String, Object> theme, BasePageInfo pageInfo) {
+    private HexoObjectBox buildHexoObjectByTemplate(Map<String, Object> root, BasePageInfo pageInfo) {
         if (this.templateVO.getTemplate().endsWith("/hexo-theme-fluid")) {
-            return new FluidHexoObjectBox(theme, rootPath, pageInfo, templateVO, template);
+            return new FluidHexoObjectBox(root, rootPath, pageInfo, templateVO, template);
         }
         if (this.templateVO.getTemplate().endsWith("/hexo-theme-butterfly")) {
-            return new ButterflyHexoObjectBox(theme, rootPath, pageInfo, templateVO);
+            return new ButterflyHexoObjectBox(root, rootPath, pageInfo, templateVO, template);
         }
-        return new HexoObjectBox(theme, rootPath, pageInfo, templateVO);
+        if (this.templateVO.getTemplate().endsWith("/hexo-theme-next")) {
+            return new NextHexoObjectBox(root, rootPath, pageInfo, templateVO, template);
+        }
+        return new HexoObjectBox(root, rootPath, pageInfo, templateVO, template);
     }
 
-    private JsTemplateRender buildJsTemplateRender(Map<String, Object> theme, BasePageInfo pageInfo) {
+    private JsTemplateRender buildJsTemplateRender(Map<String, Object> root, BasePageInfo pageInfo) {
         if (templateVO.getViewType().equals(".ejs")) {
-            return new EjsTemplateRender(template, pageInfo, theme);
+            return new EjsTemplateRender(template, pageInfo, root);
         }
         if (templateVO.getViewType().equals(".pug")) {
-            return new PugTemplateRender(template, pageInfo, theme);
+            return new PugTemplateRender(template, pageInfo, root);
+        }
+        if (templateVO.getViewType().equals(".njk")) {
+            return new NjkTemplateRender(template, pageInfo, root);
         }
         throw new NotImplementException();
     }

@@ -17,7 +17,7 @@ public class HexoHelperImpl {
     // 对应 url_for(path)
     public String url_for(String path) {
         String root = basePageInfo.getBaseUrl();
-        if (Objects.isNull(path)) {
+        if (Objects.isNull(path) || Objects.equals("undefined/", path)) {
             return root;
         }
         if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("//")) {
@@ -26,6 +26,12 @@ public class HexoHelperImpl {
         if (basePageInfo.getContextPath().equals("/") || basePageInfo.getContextPath().isEmpty()) {
             if (path.startsWith("/")) {
                 return root + path.substring(1);
+            }
+            if (path.endsWith(".css")) {
+                return basePageInfo.getTemplateUrl() + "/source/" + path;
+            }
+            if (path.endsWith(".js")) {
+                return basePageInfo.getTemplateUrl() + "/source/" + path;
             }
             return root + path;
         }

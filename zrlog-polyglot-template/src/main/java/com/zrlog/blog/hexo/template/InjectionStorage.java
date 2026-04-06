@@ -1,4 +1,4 @@
-package com.zrlog.blog.hexo.template.support.fluid;
+package com.zrlog.blog.hexo.template;
 
 import com.hibegin.common.util.EnvKit;
 import com.hibegin.common.util.LoggerUtil;

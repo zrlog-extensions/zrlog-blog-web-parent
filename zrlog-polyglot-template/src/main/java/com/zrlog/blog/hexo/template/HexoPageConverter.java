@@ -4,14 +4,20 @@ import com.hibegin.common.dao.dto.PageData;
 import com.zrlog.blog.hexo.template.article.ArticleInfoUtils;
 import com.zrlog.blog.hexo.template.util.HexoConvertUtils;
 import com.zrlog.blog.hexo.template.util.HexoDataUtils;
+import com.zrlog.blog.polyglot.util.GraalDataUtils;
+import com.zrlog.blog.polyglot.util.YamlLoader;
+import com.zrlog.blog.web.template.PagerVO;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
 import com.zrlog.blog.web.template.vo.NotFindPageVO;
+import com.zrlog.business.type.TemplateType;
+import com.zrlog.common.Constants;
 import com.zrlog.common.cache.dto.LinkDTO;
 import com.zrlog.common.cache.dto.LogNavDTO;
 import com.zrlog.common.cache.dto.TagDTO;
 import com.zrlog.common.cache.dto.TypeDTO;
+import com.zrlog.common.resource.ZrLogResourceLoader;
 import com.zrlog.data.dto.ArticleBasicDTO;
 import com.zrlog.data.dto.ArticleDetailDTO;
 
@@ -20,10 +26,29 @@ import java.util.stream.Collectors;
 
 public class HexoPageConverter {
 
-    public static Map<String, Object> toThemeMap(BasePageInfo pageInfo, String layout, Map<String, Object> config) {
-        Map<String, Object> theme = new HashMap<>(config);
-        theme.put("title", pageInfo.getWebs().getTitle());
+    public static Map<String, Object> getConfig(BasePageInfo pageInfo,
+                                                String rootPath) {
+        //config
+        Map<String, Object> configMap = pageInfo.getInit().getTemplateConfigCacheMap().get(pageInfo.getTemplate());
+        Map<String, Object> config;
+        if (Objects.nonNull(configMap) && configMap.containsKey(Constants.TEMPLATE_CONFIG_STR_KEY)) {
+            config = YamlLoader.loadConfig((String) configMap.get(Constants.TEMPLATE_CONFIG_STR_KEY));
+        } else {
+            config = YamlLoader.loadConfig(ZrLogResourceLoader.read(rootPath + "/" + TemplateType.NODE_JS.getConfigFile()));
+        }
+        config.put("subtitle", pageInfo.getWebs().getSecond_title());
+        config.put("title", pageInfo.getWebs().getTitle());
+        return config;
+    }
+
+    public static Map<String, Object> toRootMap(BasePageInfo pageInfo,
+                                                String layout,
+                                                String rootPath) {
+        Map<String, Object> config = getConfig(pageInfo, rootPath);
+        Map<String, Object> root = new HashMap<>(config);
         Map<String, Object> page = new HashMap<>();
+        Map<String, Object> theme = new HashMap<>(config);
+        theme.put("injects", new ArrayList<>());
         if (Objects.nonNull(layout)) {
             if (layout.equals("archives")) {
                 page.put("layout", "archive");
@@ -48,8 +73,12 @@ public class HexoPageConverter {
             page.put("title", log.getTitle());
             page.put("content", log.getContent());
             page.put("date", new HexoDateWrapper(log.getFullReleaseTime()));
+            page.put("updated", new HexoDateWrapper(log.getLastUpdateDate()));
+
             page.put("next_post", HexoConvertUtils.getNextLog(articleDetailPageVO));
             page.put("prev_post", HexoConvertUtils.getPrevLog(articleDetailPageVO));
+            page.put("next", HexoConvertUtils.getNextLog(articleDetailPageVO));
+            page.put("prev", HexoConvertUtils.getPrevLog(articleDetailPageVO));
             page.put("permalink", articleDetailPageVO.getLog().getNoSchemeUrl());
             if (Objects.nonNull(log.getTags())) {
                 page.put("tags", HexoDataUtils.wrap(log.getTags().stream().map(e -> Map.of("name", e.getName(), "path", e.getUrl())).collect(Collectors.toList()), pageInfo.getInit().getTags().size()));
@@ -95,13 +124,19 @@ public class HexoPageConverter {
                     row.put("tags", articleBasicDTO.getTags().stream().map(e -> Map.of("name", e.getName(), "path", e.getUrl())).collect(Collectors.toList()));
                     row.put("path", articleBasicDTO.getUrl());
                     row.put("date", new HexoDateWrapper(articleBasicDTO.getFullReleaseTime()));
+                    row.put("updated", new HexoDateWrapper(articleBasicDTO.getLastUpdateDate()));
                     row.put("index_img", articleBasicDTO.getThumbnail());
-                    row.put("description", articleBasicDTO.getContent());
-                    row.put("excerpt", articleBasicDTO.getContent());
+                    row.put("description", articleBasicDTO.getDigest());
+                    row.put("excerpt", articleBasicDTO.getDigest());
                     row.put("content", articleBasicDTO.getContent());
                     list.add(HexoDataUtils.wrapArticle(row));
                 }
                 page.put("posts", HexoDataUtils.wrap(list, (int) data.getTotalElements()));
+
+                if (Objects.nonNull(articleListPageVO.getPager())) {
+                    page.put("prev", articleListPageVO.getPager().getPageList().stream().filter(PagerVO.PageEntry::getCurrent).findFirst().get().getPrev());
+                    page.put("next", articleListPageVO.getPager().getPageList().stream().filter(PagerVO.PageEntry::getCurrent).findFirst().get().getNext());
+                }
             }
             if (Objects.nonNull(pageInfo.getWebs())) {
                 page.put("subtitle", pageInfo.getWebs().getSecond_title());
@@ -151,11 +186,18 @@ public class HexoPageConverter {
             for (LogNavDTO logNavDTO : logNavs) {
                 Map<String, Object> row = new HashMap<>();
                 row.put("link", logNavDTO.getUrl());
+                row.put("url", logNavDTO.getUrl());
+                row.put("path", logNavDTO.getUrl());
+                row.put("name", logNavDTO.getNavName());
                 row.put("icon", logNavDTO.getIcon());
                 row.put("key", logNavDTO.getNavName());
                 list.add(row);
             }
-            theme.put("navbar", Map.of("menu", list, "blog_title", pageInfo.getWebs().getTitle()));
+            root.put("navbar", Map.of("menu", list, "blog_title", pageInfo.getWebs().getTitle()));
+            theme.put("menu", list);
+            //next theme
+            theme.put("menu_map", GraalDataUtils.makeJsFriendly(new JsMapAdapter(new HashMap<>())));
+            theme.put("main_menu", GraalDataUtils.makeJsFriendly(list));
         }
 
         if (Objects.nonNull(pageInfo.getInit().getLinks())) {
@@ -172,22 +214,47 @@ public class HexoPageConverter {
                 list.add(row);
             }
             Map<String, Object> links = new HashMap<>(Map.of("items", list));
-            theme.put("links", links);
+            root.put("links", links);
             links.put("comments", Map.of("type", ""));
         }
 
-        theme.put("language", pageInfo.getLang());
-        theme.put("config", config);
+        root.put("language", pageInfo.getLang());
+        root.put("config", config);
         config.put("root", pageInfo.getBaseWithHostPath().substring(0, pageInfo.getBaseWithHostPath().lastIndexOf("/")));
         config.put("title", pageInfo.getWebs().getTitle());
         config.put("language", pageInfo.getLang());
         config.put("page", page);
-        theme.put("apple_touch_icon", "/favicon.png");
-        theme.put("favicon", "/favicon.ico");
-        theme.put("site", page);
-        theme.put("page", page);
+        root.put("apple_touch_icon", "/favicon.png");
+        root.put("favicon", "/favicon.ico");
+        page.put("pages", HexoDataUtils.wrap(new ArrayList<>()));
+        root.put("site", page);
+        root.put("page", page);
+        root.put("theme", theme);
+        theme.put("prism", Map.of("enable", false));
+        theme.put("highlight", Map.of("enable", false));
         page.put("description", pageInfo.getDescription());
         page.put("keywords", pageInfo.getKeywords());
-        return theme;
+        root.put("author", pageInfo.getWebs().getAuthor());
+        page.put("author", pageInfo.getWebs().getAuthor());
+        root.put("url", pageInfo.getBaseUrl());
+        fillVendors(pageInfo, rootPath, root);
+        return root;
+    }
+
+    private static void fillVendors(BasePageInfo pageInfo, String rootPath, Map<String, Object> root) {
+        Map<String, Object> vendors = null;
+        String vendorFile = rootPath + "/_vendors.yml";
+        boolean exists = ZrLogResourceLoader.exists(vendorFile);
+        if (exists) {
+            vendors = YamlLoader.loadConfig(ZrLogResourceLoader.read(vendorFile));
+        }
+
+        if (Objects.nonNull(vendors)) {
+            vendors.values().forEach(e -> {
+                Map<String, Object> v = (Map<String, Object>) e;
+                v.put("url", pageInfo.getTemplateUrl() + "/source/" + ((Map<?, ?>) e).get("file"));
+            });
+            ((Map<String, Object>) root.get("theme")).put("vendors", vendors);
+        }
     }
 }

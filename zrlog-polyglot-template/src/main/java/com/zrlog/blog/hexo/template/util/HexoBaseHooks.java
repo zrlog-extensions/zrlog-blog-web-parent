@@ -10,6 +10,7 @@ import com.zrlog.blog.polyglot.util.YamlLoader;
 import com.zrlog.blog.web.template.vo.ArticleDetailPageVO;
 import com.zrlog.blog.web.template.vo.ArticleListPageVO;
 import com.zrlog.blog.web.template.vo.BasePageInfo;
+import com.zrlog.blog.web.util.WebTools;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
@@ -31,51 +32,54 @@ public class HexoBaseHooks {
         this.theme = theme;
     }
 
-    public void inject(Value bindings) {
+    public Map<String, Value> injectMap() {
         // 映射 partial
+
+        Map<String, ProxyExecutable> hexoHelpers = new HashMap<>();
+
         for (String fun : Arrays.asList("partial", "partial_lang")) {
-            bindings.putMember(fun, (ProxyExecutable) args -> {
+            hexoHelpers.put(fun, args -> {
                 String path = args[0].asString();
                 Map<String, Object> locals = (args.length > 1 && !args[1].isNull()) ? args[1].as(Map.class) : null;
                 try {
                     return jsTemplateRender.includeRender(path, locals);
                 } catch (Exception e) {
-                    return "page -> " + path + "\n" + LoggerUtil.recordStackTraceMsg(e);
+                    return "<pre>page ->" + path + "\n" + WebTools.htmlEncode(LoggerUtil.recordStackTraceMsg(e)) + "</pre>";
                 }
             });
         }
-        bindings.putMember("_p", new HexoI18nHelperImpl(rootPath, basePageInfo.getLocal()));
-        bindings.putMember("__", new HexoI18nHelperImpl(rootPath, basePageInfo.getLocal()));
-        bindings.putMember("trim", (ProxyExecutable) args -> {
+        hexoHelpers.put("_p", new HexoI18nHelperImpl(rootPath, basePageInfo.getLocal()));
+        hexoHelpers.put("__", new HexoI18nHelperImpl(rootPath, basePageInfo.getLocal()));
+        hexoHelpers.put("trim", args -> {
             return args[0].asString().trim();
         });
 
         if (basePageInfo instanceof ArticleListPageVO) {
-            bindings.putMember("paginator", new HexoPaginator(((ArticleListPageVO) basePageInfo).getPager()));
+            hexoHelpers.put("paginator", new HexoPaginator(((ArticleListPageVO) basePageInfo).getPager()));
         } else {
-            bindings.putMember("paginator", (ProxyExecutable) args -> {
+            hexoHelpers.put("paginator", args -> {
                 return "paginator";
             });
         }
-        bindings.putMember("tagcloud", new HexoTagCloud(basePageInfo.getInit().getTags()));
-        bindings.putMember("url_join", HexoHelperImpl.getUrlJoinProvider());
+        hexoHelpers.put("tagcloud", new HexoTagCloud(basePageInfo.getInit().getTags()));
+        hexoHelpers.put("url_join", HexoHelperImpl.getUrlJoinProvider());
 
         HexoHelperImpl hexoHelper = new HexoHelperImpl(basePageInfo);
         // 映射 url_for
-        bindings.putMember("url_for", (ProxyExecutable) args -> {
+        hexoHelpers.put("url_for", args -> {
             if (args.length > 0) {
                 return hexoHelper.url_for(args[0].asString());
             }
             return hexoHelper.url_for(null);
         });
-        bindings.putMember("url", (ProxyExecutable) args -> {
+        hexoHelpers.put("url", args -> {
             if (args.length > 0) {
                 return hexoHelper.url_for(args[0].asString());
             }
             return hexoHelper.url_for(null);
         });
 
-        bindings.putMember("open_graph", (ProxyExecutable) args -> {
+        hexoHelpers.put("open_graph", args -> {
             String title = basePageInfo.getTitle();
             String author = "";
             String description = basePageInfo.getDescription();
@@ -89,60 +93,63 @@ public class HexoBaseHooks {
             return sb.toString();
         });
 
-        bindings.putMember("is_post", (ProxyExecutable) args -> {
+        hexoHelpers.put("is_post", args -> {
             return basePageInfo instanceof ArticleDetailPageVO;
         });
-        bindings.putMember("is_tag", (ProxyExecutable) args -> {
+        hexoHelpers.put("is_tag", args -> {
             return false;
         });
-        bindings.putMember("toc", (ProxyExecutable) args -> {
+        hexoHelpers.put("toc", args -> {
             return false;
         });
 
-        bindings.putMember("is_page", (ProxyExecutable) args -> {
+        hexoHelpers.put("is_page", args -> {
             return basePageInfo instanceof ArticleListPageVO;
         });
 
-        bindings.putMember("is_archive", (ProxyExecutable) args -> {
+        hexoHelpers.put("is_archive", args -> {
             return basePageInfo instanceof ArticleListPageVO;
         });
-        bindings.putMember("is_month", (ProxyExecutable) args -> {
+        hexoHelpers.put("is_month", args -> {
             return basePageInfo instanceof ArticleListPageVO;
         });
-        bindings.putMember("feed_tag", (ProxyExecutable) args -> {
+        hexoHelpers.put("feed_tag", args -> {
             return "feed_tag";
         });
-        bindings.putMember("favicon_tag", (ProxyExecutable) args -> {
+        hexoHelpers.put("favicon_tag", args -> {
             return "favicon_tag";
         });
-        bindings.putMember("asyncCss", (ProxyExecutable) args -> {
+        hexoHelpers.put("asyncCss", args -> {
             return "asyncCss";
         });
-        bindings.putMember("vendorCdn", (ProxyExecutable) args -> {
+        hexoHelpers.put("vendorCdn", args -> {
             return "vendorCdn";
         });
-        bindings.putMember("vendorCdnIntegrity", (ProxyExecutable) args -> {
+        hexoHelpers.put("vendorCdnIntegrity", args -> {
             return "vendorCdn";
         });
-        bindings.putMember("is_home_first_page", (ProxyExecutable) args -> {
+        hexoHelpers.put("is_home_first_page", args -> {
             return basePageInfo instanceof ArticleListPageVO;
         });
-        bindings.putMember("markdown", (ProxyExecutable) args -> {
+        hexoHelpers.put("markdown", args -> {
             return args[0];
         });
-        bindings.putMember("truncate", (ProxyExecutable) args -> {
+        hexoHelpers.put("truncate", args -> {
             return args[0];
         });
-        js(bindings);
+        js(hexoHelpers);
 
-        bindings.putMember("is_home", (ProxyExecutable) args -> {
+        hexoHelpers.put("is_home", args -> {
             return Objects.equals(YamlLoader.getNestedValue(theme, "page.layout"), "index");
         });
-        bindings.putMember("is_category", (ProxyExecutable) args -> {
+        hexoHelpers.put("is_category", args -> {
             return false;
         });
 
-        bindings.putMember("strip_html", (ProxyExecutable) args -> {
+        hexoHelpers.put("escape_html", args -> {
+            return args[0];
+        });
+        hexoHelpers.put("strip_html", args -> {
             if (args.length == 0 || args[0].isNull()) {
                 return "";
             }
@@ -157,14 +164,25 @@ public class HexoBaseHooks {
             return content.replaceAll("<[^>]*>", "").trim();
         });
 
-        bindings.putMember("full_date", (ProxyExecutable) args -> {
-            return HexoDateObjUtils.getInstance().toDateString(args[0].as(Object.class), args.length > 1 ? args[1].as(Object.class) : null, "yyyy-MM-dd HH:mm:ss", basePageInfo.getLocal());
+        hexoHelpers.put("full_date", args -> {
+            return HexoDateObjUtils.getInstance().toDateString(args[0].as(Object.class), args.length > 1 ? args[1].as(Object.class) : new Date(), "yyyy-MM-dd HH:mm:ss", basePageInfo.getLocal());
         });
 
-        bindings.putMember("date", (ProxyExecutable) args -> {
+        hexoHelpers.put("date", args -> {
             return HexoDateObjUtils.getInstance().toDateString(args[0].as(Object.class), args.length > 1 ? args[1].as(Object.class) : null, "yyyy-MM-dd", basePageInfo.getLocal());
         });
-        bindings.putMember("date_xml", (ProxyExecutable) args -> {
+        hexoHelpers.put("time", args -> {
+            return HexoDateObjUtils.getInstance().toDateString(args[0].as(Object.class), args.length > 1 ? args[1].as(Object.class) : null, "yyyy-MM-dd", basePageInfo.getLocal());
+        });
+        hexoHelpers.put("moment", args -> {
+            return Value.asValue(Map.of("format", new ProxyExecutable() {
+                @Override
+                public Object execute(Value... arguments) {
+                    return "//fixme";
+                }
+            }));
+        });
+        hexoHelpers.put("date_xml", args -> {
             if (args.length == 0 || args[0].isNull()) return "";
 
             // 获取日期对象（可能是 Long 时间戳或 Java Date）
@@ -192,7 +210,7 @@ public class HexoBaseHooks {
             }
         });
 
-        bindings.putMember("css", (ProxyExecutable) args -> {
+        hexoHelpers.put("css", args -> {
             if (args.length == 0 || args[0].isNull()) return "";
 
             StringJoiner sb = new StringJoiner("/");
@@ -204,29 +222,34 @@ public class HexoBaseHooks {
             return appendCssTag(sb.toString());
         });
 
-        bindings.putMember("titlecase", (ProxyExecutable) args -> {
+        hexoHelpers.put("titlecase", args -> {
             return args[0];
         });
 
-        bindings.putMember("list_archives", (ProxyExecutable) args -> {
+        hexoHelpers.put("list_archives", args -> {
             return "list_archives";
         });
 
-        bindings.putMember("list_categories", (ProxyExecutable) args -> {
+        hexoHelpers.put("list_categories", args -> {
             return "list_categories";
         });
 
-        bindings.putMember("list_tags", (ProxyExecutable) args -> {
+        hexoHelpers.put("list_tags", args -> {
             return "list_tags";
         });
 
-        bindings.putMember("get_cdn_url", (ProxyExecutable) args -> {
+        hexoHelpers.put("get_cdn_url", args -> {
             return basePageInfo.getStaticResourceBaseUrl();
         });
 
-        bindings.putMember("is_current", (ProxyExecutable) args -> {
+        hexoHelpers.put("is_current", args -> {
             return false;
         });
+        Map<String, Value> injects = new HashMap<>();
+        for (Map.Entry<String, ProxyExecutable> entry : hexoHelpers.entrySet()) {
+            injects.put(entry.getKey(), Value.asValue(entry.getValue()));
+        }
+        return injects;
     }
 
     // 辅助拼接方法
@@ -247,8 +270,8 @@ public class HexoBaseHooks {
         return String.format("<link rel=\"stylesheet\" href=\"%s\"/>\n", href);
     }
 
-    private void js(Value bindings) {
-        bindings.putMember("js", (ProxyExecutable) args -> {
+    private void js(Map<String, ProxyExecutable> hexoHelpers) {
+        hexoHelpers.put("js", args -> {
             if (args.length == 0) return "";
 
             // 1. 获取脚本路径 (例如: /js/main.js)

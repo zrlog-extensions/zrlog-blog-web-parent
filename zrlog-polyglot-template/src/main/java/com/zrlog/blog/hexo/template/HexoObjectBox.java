@@ -21,30 +21,46 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public class HexoObjectBox {
 
     private static final Logger LOGGER = LoggerUtil.getLogger(HexoObjectBox.class);
-    protected final Map<String, Object> theme;
+    protected final Map<String, Object> root;
     protected final BasePageInfo basePageInfo;
     protected final String rootPath;
     private boolean stylusInit = false;
     protected final TemplateVO templateVO;
+    protected final Map<String, Value> helperMap = new LinkedHashMap<>();
+    protected final InjectionStorage injectionStorage;
 
-    public HexoObjectBox(Map<String, Object> theme, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO) {
-        this.theme = theme;
+
+    public Map<String, Value> getHelperMap() {
+        return helperMap;
+    }
+
+
+    public HexoObjectBox(Map<String, Object> root, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO, String templateDir) {
+        this.root = root;
         this.templateVO = templateVO;
         this.basePageInfo = basePageInfo;
         this.rootPath = rootPath;
+        this.injectionStorage = new InjectionStorage(new ConcurrentHashMap<>(), templateDir);
         this.fillConfig();
     }
 
     protected boolean filterRegister(Context context, String name, Value[] values) {
+        if (name.equals("theme_inject")) {
+            Value callback = values[1];
+            // 关键：当脚本运行回调时，传入我们构造的 injects 代理对象
+            callback.execute(createInjectsProxy(context));
+            return true;
+        }
         return false;
     }
 
@@ -57,7 +73,7 @@ public class HexoObjectBox {
     }
 
     public void fixImageUrl(String rootKey, String valueName) {
-        Map<String, Object> map = (Map<String, Object>) YamlLoader.getNestedValue(theme, rootKey);
+        Map<String, Object> map = (Map<String, Object>) YamlLoader.getNestedValue(root, rootKey);
         if (Objects.isNull(map)) {
             return;
         }
@@ -84,7 +100,7 @@ public class HexoObjectBox {
     }
 
     public List<String> getCompileStyl() {
-        return new ArrayList<>();
+        return List.of("main.styl"/*, "highlight.styl", "highlight-dark.styl"*/);
     }
 
     public void regStyleHooks(Context context) throws Exception {
@@ -106,7 +122,14 @@ public class HexoObjectBox {
             String styleRoot = rootPath + getStylRoot();
             //System.out.println("styleRoot = " + styleRoot);
             String resourceFile = styleRoot + "/" + compileStyl;
-            File staticFile = PathUtil.getStaticFile(basePageInfo.getTemplate() + getStylRoot() + "/" + compileStyl.replace(".styl", ".css"));
+            String path = basePageInfo.getTemplate() + getStylRoot() + "/" + compileStyl.replace(".styl", ".css");
+            if (ZrLogResourceLoader.exists("classpath:" + path)) {
+                continue;
+            }
+            if (ZrLogResourceLoader.exists(path)) {
+                continue;
+            }
+            File staticFile = PathUtil.getStaticFile(path);
             if (staticFile.exists()) {
                 continue;
             }
@@ -143,7 +166,7 @@ public class HexoObjectBox {
         Value hexo = context.eval("js", "({})");
         hexo.putMember("theme_dir", rootPath);
 
-        Object themeObj = GraalDataUtils.makeJsFriendly(theme);
+        Object themeObj = GraalDataUtils.makeJsFriendly(root);
         hexo.putMember("config", themeObj);
         hexo.putMember("theme", themeObj);
 
@@ -160,6 +183,7 @@ public class HexoObjectBox {
             Value callback = args[1];
             if (!filterRegister(context, type, args)) {
                 bindings.putMember(type, callback);
+                helperMap.put(type, callback);
             }
             return null;
         });
@@ -168,8 +192,9 @@ public class HexoObjectBox {
             Value callback = args[1];
             if (!helperRegister(jsTemplateRender, type, args)) {
                 bindings.putMember(type, callback);
+                helperMap.put(type, callback);
                 if (EnvKit.isDevMode()) {
-                    LOGGER.info("inject helper = " + type);
+                    LOGGER.info("inject helper -> " + type + " success");
                 }
             }
 
@@ -204,11 +229,14 @@ public class HexoObjectBox {
     public void setup(JsTemplateRender jsTemplateRender) throws Exception {
         Value bindings = jsTemplateRender.getJsBindings();
         Context context = jsTemplateRender.getContext();
+        helperMap.putAll(new HexoBaseHooks(rootPath, jsTemplateRender, basePageInfo, root).injectMap());
+        for (Map.Entry<String, Value> e : helperMap.entrySet()) {
+            bindings.putMember(e.getKey(), e.getValue());
+        }
         scanScripts(jsTemplateRender);
-        new HexoBaseHooks(rootPath, jsTemplateRender, basePageInfo, theme).inject(bindings);
         regisConfig(bindings);
         compileStyl(context);
-        bindings.putMember("theme", GraalDataUtils.makeJsFriendly(theme));
+        bindings.putMember("theme", GraalDataUtils.makeJsFriendly(root));
     }
 
     private void scanScripts(JsTemplateRender jsTemplateRender) throws IOException {
@@ -223,6 +251,9 @@ public class HexoObjectBox {
         //scriptProvider.addBaseScript("moize", new String(PathUtil.getConfInputStream("hexo/scripts/moize.js").readAllBytes()));
         for (String script : scripts) {
             scriptProvider.addScript(script.substring((rootPath + "/scripts/").length()).replaceAll(".js", ""), script);
+            String filename = new File(script).getName();
+            scriptProvider.addScript(filename.replaceAll(".js", ""), script);
+            scriptProvider.addScript("./" + filename.replaceAll(".js", ""), script);
         }
         for (String scriptPath : scripts) {
             if (scriptPath.contains("/generators/")) {
@@ -239,9 +270,19 @@ public class HexoObjectBox {
                         LOGGER.info("Exec " + scriptPath + " success");
                     }
                 } catch (Exception e) {
-                    LOGGER.severe("Exec " + scriptPath + " error " + e.getMessage());
+                    LOGGER.severe("Exec " + scriptPath + " error " + LoggerUtil.recordStackTraceMsg(e));
                 }
             }
         }
+    }
+
+
+    /**
+     * 创建一个动态代理对象，捕获 injects.xxx.file() 的调用
+     */
+    private Value createInjectsProxy(Context context) {
+        // 这是一个“万能插槽”处理器，处理诸如 injects.header.file(...) 的调用
+        return context.eval("js", "(function(storage) {" + "  return new Proxy({}, {" + "    get: function(target, slot) {" + "      return {" + "        file: function(name, path) {" + "          storage.add(slot, path);" + // 调用 Java 的 add 方法
+                "        }" + "      };" + "    }" + "  });" + "})").execute(injectionStorage);
     }
 }

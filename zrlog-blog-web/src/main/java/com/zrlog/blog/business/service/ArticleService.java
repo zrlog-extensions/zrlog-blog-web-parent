@@ -99,6 +99,7 @@ public class ArticleService {
         //
         log.setRecommended(ResultValueConvertUtils.toBoolean(log.getRecommended()));
         log.setFullReleaseTime(ResultValueConvertUtils.formatDate(log.getReleaseTime(), "yyyy-MM-dd HH:mm:ss"));
+        log.setFullLastUpdateDate(ResultValueConvertUtils.formatDate(log.getLastUpdateDate(), "yyyy-MM-dd HH:mm:ss"));
         log.setReleaseTime(ResultValueConvertUtils.formatDate(log.getReleaseTime(), "yyyy-MM-dd"));
         if (Objects.nonNull(log.getLogId())) {
             log.setId(log.getLogId());

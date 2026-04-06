@@ -41,9 +41,15 @@ public class HexoDataUtils {
         wrapper.put("data", data);
         // 模拟 Hexo 集合常用的 length 属性（可选）
         wrapper.put("length", totalLength);
+        wrapper.put("count", (ProxyExecutable) args -> {
+            return totalLength;
+        });
         wrapper.put("sort", (ProxyExecutable) args -> {
             //未实现
             return wrapper;
+        });
+        wrapper.put("toArray", (ProxyExecutable) args -> {
+            return list;
         });
 
         for (String str : Arrays.asList("each", "forEach")) {

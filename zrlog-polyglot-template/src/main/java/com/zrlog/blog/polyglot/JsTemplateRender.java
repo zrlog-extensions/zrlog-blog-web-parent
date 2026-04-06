@@ -3,6 +3,7 @@ package com.zrlog.blog.polyglot;
 import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
 
 import java.util.Map;
 
@@ -22,4 +23,8 @@ public interface JsTemplateRender extends AutoCloseable {
     String getTemplate();
 
     ScriptProvider getScriptProvider();
+
+    default void init(Map<String, Object> root, Map<String, Value> helpers) {
+        //root.putAll(helpers);
+    }
 }

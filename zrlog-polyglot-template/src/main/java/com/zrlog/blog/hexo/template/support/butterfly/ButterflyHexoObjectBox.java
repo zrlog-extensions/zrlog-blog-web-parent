@@ -14,16 +14,16 @@ import java.util.Map;
 
 public class ButterflyHexoObjectBox extends HexoObjectBox {
 
-    public ButterflyHexoObjectBox(Map<String, Object> theme, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO) {
-        super(theme, rootPath, basePageInfo, templateVO);
+    public ButterflyHexoObjectBox(Map<String, Object> root, String rootPath, BasePageInfo basePageInfo, TemplateVO templateVO, String templateDir) {
+        super(root, rootPath, basePageInfo, templateVO, templateDir);
     }
 
     @Override
     protected void fillConfig() {
-        theme.put("asset", Map.of("main_css", basePageInfo.getTemplateUrl() + getStylRoot() + "/index.css", "fontawesome", basePageInfo.getTemplateUrl() + getStylRoot() + "/fontawesome.css"));
+        root.put("asset", Map.of("main_css", basePageInfo.getTemplateUrl() + getStylRoot() + "/index.css", "fontawesome", basePageInfo.getTemplateUrl() + getStylRoot() + "/fontawesome.css"));
         //Map<String, Object> o = (Map<String, Object>) theme.get("site");
         //o.put("data", Map.of("article",theme.get("posts")));
-        Map<String, Object> config = (Map<String, Object>) theme.get("config");
+        Map<String, Object> config = (Map<String, Object>) root.get("config");
         config.put("author", basePageInfo.getWebs().getTitle());
         config.put("prismjs", Map.of("enable", false));
         config.put("highlight", Map.of("enable", false));
@@ -37,11 +37,11 @@ public class ButterflyHexoObjectBox extends HexoObjectBox {
         for (LogNavDTO logNav : basePageInfo.getInit().getLogNavs()) {
             menu.put(logNav.getNavName(), logNav.getUrl() + " || " + logNav.getIcon());
         }
-        theme.put("menu", menu);
-        Map<String, Object> site = (Map<String, Object>) theme.get("site");
+        root.put("menu", menu);
+        Map<String, Object> site = (Map<String, Object>) root.get("site");
         site.put("data", Map.of("widget", Map.of("title", basePageInfo.getWebs().getTitle())));
 
-        Map<String, Object> avatar = (Map<String, Object>) theme.get("avatar");
+        Map<String, Object> avatar = (Map<String, Object>) root.get("avatar");
         avatar.put("img", "/favicon.ico");
         fixImageUrl("error_img", "flink");
         fixImageUrl("error_img", "post_img");
