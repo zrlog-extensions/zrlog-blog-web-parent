@@ -9,8 +9,7 @@ import com.zrlog.business.plugin.RequestInfo;
 import com.zrlog.common.Constants;
 import com.zrlog.common.vo.PublicWebSiteInfo;
 import com.zrlog.model.Log;
-import eu.bitwalker.useragentutils.BrowserType;
-import eu.bitwalker.useragentutils.UserAgent;
+import com.zrlog.util.UserAgentUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
@@ -32,15 +31,6 @@ public class ArticleStatisticsRunnable extends BaseLockObject implements Runnabl
     private final List<RequestInfo> requestInfoList = Collections.synchronizedList(new ArrayList<>());
 
 
-    private boolean isNormalBrowser(String userAgent) {
-        if (StringUtils.isEmpty(userAgent)) {
-            return false;
-        }
-        UserAgent ua = UserAgent.parseUserAgentString(userAgent);
-        BrowserType browserType = ua.getBrowser().getBrowserType();
-        return browserType == BrowserType.MOBILE_BROWSER || browserType == BrowserType.WEB_BROWSER;
-    }
-
     /**
      *
      */
@@ -55,7 +45,7 @@ public class ArticleStatisticsRunnable extends BaseLockObject implements Runnabl
             List<RequestInfo> removeList = new ArrayList<>();
             for (RequestInfo requestInfo : requestInfoList) {
                 if (!requestInfo.isDeal()) {
-                    if (isNormalBrowser(requestInfo.getUserAgent())) {
+                    if (!UserAgentUtils.parse(requestInfo.getUserAgent()).isCrawler()) {
                         clickAdd(requestInfo.getArticleId());
                     }
                     requestInfo.setDeal(true);
