@@ -9,6 +9,7 @@ import com.zrlog.business.plugin.RequestInfo;
 import com.zrlog.common.Constants;
 import com.zrlog.common.vo.PublicWebSiteInfo;
 import com.zrlog.model.Log;
+import com.zrlog.plugin.BaseStaticSitePlugin;
 import com.zrlog.util.UserAgentUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
@@ -45,9 +46,13 @@ public class ArticleStatisticsRunnable extends BaseLockObject implements Runnabl
             List<RequestInfo> removeList = new ArrayList<>();
             for (RequestInfo requestInfo : requestInfoList) {
                 if (!requestInfo.isDeal()) {
-                    if (!UserAgentUtils.parse(requestInfo.getUserAgent()).isCrawler()) {
-                        clickAdd(requestInfo.getArticleId());
+                    if (BaseStaticSitePlugin.STATIC_USER_AGENT.equals(requestInfo.getUserAgent())) {
+                        continue;
                     }
+                    if (UserAgentUtils.parse(requestInfo.getUserAgent()).isCrawler()) {
+                        continue;
+                    }
+                    clickAdd(requestInfo.getArticleId());
                     requestInfo.setDeal(true);
                 }
                 if (System.currentTimeMillis() - requestInfo.getRequestTime() > REMOVE_TIME) {
