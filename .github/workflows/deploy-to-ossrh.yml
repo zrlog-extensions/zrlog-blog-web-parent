@@ -62,4 +62,4 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.ZRLOG_REPO_DISPATCH_TOKEN }}" \
             https://api.github.com/repos/94fzb/zrlog/dispatches \
-            -d "{\"event_type\":\"zrlog-admin-web-preview-updated\",\"client_payload\":{\"build_id\":\"adminweb-${SHORT_SHA}\",\"build_time\":\"${BUILD_TIME}\"}}"
+            -d "{\"event_type\":\"zrlog-admin-web-preview-updated\",\"client_payload\":{\"build_id\":\"blogweb-${SHORT_SHA}\",\"build_time\":\"${BUILD_TIME}\"}}"
