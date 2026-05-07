@@ -119,6 +119,10 @@
                             <Multi-Release>true</Multi-Release>
                         </manifestEntries>
                     </archive>
+                    <excludes>
+                        <exclude>**/Application.class</exclude>
+                        <exclude>**/DevZrLogConfig.class</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
