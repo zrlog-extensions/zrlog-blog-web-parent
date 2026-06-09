@@ -100,13 +100,14 @@ public class ArticleController extends Controller {
             return index();
         }
         Long rows = cacheService.getPublicWebSiteInfo().getRows();
-        data = new Log().visitorFind(new PageRequestImpl(1L, rows), key);
+        PageRequest pageRequest = new PageRequestImpl(uriInfoVO.getPage(), rows);
+        data = new Log().visitorFind(pageRequest, key);
         // 记录回话的Key
         request.getAttr().put("key", WebTools.htmlEncode(key));
         request.getAttr().put("tipsType", I18nUtil.getBlogStringFromRes("search"));
         request.getAttr().put("tipsName", WebTools.htmlEncode(key));
 
-        setPageDataInfo("search/" + key + "-", data, new PageRequestImpl(uriInfoVO.getPage(), rows));
+        setPageDataInfo("search/" + key + "-", data, pageRequest);
         return "page";
     }
 
@@ -166,11 +167,6 @@ public class ArticleController extends Controller {
         }
         String key = sj.toString();
         return new ArticleUriInfoVO(key, page);
-    }
-
-    public static void main(String[] args) {
-        ArticleUriInfoVO uriInfoVO = parseUriInfo("/record/2015-06.html");
-        System.out.println(uriInfoVO);
     }
 
     @RequestMethod

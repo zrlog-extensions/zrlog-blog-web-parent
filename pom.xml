@@ -5,9 +5,9 @@
     <parent>
         <groupId>com.hibegin</groupId>
         <artifactId>zrlog-base</artifactId>
-        <version>3.4.0</version>
+        <version>3.5.4</version>
     </parent>
-    <version>3.4.1-SNAPSHOT</version>
+    <version>3.5.2-SNAPSHOT</version>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>zrlog-blog-web-parent</artifactId>
     <name>ZrLog blog web parent</name>
@@ -21,6 +21,7 @@
 
     <properties>
         <java.version>11</java.version>
+        <maven.test.skip>false</maven.test.skip>
     </properties>
 
     <url>https://github.com/zrlog-extensions/zrlog-blog-web</url>
@@ -81,6 +82,17 @@
             <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.14.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>9.3.0</version>
+        </dependency>
     </dependencies>
 
 
@@ -136,6 +148,124 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/Application.class</exclude>
+                                <exclude>**/BlogWebSetup.class</exclude>
+                                <exclude>**/BlogWebSetupProvider.class</exclude>
+                                <exclude>**/BlogNativeImageUtils.class</exclude>
+                                <exclude>**/BlogApi*Controller.class</exclude>
+                                <exclude>**/ArticleController.class</exclude>
+                                <exclude>**/Blog*Interceptor.class</exclude>
+                                <exclude>**/ArticleStatistics*.class</exclude>
+                                <exclude>**/ZrLogRequestRecordListener.class</exclude>
+                                <exclude>**/ZrLogTemplateRender.class</exclude>
+                                <exclude>**/BlogRouters.class</exclude>
+                                <exclude>**/ArticleService.class</exclude>
+                                <exclude>**/DevZrLogConfig.class</exclude>
+                                <exclude>**/HexoTemplate.class</exclude>
+                                <exclude>**/*PageVO*.class</exclude>
+                                <exclude>**/CreateComment*.class</exclude>
+                                <exclude>**/ApiStandardResponse.class</exclude>
+                                <exclude>**/PolyglotNativeImageUtils.class</exclude>
+                                <exclude>**/FreemarkerZrLogTemplate.class</exclude>
+                                <exclude>**/polyglot/JsTemplateRender.class</exclude>
+                                <exclude>**/polyglot/hooks/IncludeHook.class</exclude>
+                                <exclude>**/polyglot/njk/NativeJavaLoader.class</exclude>
+                                <exclude>**/polyglot/sytlus/StylusBundler.class</exclude>
+                                <exclude>**/EjsTemplateRender.class</exclude>
+                                <exclude>**/PugTemplateRender.class</exclude>
+                                <exclude>**/NjkTemplateRender.class</exclude>
+                                <exclude>**/hexo/template/article/*.class</exclude>
+                                <exclude>**/hexo/template/support/**/*.class</exclude>
+                                <exclude>**/hexo/template/HexoObjectBox.class</exclude>
+                                <exclude>**/hexo/template/HexoPageConverter.class</exclude>
+                                <exclude>**/hexo/template/impl/HexoCssExImpl.class</exclude>
+                                <exclude>**/hexo/template/impl/HexoHelperImpl.class</exclude>
+                                <exclude>**/hexo/template/impl/HexoI18nHelperImpl.class</exclude>
+                                <exclude>**/hexo/template/impl/HexoJsExImpl.class</exclude>
+                                <exclude>**/hexo/template/impl/HexoTagCloud.class</exclude>
+                                <exclude>**/hexo/template/util/HexoBaseHooks*.class</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                            <excludes>
+                                <exclude>**/Application.class</exclude>
+                                <exclude>**/BlogWebSetup.class</exclude>
+                                <exclude>**/BlogWebSetupProvider.class</exclude>
+                                <exclude>**/BlogNativeImageUtils.class</exclude>
+                                <exclude>**/BlogApi*Controller.class</exclude>
+                                <exclude>**/ArticleController.class</exclude>
+                                <exclude>**/Blog*Interceptor.class</exclude>
+                                <exclude>**/ArticleStatistics*.class</exclude>
+                                <exclude>**/ZrLogRequestRecordListener.class</exclude>
+                                <exclude>**/ZrLogTemplateRender.class</exclude>
+                                <exclude>**/BlogRouters.class</exclude>
+                                <exclude>**/ArticleService.class</exclude>
+                                <exclude>**/DevZrLogConfig.class</exclude>
+                                <exclude>**/HexoTemplate.class</exclude>
+                                <exclude>**/*PageVO*.class</exclude>
+                                <exclude>**/CreateComment*.class</exclude>
+                                <exclude>**/ApiStandardResponse.class</exclude>
+                                <exclude>**/PolyglotNativeImageUtils.class</exclude>
+                                <exclude>**/FreemarkerZrLogTemplate.class</exclude>
+                                <exclude>**/polyglot/JsTemplateRender.class</exclude>
+                                <exclude>**/polyglot/hooks/IncludeHook.class</exclude>
+                                <exclude>**/polyglot/njk/NativeJavaLoader.class</exclude>
+                                <exclude>**/polyglot/sytlus/StylusBundler.class</exclude>
+                                <exclude>**/EjsTemplateRender.class</exclude>
+                                <exclude>**/PugTemplateRender.class</exclude>
+                                <exclude>**/NjkTemplateRender.class</exclude>
+                                <exclude>**/hexo/template/article/*.class</exclude>
+                                <exclude>**/hexo/template/support/**/*.class</exclude>
+                                <exclude>**/hexo/template/HexoObjectBox.class</exclude>
+                                <exclude>**/hexo/template/HexoPageConverter.class</exclude>
+                                <exclude>**/hexo/template/impl/HexoCssExImpl.class</exclude>
+                                <exclude>**/hexo/template/impl/HexoHelperImpl.class</exclude>
+                                <exclude>**/hexo/template/impl/HexoI18nHelperImpl.class</exclude>
+                                <exclude>**/hexo/template/impl/HexoJsExImpl.class</exclude>
+                                <exclude>**/hexo/template/impl/HexoTagCloud.class</exclude>
+                                <exclude>**/hexo/template/util/HexoBaseHooks*.class</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

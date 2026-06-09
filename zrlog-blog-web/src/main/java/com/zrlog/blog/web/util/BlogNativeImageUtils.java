@@ -72,12 +72,4 @@ public class BlogNativeImageUtils {
         }
     }
 
-    public static void main(String[] args) {
-        /*try {
-            Method add = InjectionStorage.class.getMethod("add", String.class, String.class);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
-    }
 }

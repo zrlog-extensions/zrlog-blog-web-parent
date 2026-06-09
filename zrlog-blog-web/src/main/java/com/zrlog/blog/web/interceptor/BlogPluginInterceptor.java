@@ -23,7 +23,9 @@ public class BlogPluginInterceptor implements HandleAbleInterceptor {
 
     private static final String userPluginUriPath = "/plugin/";
     private static final String userPluginUriPathShort = "/p/";
-    private final List<String> pluginHandlerPaths = Arrays.asList(userPluginUriPath, userPluginUriPathShort);
+    private static final String userPluginUriApiPathShort = "/api/p/";
+    private static final String userPluginUriApiPath = "/api/plugin/";
+    private final List<String> pluginHandlerPaths = Arrays.asList(userPluginUriApiPathShort, userPluginUriApiPath, userPluginUriPath, userPluginUriPathShort);
 
     @Override
     public boolean isHandleAble(HttpRequest request) {
@@ -42,7 +44,11 @@ public class BlogPluginInterceptor implements HandleAbleInterceptor {
      * @throws IOException
      */
     private void visitorPermission(String target, HttpRequest request, HttpResponse response, AdminTokenVO key) throws IOException, URISyntaxException, InterruptedException {
-        if (Constants.zrLogConfig.getPlugin(PluginCorePlugin.class).accessPlugin(target.replaceFirst(userPluginUriPath, "/").replaceFirst(userPluginUriPathShort, "/"), request, response, key)) {
+        String realUri = target;
+        for (String prefixUri : pluginHandlerPaths) {
+            realUri = realUri.replaceFirst(prefixUri, "/");
+        }
+        if (Constants.zrLogConfig.getPlugin(PluginCorePlugin.class).accessPlugin(realUri, request, response, key)) {
             return;
         }
         response.renderCode(404);

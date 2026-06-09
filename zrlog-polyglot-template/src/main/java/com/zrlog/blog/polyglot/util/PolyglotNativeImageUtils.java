@@ -6,19 +6,24 @@ import com.zrlog.blog.hexo.template.util.HexoDateObjUtils;
 import com.zrlog.blog.polyglot.njk.NativeJavaLoader;
 import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.common.Constants;
+import com.hibegin.common.util.LoggerUtil;
 import org.graalvm.polyglot.Context;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PolyglotNativeImageUtils {
+
+    private static final Logger LOGGER = LoggerUtil.getLogger(PolyglotNativeImageUtils.class);
 
     public static void reg() {
         try {
             Method add = InjectionStorage.class.getMethod("add", String.class, String.class);
             add.invoke(new InjectionStorage(null, null), Constants.TEMPLATE_BASE_PATH + "test", Constants.TEMPLATE_BASE_PATH + "test");
         } catch (Throwable e) {
-            e.printStackTrace();
+            logNativeWarmupFailure("InjectionStorage", e);
         }
         try {
             Method isRelative = NativeJavaLoader.class.getMethod("isRelative", String.class);
@@ -29,7 +34,7 @@ public class PolyglotNativeImageUtils {
             getSource.invoke(obj, "/test");
             resolve.invoke(obj, "/test", "a");
         } catch (Throwable e) {
-            e.printStackTrace();
+            logNativeWarmupFailure("NativeJavaLoader", e);
         }
 
         try {
@@ -41,30 +46,33 @@ public class PolyglotNativeImageUtils {
             get.invoke(obj, "/test");
             size.invoke(obj);
         } catch (Throwable e) {
-            e.printStackTrace();
+            logNativeWarmupFailure("JsMapAdapter", e);
         }
         try {
             Method load = ScriptProvider.class.getMethod("load", String.class);
             load.invoke(new ScriptProvider(), "path");
         } catch (Throwable e) {
-            e.printStackTrace();
+            logNativeWarmupFailure("ScriptProvider", e);
         }
         try {
             HexoDateObjUtils.getInstance();
         } catch (Throwable e) {
-            e.printStackTrace();
+            logNativeWarmupFailure("HexoDateObjUtils", e);
         }
         try (Context context = PolyglotContextUtils.buildJsContext()) {
             // 必须包含触发 ICU 反射的逻辑：日期格式化、本地化字符串等
             context.eval("js",
-                    "console.log(new Date().toISOString()); " +
-                            "console.log(new Date().toLocaleString('zh-CN')); " +
-                            "console.log(Intl.DateTimeFormat().resolvedOptions().timeZone);"
+                    "new Date().toISOString(); " +
+                            "new Date().toLocaleString('zh-CN'); "
             );
-            System.out.println("模拟调用完成，Agent 应该已经记录了元数据。");
+            LOGGER.info("Polyglot native image metadata warmup finished");
         } catch (Throwable e) {
-            e.printStackTrace();
+            logNativeWarmupFailure("PolyglotContext", e);
         }
+    }
+
+    private static void logNativeWarmupFailure(String target, Throwable e) {
+        LOGGER.log(Level.WARNING, "Polyglot native image warmup failed: " + target, e);
     }
 
     public static void main(String[] args) {

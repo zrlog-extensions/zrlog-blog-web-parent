@@ -1,0 +1,38 @@
+package com.zrlog.test.web.util;
+
+import com.zrlog.blog.web.util.OutlineUtil;
+import com.zrlog.common.vo.Outline;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class OutlineUtilTest {
+
+    @Test
+    public void shouldExtractNestedOutline() {
+        String html = "<h1>Title</h1><p>x</p><h2>Section</h2><h3>Child</h3><h2>Section2</h2>";
+        List<Outline> outlines = OutlineUtil.extractOutline(html);
+        assertEquals(1, outlines.size());
+        assertEquals("Title", outlines.get(0).getText());
+        assertEquals(2, outlines.get(0).getChildren().size());
+        assertEquals("Section", outlines.get(0).getChildren().get(0).getText());
+        assertEquals("Child", outlines.get(0).getChildren().get(0).getChildren().get(0).getText());
+    }
+
+    @Test
+    public void shouldBuildTocHtml() {
+        Outline root = new Outline();
+        root.setText("Root");
+        Outline child = new Outline();
+        child.setText("Child");
+        root.getChildren().add(child);
+
+        String toc = OutlineUtil.buildTocHtml(List.of(root), "");
+        assertTrue(toc.startsWith("<ul>"));
+        assertTrue(toc.contains("<a href='#Root'>Root</a>"));
+        assertTrue(toc.contains("<a href='#Child'>Child</a>"));
+    }
+}

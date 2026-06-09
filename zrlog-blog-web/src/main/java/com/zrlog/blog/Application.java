@@ -7,6 +7,7 @@ import com.zrlog.blog.web.BlogWebSetup;
 import com.zrlog.business.plugin.CacheManagerPlugin;
 import com.zrlog.business.plugin.PluginCorePluginImpl;
 import com.zrlog.business.service.DbUpgradeService;
+import com.zrlog.business.updater.UpdateVersionInfoPlugin;
 import com.zrlog.common.Constants;
 import com.zrlog.common.TokenService;
 import com.zrlog.common.Updater;
@@ -68,6 +69,7 @@ class DevZrLogConfig extends ZrLogConfig {
         Plugins basePlugin = new Plugins();
         basePlugin.add(new PluginCorePluginImpl(dbPropertiesFile, serverConfig.getContextPath()));
         basePlugin.add(new CacheManagerPlugin(this));
+        basePlugin.add(new UpdateVersionInfoPlugin());
         return basePlugin;
     }
 }

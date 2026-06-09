@@ -1,14 +1,19 @@
 package com.zrlog.blog.polyglot.njk;
 
 import com.zrlog.common.resource.ZrLogResourceLoader;
+import com.hibegin.common.util.LoggerUtil;
 import org.graalvm.polyglot.HostAccess;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class NativeJavaLoader {
+    private static final Logger LOGGER = LoggerUtil.getLogger(NativeJavaLoader.class);
+
     private final String baseDir;
 
     // 暴露给 JS 的属性，告诉 Nunjucks 这是同步加载器
@@ -54,7 +59,7 @@ public class NativeJavaLoader {
 
             return result;
         } catch (Exception e) {
-            System.err.println("Java Loader 读取模板失败: " + name + " => " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Java Loader read template failed: " + name, e);
             return null;
         }
     }
