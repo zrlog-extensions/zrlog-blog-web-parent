@@ -38,7 +38,7 @@
 </head>
 <body class="dark:bg-black dark:text-gray-200">
 <!-- 导航栏 -->
-<nav class="sticky top-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-white/10 py-4 transition-all duration-300 shadow-sm"
+<nav class="sticky top-0 z-50 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 py-4 transition-all duration-300 shadow-sm"
      id="header">
     <div class="container mx-auto px-4 md:px-6 flex items-center justify-between">
         <div class="flex items-center">
@@ -59,7 +59,7 @@
                     ${_res['githubLink']}
                     <span class="w-px h-4 bg-gray-200 dark:bg-white/10"></span>
                 </#if>
-                <div class="flex items-center gap-2 bg-black/5 dark:bg-white/5 px-2 py-1 rounded-full border border-gray-200 dark:border-white/5">
+                <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-950 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-800">
                     <i class="ri-sun-line text-xs text-gray-500 dark:text-gray-400"></i>
                     <label class="theme-switch relative inline-block w-8 h-4 cursor-pointer">
                         <input type="checkbox" class="sr-only peer">
@@ -79,7 +79,7 @@
 
 <div id="overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden"></div>
 <aside id="sidebar"
-       class="fixed top-0 left-0 w-72 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-white/10 p-8 shadow-2xl -translate-x-full transition-transform duration-500 ease-out z-[70] hidden">
+        class="fixed top-0 left-0 w-72 h-full bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 p-8 shadow-2xl -translate-x-full transition-transform duration-500 ease-out z-[70] hidden">
     <div class="flex flex-col h-full">
         <div class="mb-12 flex items-center justify-between">
             <a href="${baseUrl}"
@@ -97,7 +97,7 @@
         <ul class="flex flex-col gap-4">
             <#include "header-nav.ftl"/>
         </ul>
-        <div class="mt-auto pt-8 border-t border-gray-200 dark:border-white/10">
+        <div class="mt-auto pt-8 border-t border-gray-200 dark:border-gray-800">
             <#if _res['githubLink']?has_content>
                 <div class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
                     ${_res['githubLink']}

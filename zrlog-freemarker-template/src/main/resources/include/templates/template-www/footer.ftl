@@ -1,20 +1,15 @@
 <!-- 返回顶部按钮 -->
 <button
         id="back-to-top"
-        class="fixed bottom-10 right-10 w-12 h-12 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center opacity-0 invisible transition-all duration-500 z-[100] hover:scale-110 active:scale-95 group"
+        class="fixed bottom-10 right-10 w-12 h-12 bg-blue-600 text-white rounded-lg shadow-2xl flex items-center justify-center opacity-0 invisible transition-all duration-500 z-[100] hover:scale-105 active:scale-95 group"
 >
     <i class="ri-arrow-up-line text-2xl transition-transform group-hover:-translate-y-1"></i>
 </button>
-<footer class="relative bg-gray-50/50 dark:bg-gray-950/50 border-t border-gray-200 dark:border-white/5 py-16 md:py-24 overflow-hidden"
+<footer class="relative bg-gray-50 dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 py-16 md:py-20 overflow-hidden"
         id="footer">
-    <!-- 背景装饰 -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-400/5 dark:bg-blue-600/5 rounded-full blur-[100px]"></div>
-    </div>
-
     <div class="container mx-auto px-4 md:px-6 relative z-10">
         ${_res['footerLinkExt']!''}
-        <div class="mt-16 pt-8 border-t border-gray-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="mt-16 pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row justify-between items-center gap-6">
             <div class="text-gray-500 dark:text-gray-400 text-sm font-medium">
                 © 2026 ${webSite.title!''}
                 <#if webSite.icp != ''>
@@ -47,39 +42,47 @@
 
 
     // 主题切换
-    const themeSwitch = document.querySelector(".theme-switch input");
+    const themeSwitches = Array.from(document.querySelectorAll(".theme-switch input"));
 
-    // 页面加载时，根据 localStorage 设置初始主题
-    if (localStorage.theme === "dark") {
-        document.documentElement.classList.add("dark");
-        if (themeSwitch) themeSwitch.checked = true;
+    function syncThemeSwitches(checked) {
+        themeSwitches.forEach((switchEl) => {
+            switchEl.checked = checked;
+        });
     }
-
-    const userPreference = localStorage.getItem("theme");
 
     function applyTheme() {
-        if (userPreference === "dark" || (!userPreference && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-            document.documentElement.classList.add("dark");
-            if (themeSwitch) themeSwitch.checked = true;
-        } else {
-            document.documentElement.classList.remove("dark");
-            if (themeSwitch) themeSwitch.checked = false;
-        }
+        const userPreference = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const shouldUseDark = userPreference === "dark" || (!userPreference && prefersDark);
+
+        document.documentElement.classList.toggle("dark", shouldUseDark);
+        syncThemeSwitches(shouldUseDark);
     }
 
-    // 初始化：加载页面时设置主题
     applyTheme();
 
-    if (themeSwitch) {
-        themeSwitch.addEventListener("change", function () {
-            if (this.checked) {
-                document.documentElement.classList.add('dark'); // ✅ 开启暗黑模式
-                localStorage.theme = "dark";
-            } else {
-                document.documentElement.classList.remove('dark'); // ✅ 关闭暗黑模式
-                localStorage.theme = "light";
-            }
+    themeSwitches.forEach((switchEl) => {
+        switchEl.addEventListener("change", function () {
+            localStorage.theme = this.checked ? "dark" : "light";
+            applyTheme();
         });
+    });
+
+    const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    function handleSystemThemeChange() {
+        const userPreference = localStorage.getItem("theme");
+        if (userPreference === "dark" || (!userPreference && colorSchemeQuery.matches)) {
+            document.documentElement.classList.add("dark");
+            syncThemeSwitches(true);
+        } else {
+            document.documentElement.classList.remove("dark");
+            syncThemeSwitches(false);
+        }
+    }
+    if (colorSchemeQuery.addEventListener) {
+        colorSchemeQuery.addEventListener("change", handleSystemThemeChange);
+    } else if (colorSchemeQuery.addListener) {
+        colorSchemeQuery.addListener(handleSystemThemeChange);
     }
 
     const btn = document.getElementById("toggleSidebar");
@@ -121,13 +124,11 @@
             header.classList.add('shadow-lg', 'py-3');
             header.classList.remove('py-4', 'shadow-sm');
             // 动态调整背景深浅
-            header.classList.add('bg-white/95', 'dark:bg-gray-900/95');
-            header.classList.remove('bg-white/70', 'dark:bg-gray-900/80');
+            header.classList.add('bg-white', 'dark:bg-black');
         } else {
             header.classList.remove('shadow-lg', 'py-3');
             header.classList.add('py-4', 'shadow-sm');
-            header.classList.add('bg-white/70', 'dark:bg-gray-900/80');
-            header.classList.remove('bg-white/95', 'dark:bg-gray-900/95');
+            header.classList.add('bg-white', 'dark:bg-black');
         }
     });
 
