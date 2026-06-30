@@ -22,8 +22,13 @@ import com.zrlog.util.ParseUtil;
 import com.zrlog.util.ZrLogUtil;
 
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 
@@ -98,14 +103,16 @@ public class ArticleService {
         log.setCommentUrl(ZrLogUtil.getHomeUrlWithHost(request) + Constants.getArticleUri() + "addComment");
         //
         log.setRecommended(ResultValueConvertUtils.toBoolean(log.getRecommended()));
-        log.setFullReleaseTime(ResultValueConvertUtils.formatDate(log.getReleaseTime(), "yyyy-MM-dd HH:mm:ss"));
-        log.setFullLastUpdateDate(ResultValueConvertUtils.formatDate(log.getLastUpdateDate(), "yyyy-MM-dd HH:mm:ss"));
-        log.setReleaseTime(ResultValueConvertUtils.formatDate(log.getReleaseTime(), "yyyy-MM-dd"));
+        Object lastUpdateDate = Objects.nonNull(log.getLastUpdateDate()) ? log.getLastUpdateDate()
+                : log.getLast_update_date();
+        log.setFullReleaseTime(formatDateValue(log.getReleaseTime(), "yyyy-MM-dd HH:mm:ss"));
+        log.setFullLastUpdateDate(formatDateValue(lastUpdateDate, "yyyy-MM-dd HH:mm:ss"));
+        log.setReleaseTime(formatDateValue(log.getReleaseTime(), "yyyy-MM-dd"));
         if (Objects.nonNull(log.getLogId())) {
             log.setId(log.getLogId());
         }
-        log.setLastUpdateDate(ResultValueConvertUtils.formatDate(log.getLast_update_date(), "yyyy-MM-dd"));
-        log.setLast_update_date(ResultValueConvertUtils.formatDate(log.getLast_update_date(), "yyyy-MM-dd"));
+        log.setLastUpdateDate(formatDateValue(lastUpdateDate, "yyyy-MM-dd"));
+        log.setLast_update_date(formatDateValue(lastUpdateDate, "yyyy-MM-dd"));
         if (Objects.isNull(log.getDigest())) {
             log.setDigest("");
         }
@@ -120,6 +127,48 @@ public class ArticleService {
         }
         log.setTags(getTags(log, request));
         return log;
+    }
+
+    private static String formatDateValue(Object date, String format) {
+        Long time = parseDateValue(date);
+        if (Objects.isNull(time)) {
+            if (Objects.isNull(date)) {
+                return "";
+            }
+            return date.toString();
+        }
+        return new SimpleDateFormat(format).format(new Date(time));
+    }
+
+    private static Long parseDateValue(Object date) {
+        try {
+            return ResultValueConvertUtils.parseDate(date);
+        } catch (RuntimeException e) {
+            Long parsed = parseDbUtilsDateString(date);
+            if (parsed != null) {
+                return parsed;
+            }
+            throw e;
+        }
+    }
+
+    private static Long parseDbUtilsDateString(Object date) {
+        if (!(date instanceof String)) {
+            return null;
+        }
+        String value = ((String) date).replace('\u202f', ' ').replace('\u00a0', ' ');
+        List<DateFormat> formats = Arrays.asList(
+                DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.getDefault()),
+                DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.ENGLISH),
+                new SimpleDateFormat("MMM d, yyyy, h:mm:ss a", Locale.ENGLISH)
+        );
+        for (DateFormat dateFormat : formats) {
+            try {
+                return dateFormat.parse(value).getTime();
+            } catch (java.text.ParseException ignored) {
+            }
+        }
+        return null;
     }
 
     public PageData<ArticleBasicDTO> pageByKeywords(PageRequest pageRequest, String keywords, HttpRequest request) {

@@ -23,6 +23,23 @@ public class OutlineUtilTest {
     }
 
     @Test
+    public void shouldExtractFlatOutlineWhenHeadingLevelsDoNotNest() {
+        String html = "<h2>Section</h2><h2>Next</h2><h1>Top</h1>";
+
+        List<Outline> outlines = OutlineUtil.extractOutline(html);
+
+        assertEquals(3, outlines.size());
+        assertEquals("Section", outlines.get(0).getText());
+        assertEquals("Next", outlines.get(1).getText());
+        assertEquals("Top", outlines.get(2).getText());
+    }
+
+    @Test
+    public void shouldReturnEmptyOutlineWhenHtmlHasNoHeading() {
+        assertTrue(OutlineUtil.extractOutline("<p>content</p>").isEmpty());
+    }
+
+    @Test
     public void shouldBuildTocHtml() {
         Outline root = new Outline();
         root.setText("Root");
@@ -34,5 +51,10 @@ public class OutlineUtilTest {
         assertTrue(toc.startsWith("<ul>"));
         assertTrue(toc.contains("<a href='#Root'>Root</a>"));
         assertTrue(toc.contains("<a href='#Child'>Child</a>"));
+    }
+
+    @Test
+    public void shouldBuildEmptyTocHtml() {
+        assertEquals("<ul></ul>", OutlineUtil.buildTocHtml(List.of(), ""));
     }
 }

@@ -79,6 +79,53 @@ public class HexoDataUtilsTest {
     }
 
     @Test
+    public void shouldApplyJavaScriptTruthyRulesWhenFiltering() {
+        Map<String, Object> wrapper = HexoDataUtils.wrap(List.of("entry"));
+        try (Context context = Context.newBuilder("js").allowAllAccess(true).build()) {
+            assertEquals(1, filteredSize(wrapper, context.eval("js", "() => true")));
+            assertEquals(0, filteredSize(wrapper, context.eval("js", "() => false")));
+            assertEquals(1, filteredSize(wrapper, context.eval("js", "() => 1")));
+            assertEquals(0, filteredSize(wrapper, context.eval("js", "() => 0")));
+            assertEquals(1, filteredSize(wrapper, context.eval("js", "() => 'text'")));
+            assertEquals(0, filteredSize(wrapper, context.eval("js", "() => ''")));
+            assertEquals(1, filteredSize(wrapper, context.eval("js", "() => ({})")));
+            assertEquals(1, filteredSize(wrapper, context.eval("js", "() => []")));
+        }
+    }
+
+    @Test
+    public void shouldFindByCallbackAndHandleEmptyFindArgs() {
+        Map<String, Object> wrapper = HexoDataUtils.wrap(List.of("first", "second"));
+        try (Context context = Context.newBuilder("js").allowAllAccess(true).build()) {
+            Value second = context.eval("js", "(item, index) => index === 1");
+            Map<String, Object> found = cast(((ProxyExecutable) wrapper.get("find")).execute(second));
+            assertEquals(List.of("second"), found.get("data"));
+
+            Value missing = context.eval("js", "() => false");
+            assertNull(((ProxyExecutable) wrapper.get("find")).execute(missing));
+        }
+
+        assertNull(((ProxyExecutable) wrapper.get("find")).execute());
+        assertNull(((ProxyExecutable) wrapper.get("find")).execute(new Value[]{null}));
+    }
+
+    @Test
+    public void shouldMatchCriteriaExistsAndNullBranches() {
+        try (Context context = Context.newBuilder("js").allowAllAccess(true).build()) {
+            Map<String, Object> wrapper = HexoDataUtils.wrap(List.of(
+                    Map.of("id", 1),
+                    Map.of("id", 2, "parent", "root")
+            ));
+
+            Value missingParent = context.eval("js", "({ parent: { $exists: false } })");
+            assertEquals(1, filteredSize(wrapper, missingParent));
+
+            Value nullParent = context.eval("js", "({ parent: null })");
+            assertEquals(1, filteredSize(wrapper, nullParent));
+        }
+    }
+
+    @Test
     public void shouldReturnNullWhenFindMissing() {
         try (Context context = Context.newBuilder("js").allowAllAccess(true).build()) {
             Map<String, Object> wrapper = HexoDataUtils.wrap(List.of(Map.of("id", 1)));
@@ -98,6 +145,16 @@ public class HexoDataUtilsTest {
     }
 
     @Test
+    public void shouldLeaveNonListArticleCollectionsUnchanged() {
+        Map<String, Object> raw = new java.util.HashMap<>();
+        raw.put("tags", "tag");
+        raw.put("categories", "category");
+        Map<String, Object> wrapped = HexoDataUtils.wrapArticle(raw);
+        assertEquals("tag", wrapped.get("tags"));
+        assertEquals("category", wrapped.get("categories"));
+    }
+
+    @Test
     public void shouldThrowForUnsupportedCriteriaItem() {
         try (Context context = Context.newBuilder("js").allowAllAccess(true).build()) {
             Map<String, Object> wrapper = HexoDataUtils.wrap(List.of("plain"));
@@ -110,5 +167,10 @@ public class HexoDataUtilsTest {
     private static Map<String, Object> cast(Object value) {
         assertNotNull(value);
         return (Map<String, Object>) value;
+    }
+
+    private static int filteredSize(Map<String, Object> wrapper, Value predicate) {
+        Map<String, Object> filtered = cast(((ProxyExecutable) wrapper.get("filter")).execute(predicate));
+        return ((List<?>) filtered.get("data")).size();
     }
 }

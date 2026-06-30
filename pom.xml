@@ -22,6 +22,8 @@
     <properties>
         <java.version>11</java.version>
         <maven.test.skip>false</maven.test.skip>
+        <zrlog-install-web.version>3.3.4-SNAPSHOT</zrlog-install-web.version>
+        <h2.version>2.2.224</h2.version>
     </properties>
 
     <url>https://github.com/zrlog-extensions/zrlog-blog-web</url>
@@ -86,6 +88,18 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>5.14.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.hibegin</groupId>
+            <artifactId>zrlog-install-web</artifactId>
+            <version>${zrlog-install-web.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -170,22 +184,9 @@
                         <configuration>
                             <excludes>
                                 <exclude>**/Application.class</exclude>
-                                <exclude>**/BlogWebSetup.class</exclude>
-                                <exclude>**/BlogWebSetupProvider.class</exclude>
-                                <exclude>**/BlogNativeImageUtils.class</exclude>
-                                <exclude>**/BlogApi*Controller.class</exclude>
-                                <exclude>**/ArticleController.class</exclude>
-                                <exclude>**/Blog*Interceptor.class</exclude>
-                                <exclude>**/ArticleStatistics*.class</exclude>
-                                <exclude>**/ZrLogRequestRecordListener.class</exclude>
-                                <exclude>**/ZrLogTemplateRender.class</exclude>
-                                <exclude>**/BlogRouters.class</exclude>
-                                <exclude>**/ArticleService.class</exclude>
                                 <exclude>**/DevZrLogConfig.class</exclude>
                                 <exclude>**/HexoTemplate.class</exclude>
                                 <exclude>**/*PageVO*.class</exclude>
-                                <exclude>**/CreateComment*.class</exclude>
-                                <exclude>**/ApiStandardResponse.class</exclude>
                                 <exclude>**/PolyglotNativeImageUtils.class</exclude>
                                 <exclude>**/FreemarkerZrLogTemplate.class</exclude>
                                 <exclude>**/polyglot/JsTemplateRender.class</exclude>
@@ -229,22 +230,9 @@
                             </rules>
                             <excludes>
                                 <exclude>**/Application.class</exclude>
-                                <exclude>**/BlogWebSetup.class</exclude>
-                                <exclude>**/BlogWebSetupProvider.class</exclude>
-                                <exclude>**/BlogNativeImageUtils.class</exclude>
-                                <exclude>**/BlogApi*Controller.class</exclude>
-                                <exclude>**/ArticleController.class</exclude>
-                                <exclude>**/Blog*Interceptor.class</exclude>
-                                <exclude>**/ArticleStatistics*.class</exclude>
-                                <exclude>**/ZrLogRequestRecordListener.class</exclude>
-                                <exclude>**/ZrLogTemplateRender.class</exclude>
-                                <exclude>**/BlogRouters.class</exclude>
-                                <exclude>**/ArticleService.class</exclude>
                                 <exclude>**/DevZrLogConfig.class</exclude>
                                 <exclude>**/HexoTemplate.class</exclude>
                                 <exclude>**/*PageVO*.class</exclude>
-                                <exclude>**/CreateComment*.class</exclude>
-                                <exclude>**/ApiStandardResponse.class</exclude>
                                 <exclude>**/PolyglotNativeImageUtils.class</exclude>
                                 <exclude>**/FreemarkerZrLogTemplate.class</exclude>
                                 <exclude>**/polyglot/JsTemplateRender.class</exclude>

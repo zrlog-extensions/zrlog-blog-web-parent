@@ -1,0 +1,431 @@
+package com.zrlog.test.web.controller.api;
+
+import com.hibegin.common.dao.DAO;
+import com.hibegin.common.dao.DataSourceWrapper;
+import com.hibegin.common.dao.dto.PageData;
+import com.hibegin.common.dao.dto.PageRequest;
+import com.hibegin.http.server.api.HttpRequest;
+import com.hibegin.http.server.web.Controller;
+import com.zrlog.blog.business.rest.response.ApiStandardResponse;
+import com.zrlog.blog.business.service.ArticleService;
+import com.zrlog.blog.web.controller.api.BlogApiArticleController;
+import com.zrlog.blog.web.controller.api.BlogApiCacheController;
+import com.zrlog.blog.web.controller.api.BlogApiPublicController;
+import com.zrlog.common.CacheService;
+import com.zrlog.common.Constants;
+import com.zrlog.common.TokenService;
+import com.zrlog.common.ZrLogConfig;
+import com.zrlog.common.cache.dto.TagDTO;
+import com.zrlog.common.cache.dto.TypeDTO;
+import com.zrlog.common.cache.dto.UserBasicDTO;
+import com.zrlog.common.cache.vo.BaseDataInitVO;
+import com.zrlog.common.vo.I18nVO;
+import com.zrlog.common.vo.PublicWebSiteInfo;
+import com.zrlog.data.dto.ArticleBasicDTO;
+import com.zrlog.data.dto.ArticleDetailDTO;
+import com.zrlog.data.dto.VisitorCommentDTO;
+import com.zrlog.plugin.IPlugin;
+import com.zrlog.plugin.Plugins;
+import com.zrlog.util.I18nUtil;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.lang.reflect.Field;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.lang.reflect.Proxy;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+public class BlogApiControllerContractTest {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Test
+    public void shouldReturnCacheInitDataFromConfiguredCacheService() throws Exception {
+        BaseDataInitVO initData = new BaseDataInitVO();
+        initData.setVersion(99L);
+        withConfig(new FakeCacheService(initData), () -> {
+            ApiStandardResponse<BaseDataInitVO> response = new BlogApiCacheController().index();
+
+            assertSame(initData, response.getData());
+        });
+    }
+
+    @Test
+    public void shouldReturnEmptyBlogResourceWhenI18nContextIsMissing() {
+        I18nUtil.threadLocal.remove();
+
+        ApiStandardResponse<Map<String, Object>> response = new BlogApiPublicController().blogResource();
+
+        assertTrue(response.getData().isEmpty());
+    }
+
+    @Test
+    public void shouldReturnBlogResourceWithPublicSiteInfoWhenI18nContextExists() throws Exception {
+        BaseDataInitVO initData = new BaseDataInitVO();
+        PublicWebSiteInfo publicWebSiteInfo = new PublicWebSiteInfo();
+        publicWebSiteInfo.setTitle("ZrLog");
+        publicWebSiteInfo.setAdmin_darkMode(true);
+        publicWebSiteInfo.setAdmin_color_primary("#1677ff");
+        publicWebSiteInfo.setAppId("app-id");
+        I18nVO i18nVO = new I18nVO();
+        Map<String, Object> blog = new HashMap<>();
+        blog.put("comment", "Comment");
+        i18nVO.setLocale("zh_CN");
+        i18nVO.getBlog().put("zh_CN", blog);
+        I18nUtil.threadLocal.set(i18nVO);
+        try {
+            withConfig(new FakeCacheService(initData, publicWebSiteInfo), () -> {
+                BlogApiPublicController controller = new BlogApiPublicController();
+                setControllerRequest(controller, request("/blog", "blog.example.com"));
+
+                ApiStandardResponse<Map<String, Object>> response = controller.blogResource();
+
+                assertEquals("Comment", response.getData().get("comment"));
+                assertEquals("ZrLog", response.getData().get("websiteTitle"));
+                assertEquals("//blog.example.com/blog/", response.getData().get("homeUrl"));
+                assertEquals("", response.getData().get("articleRoute"));
+                assertEquals(true, response.getData().get("admin_darkMode"));
+                assertTrue(response.getData().containsKey("buildId"));
+            });
+        } finally {
+            I18nUtil.threadLocal.remove();
+        }
+    }
+
+    @Test
+    public void shouldReturnArticleDetailFromArticleService() throws Exception {
+        BlogApiArticleController controller = new BlogApiArticleController();
+        FakeArticleService articleService = new FakeArticleService();
+        ArticleDetailDTO detail = new ArticleDetailDTO();
+        detail.setLogId(7L);
+        articleService.detail = detail;
+        setArticleService(controller, articleService);
+        HttpRequest request = request(Map.of("id", "hello-world"));
+        setControllerRequest(controller, request);
+
+        ApiStandardResponse<ArticleDetailDTO> response = controller.detail();
+
+        assertSame(detail, response.getData());
+        assertEquals("hello-world", articleService.lastDetailId);
+        assertSame(request, articleService.lastDetailRequest);
+    }
+
+    @Test
+    public void shouldReturnArticlePageDataFromArticleService() throws Exception {
+        BlogApiArticleController controller = new BlogApiArticleController();
+        FakeArticleService articleService = new FakeArticleService();
+        ArticleBasicDTO row = new ArticleBasicDTO();
+        row.setLogId(8L);
+        articleService.pageData = new PageData<>(1L, List.of(row), 2L, 5L);
+        setArticleService(controller, articleService);
+        HttpRequest request = request(Map.of("key", "zrlog", "page", "2", "size", "5", "sort", "logId,asc"));
+        setControllerRequest(controller, request);
+
+        ApiStandardResponse<PageData<ArticleBasicDTO>> response = controller.index();
+
+        assertSame(articleService.pageData, response.getData());
+        assertEquals("zrlog", articleService.lastKeywords);
+        assertSame(request, articleService.lastPageRequestHttpRequest);
+        assertEquals(Long.valueOf(2L), articleService.lastPageRequest.getPage());
+        assertEquals(Long.valueOf(5L), articleService.lastPageRequest.getSize());
+    }
+
+    @Test
+    public void shouldReturnVisitorCommentsFromDao() throws Exception {
+        BlogApiArticleController controller = new BlogApiArticleController();
+        FakeCommentQueryRunner queryRunner = new FakeCommentQueryRunner();
+        Object previousDataSource = setDefaultDataSource(dataSource(queryRunner));
+        try {
+            setControllerRequest(controller, request(Map.of("id", "7")));
+
+            ApiStandardResponse<List<VisitorCommentDTO>> response = controller.comment();
+
+            assertEquals(1, response.getData().size());
+            assertEquals(Long.valueOf(5L), response.getData().get(0).getId());
+            assertEquals("hello", response.getData().get(0).getUserComment());
+            assertEquals("", response.getData().get(0).getGravatarId());
+            assertEquals("select * from comment where logId=?", queryRunner.sql);
+            assertEquals(7, queryRunner.params[0]);
+        } finally {
+            restoreDefaultDataSource(previousDataSource);
+        }
+    }
+
+    private void withConfig(CacheService cacheService, ThrowingRunnable runnable) throws Exception {
+        ZrLogConfig previousConfig = Constants.zrLogConfig;
+        String previousRootPath = System.getProperty("sws.root.path");
+        try {
+            System.setProperty("sws.root.path", temporaryFolder.newFolder("zrlog-blog-api").getAbsolutePath());
+            Constants.zrLogConfig = new CacheZrLogConfig(cacheService);
+            runnable.run();
+        } finally {
+            Constants.zrLogConfig = previousConfig;
+            restoreProperty("sws.root.path", previousRootPath);
+        }
+    }
+
+    private static void restoreProperty(String key, String value) {
+        if (value == null) {
+            System.clearProperty(key);
+        } else {
+            System.setProperty(key, value);
+        }
+    }
+
+    private static void setControllerRequest(Controller controller, HttpRequest request) throws Exception {
+        Field field = Controller.class.getDeclaredField("request");
+        field.setAccessible(true);
+        field.set(controller, request);
+    }
+
+    private static HttpRequest request(String contextPath, String host) {
+        return request(contextPath, host, Collections.emptyMap());
+    }
+
+    private static HttpRequest request(Map<String, String> params) {
+        return request("/blog", "blog.example.com", params);
+    }
+
+    private static HttpRequest request(String contextPath, String host, Map<String, String> params) {
+        Map<String, String[]> paramMap = new HashMap<>();
+        params.forEach((key, value) -> paramMap.put(key, new String[]{value}));
+        return (HttpRequest) Proxy.newProxyInstance(
+                BlogApiControllerContractTest.class.getClassLoader(),
+                new Class[]{HttpRequest.class},
+                (proxy, method, args) -> {
+                    if ("getContextPath".equals(method.getName())) {
+                        return contextPath;
+                    }
+                    if ("getHeader".equals(method.getName()) && "Host".equals(args[0])) {
+                        return host;
+                    }
+                    if ("getParamMap".equals(method.getName()) || "decodeParamMap".equals(method.getName())) {
+                        return paramMap;
+                    }
+                    if ("getParaToStr".equals(method.getName())) {
+                        String value = params.get(args[0].toString());
+                        if (args.length > 1) {
+                            return value == null ? args[1].toString() : value;
+                        }
+                        return value;
+                    }
+                    if ("getParaToInt".equals(method.getName())) {
+                        String value = params.get(args[0].toString());
+                        if (value == null) {
+                            return args.length > 1 ? args[1] : null;
+                        }
+                        return Integer.parseInt(value);
+                    }
+                    if ("toString".equals(method.getName())) {
+                        return "HttpRequestProxy";
+                    }
+                    return null;
+                });
+    }
+
+    private static void setArticleService(BlogApiArticleController controller, ArticleService articleService)
+            throws Exception {
+        Field field = BlogApiArticleController.class.getDeclaredField("articleService");
+        field.setAccessible(true);
+        field.set(controller, articleService);
+    }
+
+    private static Object setDefaultDataSource(DataSourceWrapper dataSource) throws Exception {
+        Field field = DAO.class.getDeclaredField("defaultDataSource");
+        field.setAccessible(true);
+        Object previous = field.get(null);
+        DAO.setDs(dataSource);
+        return previous;
+    }
+
+    private static void restoreDefaultDataSource(Object previousDataSource) throws Exception {
+        Field field = DAO.class.getDeclaredField("defaultDataSource");
+        field.setAccessible(true);
+        field.set(null, previousDataSource);
+    }
+
+    private static DataSourceWrapper dataSource(QueryRunner queryRunner) {
+        return (DataSourceWrapper) Proxy.newProxyInstance(
+                BlogApiControllerContractTest.class.getClassLoader(),
+                new Class[]{DataSourceWrapper.class},
+                (proxy, method, args) -> {
+                    if ("getQueryRunner".equals(method.getName())) {
+                        return queryRunner;
+                    }
+                    if ("toString".equals(method.getName())) {
+                        return "DataSourceWrapperProxy";
+                    }
+                    Class<?> returnType = method.getReturnType();
+                    if (returnType == boolean.class) {
+                        return false;
+                    }
+                    if (returnType == int.class) {
+                        return 0;
+                    }
+                    if (returnType == long.class) {
+                        return 0L;
+                    }
+                    return null;
+                });
+    }
+
+    private interface ThrowingRunnable {
+        void run() throws Exception;
+    }
+
+    private static class CacheZrLogConfig extends ZrLogConfig {
+
+        private final CacheService cacheService;
+
+        CacheZrLogConfig(CacheService cacheService) {
+            super(18080, null, "");
+            this.cacheService = cacheService;
+        }
+
+        @Override
+        public boolean isInstalled() {
+            return false;
+        }
+
+        @Override
+        public DataSourceWrapper configDatabase() {
+            return null;
+        }
+
+        @Override
+        public CacheService getCacheService() {
+            return cacheService;
+        }
+
+        @Override
+        protected TokenService initTokenService() {
+            return null;
+        }
+
+        @Override
+        public List<IPlugin> getBasePluginList() {
+            return new Plugins();
+        }
+    }
+
+    private static class FakeCacheService implements CacheService {
+
+        private final BaseDataInitVO initData;
+        private final PublicWebSiteInfo publicWebSiteInfo;
+
+        FakeCacheService(BaseDataInitVO initData) {
+            this(initData, new PublicWebSiteInfo());
+        }
+
+        FakeCacheService(BaseDataInitVO initData, PublicWebSiteInfo publicWebSiteInfo) {
+            this.initData = initData;
+            this.publicWebSiteInfo = publicWebSiteInfo;
+        }
+
+        @Override
+        public long getCurrentSqlVersion() {
+            return 0;
+        }
+
+        @Override
+        public long getWebSiteVersion() {
+            return 0;
+        }
+
+        @Override
+        public BaseDataInitVO getInitData() {
+            return initData;
+        }
+
+        @Override
+        public BaseDataInitVO refreshInitData() {
+            return initData;
+        }
+
+        @Override
+        public PublicWebSiteInfo getPublicWebSiteInfo() {
+            return publicWebSiteInfo;
+        }
+
+        @Override
+        public List<TypeDTO> getArticleTypes() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<TagDTO> getTags() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public UserBasicDTO getUserInfoById(Long userId) {
+            return null;
+        }
+
+        @Override
+        public Map<String, Object> getTemplateConfigMapWithCache(String template) {
+            return Collections.emptyMap();
+        }
+    }
+
+    private static class FakeArticleService extends ArticleService {
+
+        private ArticleDetailDTO detail;
+        private PageData<ArticleBasicDTO> pageData = new PageData<>(0L, new ArrayList<>());
+        private Object lastDetailId;
+        private HttpRequest lastDetailRequest;
+        private PageRequest lastPageRequest;
+        private String lastKeywords;
+        private HttpRequest lastPageRequestHttpRequest;
+
+        @Override
+        public ArticleDetailDTO detail(Object idOrAlias, HttpRequest request) throws SQLException {
+            lastDetailId = idOrAlias;
+            lastDetailRequest = request;
+            return detail;
+        }
+
+        @Override
+        public PageData<ArticleBasicDTO> pageByKeywords(PageRequest pageRequest, String keywords,
+                                                        HttpRequest request) {
+            lastPageRequest = pageRequest;
+            lastKeywords = keywords;
+            lastPageRequestHttpRequest = request;
+            return pageData;
+        }
+    }
+
+    private static class FakeCommentQueryRunner extends QueryRunner {
+
+        private String sql;
+        private Object[] params = new Object[0];
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> T query(String sql, ResultSetHandler<T> rsh, Object... params) {
+            this.sql = sql;
+            this.params = params;
+            Map<String, Object> comment = new HashMap<>();
+            comment.put("id", 5L);
+            comment.put("userComment", "hello");
+            comment.put("header", "");
+            comment.put("commTime", "2026-06-29 12:13:14");
+            comment.put("userHome", "https://example.com");
+            comment.put("userName", "reader");
+            comment.put("userMail", null);
+            return (T) List.of(comment);
+        }
+    }
+}
