@@ -146,7 +146,7 @@ public class BlogApiControllerContractTest {
     public void shouldReturnVisitorCommentsFromDao() throws Exception {
         BlogApiArticleController controller = new BlogApiArticleController();
         FakeCommentQueryRunner queryRunner = new FakeCommentQueryRunner();
-        Object previousDataSource = setDefaultDataSource(dataSource(queryRunner));
+        DataSourceWrapper previousDataSource = setDefaultDataSource(dataSource(queryRunner));
         try {
             setControllerRequest(controller, request(Map.of("id", "7")));
 
@@ -242,18 +242,14 @@ public class BlogApiControllerContractTest {
         field.set(controller, articleService);
     }
 
-    private static Object setDefaultDataSource(DataSourceWrapper dataSource) throws Exception {
-        Field field = DAO.class.getDeclaredField("defaultDataSource");
-        field.setAccessible(true);
-        Object previous = field.get(null);
+    private static DataSourceWrapper setDefaultDataSource(DataSourceWrapper dataSource) {
+        DataSourceWrapper previous = DAO.getDefaultDataSource();
         DAO.setDs(dataSource);
         return previous;
     }
 
-    private static void restoreDefaultDataSource(Object previousDataSource) throws Exception {
-        Field field = DAO.class.getDeclaredField("defaultDataSource");
-        field.setAccessible(true);
-        field.set(null, previousDataSource);
+    private static void restoreDefaultDataSource(DataSourceWrapper previousDataSource) {
+        DAO.setDs(previousDataSource);
     }
 
     private static DataSourceWrapper dataSource(QueryRunner queryRunner) {
