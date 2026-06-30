@@ -145,7 +145,7 @@ public class ArticleController extends Controller {
     }
 
 
-    private static ArticleUriInfoVO parseUriInfo(String uri) {
+    static ArticleUriInfoVO parseUriInfo(String uri) {
         String rawUrl = uri;
         if (rawUrl.endsWith(".html")) {
             rawUrl = rawUrl.substring(0, rawUrl.length() - ".html".length());

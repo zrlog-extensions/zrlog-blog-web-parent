@@ -1,11 +1,9 @@
-package com.zrlog.test.web.controller;
+package com.zrlog.blog.web.controller.page;
 
 import com.hibegin.common.dao.DataSourceWrapper;
 import com.hibegin.http.server.api.HttpRequest;
 import com.hibegin.http.server.web.Controller;
 import com.zrlog.blog.business.service.ArticleService;
-import com.zrlog.blog.web.controller.page.ArticleController;
-import com.zrlog.blog.web.controller.page.ArticleUriInfoVO;
 import com.zrlog.common.CacheService;
 import com.zrlog.common.Constants;
 import com.zrlog.common.TokenService;
@@ -23,7 +21,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -41,40 +38,28 @@ public class ArticleControllerTest {
 
     @Test
     public void shouldParseUriInfoWithPageSuffix() throws Exception {
-        Method method = ArticleController.class.getDeclaredMethod("parseUriInfo", String.class);
-        method.setAccessible(true);
-
-        ArticleUriInfoVO info = (ArticleUriInfoVO) method.invoke(null, "/record/2015-06-3.html");
+        ArticleUriInfoVO info = ArticleController.parseUriInfo("/record/2015-06-3.html");
         assertEquals("2015-06", info.getKey());
         assertEquals(3L, info.getPage());
     }
 
     @Test
     public void shouldParseUriInfoWithoutPageSuffix() throws Exception {
-        Method method = ArticleController.class.getDeclaredMethod("parseUriInfo", String.class);
-        method.setAccessible(true);
-
-        ArticleUriInfoVO info = (ArticleUriInfoVO) method.invoke(null, "/tag/java.html");
+        ArticleUriInfoVO info = ArticleController.parseUriInfo("/tag/java.html");
         assertEquals("java", info.getKey());
         assertEquals(1L, info.getPage());
     }
 
     @Test
     public void shouldParseSearchUriInfoWithPageSuffix() throws Exception {
-        Method method = ArticleController.class.getDeclaredMethod("parseUriInfo", String.class);
-        method.setAccessible(true);
-
-        ArticleUriInfoVO info = (ArticleUriInfoVO) method.invoke(null, "/search/java-2.html");
+        ArticleUriInfoVO info = ArticleController.parseUriInfo("/search/java-2.html");
         assertEquals("java", info.getKey());
         assertEquals(2L, info.getPage());
     }
 
     @Test
     public void shouldKeepHyphenatedKeyWhenSuffixIsNotNumeric() throws Exception {
-        Method method = ArticleController.class.getDeclaredMethod("parseUriInfo", String.class);
-        method.setAccessible(true);
-
-        ArticleUriInfoVO info = (ArticleUriInfoVO) method.invoke(null, "/tag/java-spring.html");
+        ArticleUriInfoVO info = ArticleController.parseUriInfo("/tag/java-spring.html");
 
         assertEquals("java-spring", info.getKey());
         assertEquals(1L, info.getPage());
@@ -82,10 +67,7 @@ public class ArticleControllerTest {
 
     @Test
     public void shouldParseHyphenatedKeyWithNumericPageSuffix() throws Exception {
-        Method method = ArticleController.class.getDeclaredMethod("parseUriInfo", String.class);
-        method.setAccessible(true);
-
-        ArticleUriInfoVO info = (ArticleUriInfoVO) method.invoke(null, "/tag/java-spring-12.html");
+        ArticleUriInfoVO info = ArticleController.parseUriInfo("/tag/java-spring-12.html");
 
         assertEquals("java-spring", info.getKey());
         assertEquals(12L, info.getPage());

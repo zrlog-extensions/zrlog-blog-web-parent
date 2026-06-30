@@ -90,7 +90,7 @@ public class ZrLogTemplateRender implements TemplateRender {
     /**
      * 处理静态化文件
      */
-    private static boolean catGeneratorHtml(HttpRequest request) {
+    static boolean catGeneratorHtml(HttpRequest request) {
         if (BaseStaticSitePlugin.isStaticPluginRequest(request)) {
             return false;
         }

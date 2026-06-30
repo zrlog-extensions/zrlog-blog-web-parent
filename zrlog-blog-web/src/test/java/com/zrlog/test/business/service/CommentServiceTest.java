@@ -1,7 +1,6 @@
-package com.zrlog.test.business.service;
+package com.zrlog.blog.business.service;
 
 import com.hibegin.common.dao.DataSourceWrapper;
-import com.zrlog.blog.business.service.CommentService;
 import com.zrlog.common.CacheService;
 import com.zrlog.common.Constants;
 import com.zrlog.common.TokenService;
@@ -16,7 +15,6 @@ import com.zrlog.plugin.IPlugin;
 import com.zrlog.plugin.Plugins;
 import org.junit.Test;
 
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -28,29 +26,24 @@ public class CommentServiceTest {
 
     @Test
     public void shouldValidateEmailAddress() throws Exception {
-        Method method = CommentService.class.getDeclaredMethod("isValidEmailAddress", String.class);
-        method.setAccessible(true);
-
-        assertTrue((Boolean) method.invoke(null, "user@example.com"));
-        assertTrue((Boolean) method.invoke(null, "user.name+tag@example.co.uk"));
-        assertTrue((Boolean) method.invoke(null, "user@[192.168.1.1]"));
-        assertFalse((Boolean) method.invoke(null, "bad-email"));
-        assertFalse((Boolean) method.invoke(null, "user@example"));
-        assertFalse((Boolean) method.invoke(null, "@example.com"));
+        assertTrue(CommentService.isValidEmailAddress("user@example.com"));
+        assertTrue(CommentService.isValidEmailAddress("user.name+tag@example.co.uk"));
+        assertTrue(CommentService.isValidEmailAddress("user@[192.168.1.1]"));
+        assertFalse(CommentService.isValidEmailAddress("bad-email"));
+        assertFalse(CommentService.isValidEmailAddress("user@example"));
+        assertFalse(CommentService.isValidEmailAddress("@example.com"));
     }
 
     @Test
     public void shouldRespectGlobalAndArticleCommentSwitches() throws Exception {
-        Method method = CommentService.class.getDeclaredMethod("isAllowComment", ArticleBasicDTO.class);
-        method.setAccessible(true);
         CommentService commentService = new CommentService();
 
         withConfig(false, () -> {
-            assertTrue((Boolean) method.invoke(commentService, article(true)));
-            assertFalse((Boolean) method.invoke(commentService, article(false)));
-            assertFalse((Boolean) method.invoke(commentService, article(null)));
+            assertTrue(commentService.isAllowComment(article(true)));
+            assertFalse(commentService.isAllowComment(article(false)));
+            assertFalse(commentService.isAllowComment(article(null)));
         });
-        withConfig(true, () -> assertFalse((Boolean) method.invoke(commentService, article(true))));
+        withConfig(true, () -> assertFalse(commentService.isAllowComment(article(true))));
     }
 
     private static ArticleBasicDTO article(Boolean canComment) {

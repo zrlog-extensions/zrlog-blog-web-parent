@@ -1,11 +1,10 @@
-package com.zrlog.test.web.template;
+package com.zrlog.blog.web.template;
 
 import com.hibegin.common.dao.DataSourceWrapper;
 import com.hibegin.http.HttpMethod;
 import com.hibegin.http.server.api.HttpRequest;
 import com.hibegin.http.server.config.RequestConfig;
 import com.hibegin.http.server.config.ServerConfig;
-import com.zrlog.blog.web.template.ZrLogTemplateRender;
 import com.zrlog.common.CacheService;
 import com.zrlog.common.Constants;
 import com.zrlog.common.TokenService;
@@ -22,7 +21,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -108,9 +106,7 @@ public class ZrLogTemplateRenderTest {
     }
 
     private static boolean canGeneratorHtml(HttpRequest request) throws Exception {
-        Method method = ZrLogTemplateRender.class.getDeclaredMethod("catGeneratorHtml", HttpRequest.class);
-        method.setAccessible(true);
-        return (Boolean) method.invoke(null, request);
+        return ZrLogTemplateRender.catGeneratorHtml(request);
     }
 
     private static HttpRequest request(String uri, String userAgent) {
