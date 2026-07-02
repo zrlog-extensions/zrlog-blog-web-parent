@@ -9,17 +9,17 @@
     <#-- 搜索框 -->
     <form action="${searchUrl}" method="post" class="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg p-5 space-y-4">
         <h3 class="text-lg font-bold text-gray-950 dark:text-white">${_res.search}</h3>
-        <div class="flex items-center space-x-2">
+        <div class="flex items-stretch gap-2">
             <input
                     type="text"
                     name="key"
                     value="${key!""}"
                     placeholder="${_res.searchTip}"
-                    class="flex-1 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none w-full transition-all dark:text-white"
+                    class="min-w-0 h-11 flex-1 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 rounded-lg px-4 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none w-full transition-all dark:text-white"
             />
             <button
                     type="submit"
-                    class="bg-blue-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                    class="h-11 shrink-0 inline-flex items-center justify-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-5 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
             ><i class="ri-search-line text-lg"></i> ${_res.search}</button>
         </div>
     </form>

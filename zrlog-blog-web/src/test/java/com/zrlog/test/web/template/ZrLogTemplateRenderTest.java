@@ -1,19 +1,26 @@
 package com.zrlog.blog.web.template;
 
 import com.hibegin.common.dao.DataSourceWrapper;
+import com.hibegin.common.dao.dto.PageData;
 import com.hibegin.http.HttpMethod;
+import com.hibegin.http.HttpVersion;
 import com.hibegin.http.server.api.HttpRequest;
 import com.hibegin.http.server.config.RequestConfig;
 import com.hibegin.http.server.config.ServerConfig;
+import com.hibegin.http.server.web.cookie.Cookie;
+import com.zrlog.business.plugin.StaticSitePlugin;
+import com.zrlog.business.plugin.type.StaticSiteType;
 import com.zrlog.common.CacheService;
 import com.zrlog.common.Constants;
 import com.zrlog.common.TokenService;
 import com.zrlog.common.ZrLogConfig;
+import com.zrlog.common.cache.dto.PluginDTO;
 import com.zrlog.common.cache.dto.TagDTO;
 import com.zrlog.common.cache.dto.TypeDTO;
 import com.zrlog.common.cache.dto.UserBasicDTO;
 import com.zrlog.common.cache.vo.BaseDataInitVO;
 import com.zrlog.common.vo.PublicWebSiteInfo;
+import com.zrlog.data.dto.ArticleBasicDTO;
 import com.zrlog.plugin.BaseStaticSitePlugin;
 import com.zrlog.plugin.IPlugin;
 import com.zrlog.plugin.Plugins;
@@ -21,13 +28,21 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.lang.reflect.Proxy;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertFalse;
@@ -92,16 +107,56 @@ public class ZrLogTemplateRenderTest {
         });
     }
 
+    @Test
+    public void shouldGenerateTemplateWwwIndexPreviewHtml() throws Exception {
+        TestStaticSitePlugin staticSitePlugin = new TestStaticSitePlugin("/generated/template-www");
+        withConfig(true, staticSitePlugin, () -> {
+            Map<String, Object> attrs = new HashMap<>();
+            attrs.put("data", previewPageData());
+            HttpRequest request = templateRequest("/index.html",
+                    Cookie.saxToCookie("template=" + Constants.TEMPLATE_BASE_PATH + "template-www"), attrs);
+            ZrLogTemplateRender render = new ZrLogTemplateRender(request);
+
+            String html = render.renderByTemplateName("index");
+            Path output = staticSitePlugin.loadCacheFile(request).toPath();
+            String staticHtml = Files.readString(output, StandardCharsets.UTF_8);
+
+            assertTrue(Files.exists(output));
+            assertTrue(html.contains("action=\"/search\""));
+            assertTrue(staticHtml.contains("Template Preview"));
+            assertTrue(html.contains("<nav"));
+            assertTrue(html.contains("Template Preview"));
+            assertTrue(html.contains("Default"));
+            assertTrue(html.contains("flex items-stretch gap-2"));
+            assertTrue(html.contains("min-w-0 h-11 flex-1"));
+            assertTrue(html.contains("h-11 shrink-0 inline-flex"));
+        });
+    }
+
     private void withConfig(boolean generatorHtmlStatus, ThrowingRunnable runnable) throws Exception {
+        withConfig(generatorHtmlStatus, null, runnable);
+    }
+
+    private void withConfig(boolean generatorHtmlStatus, StaticSitePlugin staticSitePlugin, ThrowingRunnable runnable)
+            throws Exception {
         ZrLogConfig previousConfig = Constants.zrLogConfig;
         String previousRootPath = System.getProperty("sws.root.path");
+        String previousStaticPath = System.getProperty("sws.static.path");
+        String previousCachePath = System.getProperty("sws.cache.path");
         try {
             System.setProperty("sws.root.path", temporaryFolder.newFolder().getAbsolutePath());
-            Constants.zrLogConfig = new TestZrLogConfig(generatorHtmlStatus);
+            if (staticSitePlugin != null) {
+                String staticPath = staticPreviewRoot().toString();
+                System.setProperty("sws.static.path", staticPath);
+                System.setProperty("sws.cache.path", staticPath);
+            }
+            Constants.zrLogConfig = new TestZrLogConfig(generatorHtmlStatus, staticSitePlugin);
             runnable.run();
         } finally {
             Constants.zrLogConfig = previousConfig;
             restoreProperty("sws.root.path", previousRootPath);
+            restoreProperty("sws.static.path", previousStaticPath);
+            restoreProperty("sws.cache.path", previousCachePath);
         }
     }
 
@@ -128,7 +183,14 @@ public class ZrLogTemplateRenderTest {
     }
 
     private static HttpRequest templateRequest(String uri) {
-        Map<String, Object> attrs = new HashMap<>();
+        return templateRequest(uri, null, new HashMap<>());
+    }
+
+    private static HttpRequest templateRequest(String uri, Cookie[] cookies) {
+        return templateRequest(uri, cookies, new HashMap<>());
+    }
+
+    private static HttpRequest templateRequest(String uri, Cookie[] cookies, Map<String, Object> attrs) {
         RequestConfig requestConfig = new RequestConfig();
         ServerConfig serverConfig = new ServerConfig();
         return (HttpRequest) Proxy.newProxyInstance(
@@ -151,13 +213,13 @@ public class ZrLogTemplateRenderTest {
                         return "";
                     }
                     if ("getCreateTime".equals(method.getName())) {
-                        return 100L;
+                        return System.currentTimeMillis();
                     }
                     if ("getMethod".equals(method.getName())) {
                         return HttpMethod.GET;
                     }
                     if ("getCookies".equals(method.getName())) {
-                        return null;
+                        return cookies;
                     }
                     if ("getAttr".equals(method.getName())) {
                         return attrs;
@@ -168,17 +230,153 @@ public class ZrLogTemplateRenderTest {
                     if ("getHeaderMap".equals(method.getName())) {
                         return Collections.singletonMap("Host", "blog.example.com");
                     }
+                    if ("getScheme".equals(method.getName())) {
+                        return "https";
+                    }
                     if ("getRequestConfig".equals(method.getName())) {
                         return requestConfig;
                     }
                     if ("getServerConfig".equals(method.getName())) {
                         return serverConfig;
                     }
+                    if ("getHttpVersion".equals(method.getName())) {
+                        return HttpVersion.HTTP_1_1;
+                    }
                     if ("toString".equals(method.getName())) {
                         return "HttpRequestProxy";
                     }
                     return null;
                 });
+    }
+
+    private static Path staticPreviewRoot() throws Exception {
+        Path cwd = Path.of(System.getProperty("user.dir")).toAbsolutePath();
+        Path root = Files.isDirectory(cwd.resolve("zrlog-freemarker-template")) ? cwd : cwd.getParent();
+        Path staticPath = root.resolve("static");
+        Files.createDirectories(staticPath);
+        return staticPath;
+    }
+
+    private static PageData<ArticleBasicDTO> previewPageData() {
+        return new PageData<>(2L, Arrays.asList(
+                previewArticle(1L, "hello-world", "Hello World"),
+                previewArticle(2L, "template-preview", "Template Preview")
+        ), 1L, 10L);
+    }
+
+    private static ArticleBasicDTO previewArticle(Long id, String alias, String title) {
+        ArticleBasicDTO article = new ArticleBasicDTO();
+        article.setLogId(id);
+        article.setAlias(alias);
+        article.setTitle(title);
+        article.setDigest("This is a template-www preview article for visual validation.");
+        article.setCanComment(true);
+        article.setClick(12L);
+        article.setCommentSize(1L);
+        article.setReleaseTime("2026-06-02T10:00:00");
+        article.setTypeAlias("default");
+        article.setTypeName("Default");
+        article.setTypeUrl("/sort/default");
+        article.setUrl("/" + alias + ".html");
+        article.setThumbnail("");
+        return article;
+    }
+
+    private static TypeDTO previewType() {
+        TypeDTO type = new TypeDTO();
+        type.setId(1L);
+        type.setAlias("default");
+        type.setTypeName("Default");
+        type.setTypeamount(2L);
+        type.setUrl("/sort/default.html");
+        return type;
+    }
+
+    private static PluginDTO systemPlugin(String pluginName) {
+        PluginDTO plugin = new PluginDTO();
+        plugin.setPluginName(pluginName);
+        plugin.setSystem(true);
+        return plugin;
+    }
+
+    private static List<TypeDTO> previewTypes() {
+        return Collections.singletonList(previewType());
+    }
+
+    private static List<PluginDTO> previewPlugins() {
+        return Collections.singletonList(systemPlugin("types"));
+    }
+
+    private static class TestStaticSitePlugin implements StaticSitePlugin {
+
+        private final String contextPath;
+        private final Map<String, HandleState> handleStatusPageMap = new HashMap<>();
+        private final Lock parseLock = new ReentrantLock();
+        private final List<File> cacheFiles = new ArrayList<>();
+
+        TestStaticSitePlugin(String contextPath) {
+            this.contextPath = contextPath;
+        }
+
+        @Override
+        public String getVersionFileName() {
+            return "version.txt";
+        }
+
+        @Override
+        public String getDbCacheKey() {
+            return "template.www.preview.version";
+        }
+
+        @Override
+        public String getContextPath() {
+            return contextPath;
+        }
+
+        @Override
+        public String getDefaultLang() {
+            return Constants.DEFAULT_LANGUAGE;
+        }
+
+        @Override
+        public Map<String, HandleState> getHandleStatusPageMap() {
+            return handleStatusPageMap;
+        }
+
+        @Override
+        public Lock getParseLock() {
+            return parseLock;
+        }
+
+        @Override
+        public Executor getExecutorService() {
+            return Runnable::run;
+        }
+
+        @Override
+        public List<File> getCacheFiles() {
+            return cacheFiles;
+        }
+
+        @Override
+        public StaticSiteType getType() {
+            return StaticSiteType.BLOG;
+        }
+
+        @Override
+        public boolean start() {
+            return true;
+        }
+
+        @Override
+        public boolean isStarted() {
+            return true;
+        }
+
+        @Override
+        public boolean stop() {
+            return true;
+        }
     }
 
     private static void restoreProperty(String key, String value) {
@@ -196,10 +394,16 @@ public class ZrLogTemplateRenderTest {
     private static class TestZrLogConfig extends ZrLogConfig {
 
         private final boolean generatorHtmlStatus;
+        private final StaticSitePlugin staticSitePlugin;
 
         TestZrLogConfig(boolean generatorHtmlStatus) {
+            this(generatorHtmlStatus, null);
+        }
+
+        TestZrLogConfig(boolean generatorHtmlStatus, StaticSitePlugin staticSitePlugin) {
             super(18080, null, "");
             this.generatorHtmlStatus = generatorHtmlStatus;
+            this.staticSitePlugin = staticSitePlugin;
         }
 
         @Override
@@ -225,6 +429,15 @@ public class ZrLogTemplateRenderTest {
         @Override
         public List<IPlugin> getBasePluginList() {
             return new Plugins();
+        }
+
+        @Override
+        public Plugins getAllPlugins() {
+            Plugins plugins = new Plugins();
+            if (staticSitePlugin != null) {
+                plugins.add(staticSitePlugin);
+            }
+            return plugins;
         }
     }
 
@@ -253,9 +466,13 @@ public class ZrLogTemplateRenderTest {
             publicWebSiteInfo.setTemplate(Constants.DEFAULT_TEMPLATE_PATH);
             publicWebSiteInfo.setLanguage(Constants.DEFAULT_LANGUAGE);
             publicWebSiteInfo.setTitle("ZrLog");
+            publicWebSiteInfo.setSecond_title("Theme Preview");
+            publicWebSiteInfo.setKeywords("zrlog,template,www");
             publicWebSiteInfo.setDescription("blog");
             publicWebSiteInfo.setStaticResourceHost("");
             publicWebSiteInfo.setHost("blog.example.com");
+            publicWebSiteInfo.setIcp("");
+            publicWebSiteInfo.setWebCm("");
             return publicWebSiteInfo;
         }
 
@@ -263,6 +480,8 @@ public class ZrLogTemplateRenderTest {
         public BaseDataInitVO getInitData() {
             BaseDataInitVO initData = new BaseDataInitVO();
             initData.setWebSite(getPublicWebSiteInfo());
+            initData.setTypes(previewTypes());
+            initData.setPlugins(previewPlugins());
             return initData;
         }
 
@@ -273,7 +492,7 @@ public class ZrLogTemplateRenderTest {
 
         @Override
         public List<TypeDTO> getArticleTypes() {
-            return Collections.emptyList();
+            return previewTypes();
         }
 
         @Override
