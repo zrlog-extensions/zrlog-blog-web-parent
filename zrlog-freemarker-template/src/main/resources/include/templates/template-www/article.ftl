@@ -1,4 +1,4 @@
-<article class="bg-white dark:bg-gray-900 rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 dark:border-gray-800">
+<article class="bg-white dark:bg-black rounded-lg p-6 md:p-8 border border-gray-200 dark:border-gray-800">
     <!-- 标题 -->
     <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">${log.title}</h2>
 
@@ -31,7 +31,7 @@
     <#if log.tags?has_content>
         <div class="flex flex-wrap items-center gap-3 mb-8">
             <#list log.tags as tag>
-                <a class="px-3 py-1.5 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm font-medium rounded-lg hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-all flex items-center gap-1.5" href="${tag.url}">
+                <a class="px-3 py-1.5 bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-300 text-sm font-medium rounded hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950 dark:hover:text-blue-300 transition-all flex items-center gap-1.5" href="${tag.url}">
                     <i class="ri-hashtag text-gray-400"></i> ${tag.name}
                 </a>
             </#list>
@@ -40,7 +40,7 @@
 
     <!-- 转载说明 -->
     <!-- 转载说明 -->
-    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5 mb-8 text-sm text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-800/50 relative overflow-hidden group">
+    <div class="bg-gray-50 dark:bg-gray-950 rounded-lg p-5 mb-8 text-sm text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800 relative overflow-hidden group">
         <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <i class="ri-copyright-line text-6xl text-gray-400"></i>
         </div>
@@ -61,7 +61,7 @@
     <!-- 上/下一篇 -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <#if log.lastLog??>
-            <a href="${log.lastLog.url}" class="group block p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all">
+            <a href="${log.lastLog.url}" class="group block p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-950 transition-all">
                 <div class="text-xs text-gray-400 mb-1">
                     <i class="ri-arrow-left-line"></i> ${_res.lastArticle}
                 </div>
@@ -70,13 +70,13 @@
                 </div>
             </a>
         <#else>
-             <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 text-gray-400 text-sm">
+             <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 text-gray-400 text-sm">
                  ${_res.lastArticle}：没有了
              </div>
         </#if>
         
         <#if log.nextLog??>
-            <a href="${log.nextLog.url}" class="group block p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all text-right">
+            <a href="${log.nextLog.url}" class="group block p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-950 transition-all text-right">
                 <div class="text-xs text-gray-400 mb-1">
                     ${_res.nextArticle} <i class="ri-arrow-right-line"></i>
                 </div>
@@ -85,7 +85,7 @@
                 </div>
             </a>
         <#else>
-            <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 text-gray-400 text-sm text-right">
+            <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 text-gray-400 text-sm text-right">
                 ${_res.nextArticle}：没有了
             </div>
         </#if>

@@ -1,7 +1,7 @@
 <!-- 返回顶部按钮 -->
 <button
         id="back-to-top"
-        class="fixed bottom-10 right-10 w-12 h-12 bg-blue-600 text-white rounded-lg shadow-2xl flex items-center justify-center opacity-0 invisible transition-all duration-500 z-[100] hover:scale-105 active:scale-95 group"
+        class="fixed bottom-10 right-10 w-12 h-12 bg-blue-600 text-white rounded-lg shadow-lg flex items-center justify-center opacity-0 invisible transition-all duration-300 z-[100] hover:bg-blue-700 group"
 >
     <i class="ri-arrow-up-line text-2xl transition-transform group-hover:-translate-y-1"></i>
 </button>

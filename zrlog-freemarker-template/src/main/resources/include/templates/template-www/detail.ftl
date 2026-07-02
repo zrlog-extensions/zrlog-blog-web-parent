@@ -1,5 +1,5 @@
 <#include "header.ftl">
-<section class="py-16 bg-gray-50 dark:bg-black">
+<section class="py-12 md:py-16 bg-gray-50 dark:bg-gray-950 min-h-screen">
     <div class="container mx-auto px-4 md:px-6">
         <div class="flex flex-col lg:flex-row gap-8">
             <main class="lg:w-3/4 w-full">
