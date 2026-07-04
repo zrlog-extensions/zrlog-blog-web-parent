@@ -28,6 +28,8 @@
 - [Freemarker 模板数据结构](docs/freemarker-template-data.md)
 - [主题工作区说明](static/include/templates/README.md)
 - [Signal Notes 主题维护规范](static/include/templates/template-signal-notes/README.md)
+- `zrlog-ops/docs/repository-structure-guide.md`
+- `zrlog-ops/acceptance/zrlog-blog-web.yaml`
 
 模板字段不要猜。文档没有写到的字段，需要检查对应 Java 页面对象、DTO 或已有模板用法。
 
@@ -117,4 +119,3 @@ ${model.log.title}
 | 维护 `template-signal-notes` | `static/include/templates/template-signal-notes/README.md` |
 | 修复 Hexo 主题兼容 | `zrlog-polyglot-template/` |
 | 补充测试和覆盖率 | 各模块的 `src/test` 目录 |
-
