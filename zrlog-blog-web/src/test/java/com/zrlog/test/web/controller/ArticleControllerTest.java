@@ -13,6 +13,7 @@ import com.zrlog.common.cache.dto.TypeDTO;
 import com.zrlog.common.cache.dto.UserBasicDTO;
 import com.zrlog.common.cache.vo.BaseDataInitVO;
 import com.zrlog.common.vo.PublicWebSiteInfo;
+import com.hibegin.common.dao.dto.PageData;
 import com.zrlog.data.dto.ArticleDetailDTO;
 import com.zrlog.plugin.IPlugin;
 import com.zrlog.plugin.Plugins;
@@ -76,10 +77,16 @@ public class ArticleControllerTest {
     @Test
     public void shouldReturnStaticPageNamesForSimplePages() throws Exception {
         withConfig(() -> {
+            Map<String, Object> attrs = new HashMap<>();
             ArticleController controller = new ArticleController();
+            setControllerRequest(controller, request("/link", attrs));
 
-            assertEquals("link", controller.link());
+            assertEquals("links", controller.link());
             assertEquals("links", controller.links());
+            assertEquals("archives", controller.archives());
+            assertEquals("categories", controller.categories());
+            assertEquals("tags", controller.tags());
+            assertSame(PageData.class, attrs.get("data").getClass());
         });
     }
 
@@ -92,6 +99,7 @@ public class ArticleControllerTest {
 
             assertEquals("tags", controller.tags());
             assertEquals("tags", attrs.get("yurl"));
+            assertSame(PageData.class, attrs.get("data").getClass());
         });
     }
 

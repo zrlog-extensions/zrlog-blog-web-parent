@@ -1,0 +1,111 @@
+{
+  "navigation": [
+    {"id": 1, "name": "首页", "url": "/", "sort": 1},
+    {"id": 2, "name": "七月归档", "url": "/record/2026_07", "sort": 2},
+    {"id": 3, "name": "技术", "url": "/sort/code", "sort": 3}
+  ],
+  "types": [
+    {"id": 1, "name": "随笔", "alias": "notes", "remark": "读书、写作和日常生活的零散记录"},
+    {"id": 2, "name": "技术", "alias": "code", "remark": "Java、Web 与自托管实践"},
+    {"id": 3, "name": "行走", "alias": "journey", "remark": "旅途、城市和离开屏幕的时间"}
+  ],
+  "tags": [
+    {"id": 1, "text": "ZrLog", "count": 2},
+    {"id": 2, "text": "写作", "count": 2},
+    {"id": 3, "text": "自托管", "count": 2},
+    {"id": 4, "text": "Java", "count": 1},
+    {"id": 5, "text": "城市", "count": 1},
+    {"id": 6, "text": "性能", "count": 1}
+  ],
+  "links": [
+    {"id": 1, "name": "ZrLog 官网", "url": "https://www.zrlog.com", "alt": "ZrLog 开源博客系统官方站点", "icon": "/attached/link-icon.svg", "sort": 1},
+    {"id": 2, "name": "项目源码", "url": "https://github.com/94fzb/zrlog", "alt": "ZrLog 的 GitHub 源码仓库", "icon": "", "sort": 2},
+    {"id": 3, "name": "ZrLog 开发日志：关于博客与开源软件", "url": "https://blog.zrlog.com", "alt": "记录 ZrLog 版本演进和开源开发的博客", "icon": "", "sort": 3}
+  ],
+  "articles": [
+    {
+      "id": 5,
+      "alias": "writing-on-my-own-site",
+      "title": "把第一篇文章留给自己的站点",
+      "digest": "社交平台适合聊天，自己的站点更适合安静地保存长文。整理完域名、旧笔记和发布流程之后，我决定从这里继续写。",
+      "plainContent": "社交平台适合聊天，自己的站点更适合安静地保存长文。",
+      "content": "<h2 id=\"why\">为什么又开始写博客</h2><p>过去几年，我把零散的想法留在许多不同的平台上。它们来得快，沉下去也快。重新拥有一个自己的站点之后，我更愿意把值得反复修改的文字放在这里。</p><blockquote><p>写作不必追着时间线跑，慢一点也没有关系。</p></blockquote><h2 id=\"content\">搬回来之前做了什么</h2><ul><li>整理旧文章和图片</li><li>给域名、证书和备份设置自动续期</li><li>保留一套足够简单的发布流程</li></ul><h3 id=\"code\">发布状态</h3><pre><code class=\"language-java\">public String status(Article article) {\n    return article.isReady() ? \"published\" : \"draft\";\n}</code></pre><h3 id=\"table\">现在的选择</h3><table><thead><tr><th>项目</th><th>方式</th></tr></thead><tbody><tr><td>文章</td><td>Markdown</td></tr><tr><td>部署</td><td>家里的低功耗主机</td></tr><tr><td>备份</td><td>每晚同步到另一块磁盘</td></tr></tbody></table><p><img src=\"/attached/inline-illustration.svg\" alt=\"书桌旁的电脑与笔记本插图\"></p><p>如果你也在考虑把文字放回自己的站点，可以看看这份<a href=\"https://www.zrlog.com/for-developer?utm_source=personal-blog&amp;utm_medium=article&amp;utm_campaign=independent-writing-notes\">关于独立写作与自托管的资料</a>。</p>",
+      "markdown": "## 为什么又开始写博客\n\n过去几年，我把零散的想法留在许多不同的平台上。它们来得快，沉下去也快。重新拥有一个自己的站点之后，我更愿意把值得反复修改的文字放在这里。\n\n> 写作不必追着时间线跑，慢一点也没有关系。\n\n## 搬回来之前做了什么\n\n- 整理旧文章和图片\n- 给域名、证书和备份设置自动续期\n- 保留一套足够简单的发布流程",
+      "keywords": "ZrLog,写作,自托管",
+      "thumbnail": "/attached/writing-cover.svg",
+      "typeId": 1,
+      "releaseTime": "2026-07-15 10:00:00",
+      "canComment": true,
+      "click": 128
+    },
+    {
+      "id": 4,
+      "alias": "notes-from-the-past",
+      "title": "离开社交平台以后，我重新整理了这些年断断续续写下的笔记",
+      "digest": "旧硬盘、云笔记和草稿箱里散落着许多只写了一半的段落。这个周末，我终于把它们按年份重新归档。",
+      "plainContent": "旧硬盘、云笔记和草稿箱里散落着许多只写了一半的段落。",
+      "content": "<h2>散落在各处的文字</h2><p>换过几次电脑以后，笔记也跟着散落在旧硬盘、云盘和不同的应用里。真正值得留下的并不多，但每一段都能让我想起当时正在做什么。</p><p>我给它们补上日期，只做必要的排版，没有刻意把早年的语气改得更成熟。保留一点笨拙，反而更像自己的记录。</p>",
+      "markdown": "## 散落在各处的文字\n\n换过几次电脑以后，笔记也跟着散落在旧硬盘、云盘和不同的应用里。真正值得留下的并不多，但每一段都能让我想起当时正在做什么。",
+      "keywords": "写作",
+      "thumbnail": "",
+      "typeId": 1,
+      "releaseTime": "2026-07-14 09:30:00",
+      "canComment": false,
+      "click": 36
+    },
+    {
+      "id": 3,
+      "alias": "zrlog-on-mini-pc",
+      "title": "把 ZrLog 跑在一台低功耗小主机上",
+      "digest": "周末把博客搬到一台闲置的小主机上，顺手记录内存占用、备份目录和服务重启方式。",
+      "plainContent": "一台安静运行的小主机，足够承载个人博客和几项日常服务。",
+      "content": "<h2>搬迁过程</h2><p>这台小主机常年开机，功耗不高，用来承载个人博客正合适。迁移前我先导出数据库和附件，再把启动命令交给系统服务管理。</p><ol><li>确认 Java 版本</li><li>恢复数据库和附件</li><li>检查日志与自动备份</li></ol><p><code>java -jar zrlog-starter.jar</code></p>",
+      "markdown": "## 搬迁过程\n\n这台小主机常年开机，功耗不高，用来承载个人博客正合适。\n\n1. 确认 Java 版本\n2. 恢复数据库和附件\n3. 检查日志与自动备份",
+      "keywords": "ZrLog,Java,自托管",
+      "thumbnail": "/attached/code-cover.svg",
+      "typeId": 2,
+      "releaseTime": "2026-06-28 18:20:00",
+      "canComment": true,
+      "click": 72
+    },
+    {
+      "id": 2,
+      "alias": "hangzhou-canal-walk",
+      "title": "十二月的杭州，沿着运河一直走到天黑",
+      "digest": "午后的阳光落在旧仓库外墙上，沿河的人不多。没有赶景点，只是从桥边慢慢走到亮灯。",
+      "plainContent": "午后的阳光落在旧仓库外墙上，沿河的人不多。",
+      "content": "<h2>沿着运河向北</h2><p>十二月的风有些凉，午后的阳光却很好。旧仓库外墙被照得发白，偶尔有骑车的人从树影里穿过去。</p><p>我没有特意找景点，只在桥边买了一杯热茶，沿着河慢慢走。等两岸的灯亮起来，才发现已经走了很远。</p>",
+      "markdown": "## 沿着运河向北\n\n十二月的风有些凉，午后的阳光却很好。旧仓库外墙被照得发白，偶尔有骑车的人从树影里穿过去。",
+      "keywords": "城市",
+      "thumbnail": "",
+      "typeId": 3,
+      "releaseTime": "2025-12-20 15:40:00",
+      "canComment": true,
+      "click": 24
+    },
+    {
+      "id": 1,
+      "alias": "blog-homepage-performance",
+      "title": "一次博客首页加载变慢的排查记录",
+      "digest": "首页偶尔会在图片出现后跳动，顺着网络请求和资源尺寸查下去，问题来自几张没有声明宽高的旧照片。",
+      "plainContent": "先测量，再修改；很多性能问题并不需要复杂的解决方案。",
+      "content": "<h2>先从网络请求开始</h2><p>首页变慢并不是服务器响应的问题。几张旧照片尺寸太大，又没有保留宽高信息，浏览器加载完成后才重新计算布局。</p><p>压缩图片并补全尺寸后，页面安静了许多。先测量，再修改，往往比一开始就引入复杂工具更有效。</p>",
+      "markdown": "## 先从网络请求开始\n\n首页变慢并不是服务器响应的问题。几张旧照片尺寸太大，又没有保留宽高信息，浏览器加载完成后才重新计算布局。",
+      "keywords": "性能",
+      "thumbnail": "/attached/code-cover.svg",
+      "typeId": 2,
+      "releaseTime": "2025-03-11 08:10:00",
+      "canComment": false,
+      "click": 18
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "articleId": 5,
+      "userName": "读者",
+      "content": "我也更喜欢把长文留在自己的站点，读起来安静一些。",
+      "time": "2026-07-15 11:00:00"
+    }
+  ]
+}

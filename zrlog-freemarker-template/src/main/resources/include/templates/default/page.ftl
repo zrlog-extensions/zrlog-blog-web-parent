@@ -1,43 +1,53 @@
 <#include "header.ftl">
-    <section>
-<#if data?has_content>
+<section class="content-column" aria-label="${tipsType!_res.articleList}">
+    <#if !tipsType?has_content><h1 class="screen-reader-text">${webs.title}</h1></#if>
     <#if tipsType?has_content>
-        <div style="padding-bottom: 12px">
-            <h3>${tipsType}目录：${tipsName}</h3>
-            <p style="font-size: 18px">以下是与${tipsType} “${tipsName}” 相关联的文章</p>
-        </div>
+        <header class="page-heading">
+            <p class="eyebrow">${tipsType}</p>
+            <h1><#if tipsName?has_content>${tipsName}<#else>${tipsType}</#if></h1>
+            <#if tipsName?has_content>
+                <p>${_res.relatedArticlesPrefix}${tipsType} “${tipsName}” ${_res.relatedArticlesSuffix}</p>
+            </#if>
+        </header>
     </#if>
-    <#if data?has_content && data.rows?has_content>
-        <#list data.rows as log>
-            <article>
-                <#if log.thumbnail?has_content>
-                    <img class="preview-img" onerror="this.style.display='none'" alt="${log.title}" src="${log.thumbnail}"/>
-                </#if>
-                <h2 class="title"><a rel="bookmark" href="${log.url}">${log.title}</a></h2>
-                <div class="markdown-body" style="padding-bottom: 12px">${log.digest!''}</div>
-                <div class="meta">
-                    <div style="display:flex;justify-content: flex-start;gap: .4rem">
-                        <span class="category">
-                            <a href="${log.typeUrl}">${log.typeName}</a>
-                        </span>
-                        <span>/</span>
-                        <span class="published">${log.releaseTime?split("T")[0]}</span>
-                    </div>
-                    <#if log.canComment>
-                        <a href="${log.url}#comment" class="comments_invite">
-                            ${_res.commentView} [${log.commentSize}]
+
+    <#if data?? && data.rows?has_content>
+        <div class="post-list">
+            <#list data.rows as log>
+                <article class="post-card <#if log.thumbnail?has_content>post-card-with-image</#if>">
+                    <#if log.thumbnail?has_content>
+                        <a class="post-card-media" href="${log.url}" tabindex="-1" aria-hidden="true">
+                            <img class="preview-img" alt="" src="${log.thumbnail}" loading="lazy" decoding="async"/>
                         </a>
                     </#if>
-                </div>
-            </article>
-        </#list>
+                    <div class="post-card-body">
+                        <div class="post-card-meta">
+                            <a class="category-link" href="${log.typeUrl}">${log.typeName}</a>
+                            <span aria-hidden="true">·</span>
+                            <time datetime="${log.releaseTime}">${log.releaseTime?split("T")[0]}</time>
+                        </div>
+                        <h2><a rel="bookmark" href="${log.url}">${log.title}</a></h2>
+                        <div class="post-digest markdown-body">${log.digest!''}</div>
+                        <div class="post-card-footer">
+                            <a class="read-more" href="${log.url}">${_res.readMore}<span aria-hidden="true"> →</span></a>
+                            <#if log.canComment>
+                                <a class="comment-link" href="${log.url}#comment">${_res.commentView} · ${log.commentSize}</a>
+                            </#if>
+                        </div>
+                    </div>
+                </article>
+            </#list>
+        </div>
+    <#else>
+        <div class="empty-state">
+            <p class="empty-state-mark" aria-hidden="true">○</p>
+            <h1>${_res.emptyListTitle}</h1>
+            <p>${_res.emptyListDescription}</p>
+            <a class="button-link" href="${baseUrl}">${_res.backHome}</a>
+        </div>
     </#if>
-<#else>
-    <#assign pageLevel = 1>
-    <#include "404.ftl">
-</#if>
 
-<#include "pager.ftl">
-    </section>
+    <#include "pager.ftl">
+</section>
 <#include "plugin.ftl">
 <#include "footer.ftl">

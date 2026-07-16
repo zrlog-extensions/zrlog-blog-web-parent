@@ -85,7 +85,7 @@ public class ArticleControllerDatabaseTest {
     }
 
     @Test
-    public void shouldRenderArchivesPageFromRealDao() throws Exception {
+    public void shouldRenderArchivesPageWithoutUnboundedArticleQuery() throws Exception {
         try (InMemoryBlogDatabase database = InMemoryBlogDatabase.open()) {
             seedArticles(database);
             Map<String, Object> attrs = new HashMap<>();
@@ -93,10 +93,10 @@ public class ArticleControllerDatabaseTest {
             assertEquals("archives", new ArticleController(request("/archives.html", HttpMethod.GET, "", attrs),
                     null).archives());
 
-            assertEquals("archives-", attrs.get("yurl"));
+            assertEquals("archives", attrs.get("yurl"));
             PageData<ArticleBasicDTO> data = pageData(attrs);
-            assertEquals(3L, data.getTotalElements());
-            assertFalse(data.getRows().isEmpty());
+            assertEquals(0L, data.getTotalElements());
+            assertTrue(data.getRows().isEmpty());
         }
     }
 

@@ -25,3 +25,19 @@ mvn -q -DskipTests compile
 mvn test
 mvn verify
 ```
+
+## 默认主题评审环境
+
+使用内存数据库启动一个每次都会重置的干净博客前台：
+
+```bash
+bash shell/memory-run.sh
+```
+
+站点和安装配置位于 `conf/memory-install.json`，页面评审数据位于 `conf/memory-content.json`。
+该入口使用 `.zrlog-memory/` 作为隔离运行目录，不读取或覆盖仓库现有的 `conf/db.properties`。
+
+生成安装默认主题的发布预览图时，必须使用 `bash shell/memory-run.sh --installed-default`。该模式读取
+`conf/default-install-preview.json`，只保留 install-web 创建的默认文章、分类、标签和导航，不注入
+`conf/memory-content.json`；扩展评审数据只能用于页面开发与回归截图，不能作为 `template.properties`
+所引用的主题预览图来源。

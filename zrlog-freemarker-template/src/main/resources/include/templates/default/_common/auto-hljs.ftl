@@ -1,2 +1,2 @@
-<link rel="stylesheet" href="${baseUrl}assets/css/hljs/light.css" media="(prefers-color-scheme: light)"/>
-<link rel="stylesheet" href="${baseUrl}assets/css/hljs/dark.css" media="(prefers-color-scheme: dark)"/>
+<link id="hljs-light-theme" rel="stylesheet" href="${baseUrl}assets/css/hljs/light.css"/>
+<link id="hljs-dark-theme" rel="stylesheet" href="${baseUrl}assets/css/hljs/dark.css" disabled/>

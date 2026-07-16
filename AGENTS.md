@@ -98,6 +98,22 @@ ${model.log.title}
 
 细节以 [Signal Notes 主题维护规范](static/include/templates/template-signal-notes/README.md) 为准。
 
+## 默认主题内存评审环境
+
+`com.zrlog.blog.MemoryApplication` 位于测试源码，是默认主题页面评审入口，不属于发布产物。
+
+关键约束：
+
+- 启动使用 `bash shell/memory-run.sh`，默认端口为 `7080`，可通过 `--port=17081` 或 `ZRLOG_MEMORY_PORT=17081` 覆盖。
+- 安装配置放在 `conf/memory-install.json`，可编辑页面数据放在 `conf/memory-content.json`，本地图片放在 `conf/memory-assets/`。
+- 每次启动前重置工程目录下的 `.zrlog-memory/`，通过 install-web 的真实安装链路创建 H2 数据库，再注入页面评审数据。
+- 不读取或覆盖仓库已有的 `conf/db.properties`、`conf/install.lock`，也不连接远端测试数据库。
+- 评审数据必须覆盖首页、文章详情、分类、标签、搜索、归档、无缩略图、长标题和 Markdown 富内容等真实状态。
+- `MemoryApplication` 保持在 `src/test/java`，只使用测试作用域的 install-web 和 H2，不得进入正式 JAR 或改变发布依赖。
+- 修改内存评审入口后，至少运行 `MemoryApplicationTest`、`mvn test`，并检查正式 JAR 不包含 `MemoryApplication`。
+- `bash shell/memory-run.sh --installed-default` 只运行真实安装链路并保留安装器生成的默认内容；发布主题的
+  `previewImages` 素材必须从该模式截图，禁止使用 `conf/memory-content.json` 扩展评审数据伪装安装后首页。
+
 ## AI 修改流程
 
 1. 先判断任务属于哪一层：Java 博客行为、Freemarker 渲染、Polyglot / Hexo 兼容，还是纯主题资源。

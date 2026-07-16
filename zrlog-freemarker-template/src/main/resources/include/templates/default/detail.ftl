@@ -1,12 +1,11 @@
 <#include "header.ftl">
-<section>
-<#if log??>
-    <#include "article.ftl">
-    <#include "comment.ftl">
-<#else>
-    <#assign pageLevel = 1>
-    <#include "404.ftl">
-</#if>
+<section class="content-column <#if !log??>content-column-wide</#if>">
+    <#if log??>
+        <#include "article.ftl">
+        <#include "comment.ftl">
+    <#else>
+        <#include "404.ftl">
+    </#if>
 </section>
-<#include "plugin.ftl">
+<#if log??><#include "plugin.ftl"></#if>
 <#include "footer.ftl">

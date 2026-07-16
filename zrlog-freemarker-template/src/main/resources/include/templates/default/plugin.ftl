@@ -1,64 +1,69 @@
-<aside>
+<aside class="sidebar" aria-label="${_res.sidebar}">
     <#if _res.widgetAd?has_content>
-        <div class="widget" style="padding-bottom: 15px">
-            ${_res.widgetAd}
-        </div>
+        <div class="widget widget-ad">${_res.widgetAd}</div>
     </#if>
 
-    <form class="widget search search_input" style="margin-bottom: .5rem" action="${searchUrl}" method="post">
-        <input type="text" size="15" name="key" placeholder="${_res.searchTip}" value='${key!""}' class="inputtext"/>
-        <input type="submit" class="btn" value="${_res.search}"/>
+    <form class="widget search-form" action="${searchUrl}" method="post" role="search" autocomplete="off">
+        <label class="screen-reader-text" for="sidebar-search">${_res.searchLabel}</label>
+        <input id="sidebar-search" type="search" name="key" placeholder="${_res.searchTip}" value="${key!''}" autocomplete="off"/>
+        <button type="submit">${_res.search}</button>
     </form>
 
     <#if init.plugins?has_content>
         <#list init.plugins as plugin>
-            <#if plugin.isSystem == false>
-            <#--不显示非系统插件-->
-            <#else>
+            <#if plugin.isSystem>
                 <#switch plugin.pluginName>
                     <#case "types">
-                        <div class="widget">
-                            <h3>${_res.category}</h3>
-                            <div class="list">
-                                <ul class="category_list">
-                                    <#list init.types as type>
-                                        <li><a href="${type.url}">${type.typeName} (${type.typeamount})</a></li>
-                                    </#list>
-                                </ul>
+                        <section class="widget">
+                            <div class="widget-heading">
+                                <h2><@themeIcon name="categories" className="widget-title-icon"/>${_res.category}</h2>
+                                <a href="${baseUrl}categories${suffix!''}">${_res.viewAll}</a>
                             </div>
-                        </div>
+                            <ul class="widget-list">
+                                <#list init.types as type>
+                                    <li><a href="${type.url}"><span>${type.typeName}</span><span>${type.typeamount}</span></a></li>
+                                </#list>
+                            </ul>
+                        </section>
                         <#break>
                     <#case "links">
-                        <div class="widget">
-                            <h3>${_res.link}</h3>
-                            <ul>
+                        <section class="widget">
+                            <div class="widget-heading">
+                                <h2><@themeIcon name="links" className="widget-title-icon"/>${_res.link}</h2>
+                                <a href="${baseUrl}links${suffix!''}">${_res.viewAll}</a>
+                            </div>
+                            <ul class="widget-list">
                                 <#list init.links as link>
-                                    <li><a href="${link.url}" title="${link.alt}" target="_blank">${link.linkName}</a>
-                                    </li>
+                                    <li><a href="${link.url}" target="_blank" rel="noopener noreferrer"><span>${link.linkName}</span><@themeIcon name="external" className="external-link-icon"/></a></li>
                                 </#list>
                             </ul>
-                        </div>
+                        </section>
                         <#break>
                     <#case "archives">
-                        <div class="widget">
-                            <h3>${_res.archive}</h3>
-                            <ul>
+                        <section class="widget">
+                            <div class="widget-heading">
+                                <h2><@themeIcon name="archives" className="widget-title-icon"/>${_res.archive}</h2>
+                                <a href="${baseUrl}archives${suffix!''}">${_res.viewAll}</a>
+                            </div>
+                            <ul class="widget-list">
                                 <#list init.archiveList as archive>
-                                    <li><a href="${archive.url}" rel="nofollow">${archive.text} (${archive.count})</a>
-                                    </li>
+                                    <li><a href="${archive.url}"><span>${archive.text?replace("_", "-")}</span><span>${archive.count}</span></a></li>
                                 </#list>
                             </ul>
-                        </div>
+                        </section>
                         <#break>
                     <#case "tags">
-                        <div class="widget">
-                            <h3>${_res.tag}</h3>
-                            <div class="taglist">
+                        <section class="widget">
+                            <div class="widget-heading">
+                                <h2><@themeIcon name="tags" className="widget-title-icon"/>${_res.tag}</h2>
+                                <a href="${baseUrl}tags${suffix!''}">${_res.viewAll}</a>
+                            </div>
+                            <div class="tag-list">
                                 <#list init.tags as tag>
-                                    <a href="${tag.url}" class="size${tag.keycode % 6}">${tag.text}</a>
+                                    <a href="${tag.url}"><span>${tag.text}</span><span>${tag.count}</span></a>
                                 </#list>
                             </div>
-                        </div>
+                        </section>
                         <#break>
                 </#switch>
             </#if>

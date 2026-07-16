@@ -133,6 +133,19 @@ public class ZrLogTemplateRenderTest {
         });
     }
 
+    @Test
+    public void shouldRenderExactOpenGraphUrlForDefaultTemplate() throws Exception {
+        withConfig(false, () -> {
+            Map<String, Object> attrs = new HashMap<>();
+            attrs.put("data", previewPageData());
+            HttpRequest request = templateRequest("/all-3", null, attrs);
+
+            String html = new ZrLogTemplateRender(request).renderByTemplateName("index");
+
+            assertTrue(html.contains("<meta property=\"og:url\" content=\"//blog.example.com/all-3\">"));
+        });
+    }
+
     private void withConfig(boolean generatorHtmlStatus, ThrowingRunnable runnable) throws Exception {
         withConfig(generatorHtmlStatus, null, runnable);
     }

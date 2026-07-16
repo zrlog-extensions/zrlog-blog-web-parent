@@ -13,6 +13,9 @@ conf/plugins
 static/
 .DS_Store
 temp.txt
+.zrlog-memory/
+.playwright-cli/
+output/
 zrlog-polyglot-template/src/main/resources/include/templates/*
 !zrlog-polyglot-template/src/main/resources/include/templates/hexo-theme-fluid
 !zrlog-polyglot-template/src/main/resources/include/templates/hexo-theme-butterfly

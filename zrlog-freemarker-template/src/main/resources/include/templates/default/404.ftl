@@ -1,18 +1,11 @@
-<section>
-    <div role="main">
-        <article class="post no-results not-found">
-            <header class="entry-header">
-                <h1 class="entry-title">${_res.notFound}</h1>
-            </header>
-            <div class="widget search">
-                <p>抱歉，没有符合您搜索条件的结果。请换其它关键词再试。</p>
-                <form method="post" action="${searchUrl}">
-                    <input
-                            type="text" value='${key!""}' class="field" name="key" placeholder="${_res.searchTip}"/>
-                    <input type="submit" class="btn" name="submit"
-                           value="${_res.search}"/>
-                </form>
-            </div>
-        </article>
-    </div>
-</section>
+<div class="empty-state not-found">
+    <p class="empty-state-mark" aria-hidden="true">404</p>
+    <h1>${_res.notFound}</h1>
+    <p>${_res.notFoundDescription}</p>
+    <form class="search-form search-form-main" method="post" action="${searchUrl}" role="search" autocomplete="off">
+        <label class="screen-reader-text" for="not-found-search">${_res.searchLabel}</label>
+        <input id="not-found-search" type="search" value="${key!''}" name="key" placeholder="${_res.searchTip}" autocomplete="off"/>
+        <button type="submit">${_res.search}</button>
+    </form>
+    <a class="text-link" href="${baseUrl}">${_res.backHome}</a>
+</div>

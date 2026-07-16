@@ -1,0 +1,23 @@
+{
+  "dbConfig": {
+    "driverClass": "",
+    "jdbcUrl": "",
+    "user": "sa",
+    "password": "",
+    "dbType": "h2",
+    "dbHost": "localhost",
+    "dbPort": "0",
+    "dbName": "zrlog_blog_installed_default"
+  },
+  "configMsg": {
+    "title": "ZrLog",
+    "second_title": "\u7B80\u5355\u3001\u6613\u7528\u7684 Java \u535A\u5BA2\u7CFB\u7EDF",
+    "username": "admin",
+    "password": "123456",
+    "email": "admin@example.com",
+    "secretKey": "d35599f5-76c7-42ac-8c72-26bf7619ba13",
+    "installDate": "2026-07-15 10:00:00 +0800"
+  },
+  "appendWebsite": {},
+  "contextPath": ""
+}

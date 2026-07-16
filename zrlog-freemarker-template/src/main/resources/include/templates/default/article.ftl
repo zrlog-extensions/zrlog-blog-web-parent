@@ -1,36 +1,53 @@
-<article>
-    <h2 class="title">${log.title}</h2>
-    <div class="meta" style="padding-bottom: .5rem;border-top: none;padding-top: 0">
-        <div style="display:flex;justify-content: flex-start;gap: .4rem">
-            <span class="category">
-                <a href="${log.typeUrl}" rel="tag">${log.typeName}</a>
-            </span>
-            <span>/</span>
-            <span class="published">
-                ${log.releaseTime?split("T")[0]}
-            </span>
+<article class="article-detail">
+    <header class="article-header">
+        <div class="article-meta">
+            <a class="category-link" href="${log.typeUrl}" rel="tag">${log.typeName}</a>
+            <span aria-hidden="true">·</span>
+            <time datetime="${log.releaseTime}">${log.releaseTime?split("T")[0]}</time>
         </div>
-    </div>
-    <div class="markdown-body">
-        ${log.content!''}
-    </div>
-    <hr style="padding-top: 16px;"/>
-    <#if log.tags?has_content>
-        <div style="display: flex;gap: 8px;height: 60px;align-items: center">
-            <#list log.tags as tag>
-                <a href="${tag.url}"><span class="badge text-bg-primary" style="font-size: 14px">#${tag.name}</span></a>
-            </#list>
-        </div>
+        <h1>${log.title}</h1>
+    </header>
+
+    <#if log.tocHtml?has_content>
+        <details class="article-toc">
+            <summary>${_res.tableOfContents}</summary>
+            ${log.tocHtml}
+        </details>
     </#if>
-    <p>
-        ${_res.reprint!''}
-        <a title="${log.title}" href="${log.noSchemeUrl}" style="padding-left: 4px">
-            ${log.noSchemeUrl}
-        </a>
-    </p>
-    <div class="pager-nav">
-        <a title="${log.nextLog.title}" href="${log.nextLog.url}"><p>${_res.nextArticle}：${log.nextLog.title}</p></a>
-        <a title="${log.lastLog.title}" href="${log.lastLog.url}"><p>${_res.lastArticle}：${log.lastLog.title}</p></a>
-    </div>
-    ${_res.detailAd!''}
+
+    <div class="article-content markdown-body">${log.content!''}</div>
+
+    <#if log.tags?has_content>
+        <nav class="article-tags" aria-label="${_res.tag}">
+            <#list log.tags as tag>
+                <a href="${tag.url}">#${tag.name}</a>
+            </#list>
+        </nav>
+    </#if>
+
+    <aside class="reprint-note">
+        <p>${_res.reprint!''}</p>
+        <a title="${log.title}" href="${log.noSchemeUrl}">${log.noSchemeUrl}</a>
+    </aside>
+
+    <#assign hasLastLog = log.lastLog?? && log.lastLog.title?has_content && log.lastLog.url != log.url>
+    <#assign hasNextLog = log.nextLog?? && log.nextLog.title?has_content && log.nextLog.url != log.url>
+    <#if hasLastLog || hasNextLog>
+    <nav class="article-neighbors" aria-label="${_res.articleNavigation}">
+        <#if hasLastLog>
+            <a href="${log.lastLog.url}">
+                <span>${_res.lastArticle}</span>
+                <strong>${log.lastLog.title}</strong>
+            </a>
+        </#if>
+        <#if hasNextLog>
+            <a href="${log.nextLog.url}">
+                <span>${_res.nextArticle}</span>
+                <strong>${log.nextLog.title}</strong>
+            </a>
+        </#if>
+    </nav>
+    </#if>
+
+    <#if _res.detailAd?has_content><div class="detail-ad">${_res.detailAd}</div></#if>
 </article>

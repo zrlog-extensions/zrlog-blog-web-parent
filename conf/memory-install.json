@@ -1,0 +1,40 @@
+{
+  "dbConfig": {
+    "driverClass": "",
+    "jdbcUrl": "",
+    "user": "sa",
+    "password": "",
+    "dbType": "h2",
+    "dbHost": "localhost",
+    "dbPort": "0",
+    "dbName": "zrlog_blog_memory"
+  },
+  "configMsg": {
+    "title": "ZrLog",
+    "second_title": "简单、易用的 Java 博客系统",
+    "username": "admin",
+    "password": "123456",
+    "email": "admin@example.com",
+    "secretKey": "d35599f5-76c7-42ac-8c72-26bf7619ba13",
+    "installDate": "2026-07-15 10:00:00 +0800"
+  },
+  "appendWebsite": {
+    "host": "localhost:7080",
+    "keywords": "ZrLog,Java,博客",
+    "description": "简单、易用的 Java 博客系统",
+    "author": "ZrLog",
+    "language": "zh_CN",
+    "rows": "2",
+    "generator_html_status": "false",
+    "disable_comment_status": "false",
+    "article_thumbnail_status": "true",
+    "article_auto_digest_length": "200",
+    "session_timeout": "1440",
+    "cache_timeout_minutes": "5",
+    "system_notification": "",
+    "default_setting": "{}",
+    "webCm": "",
+    "icp": ""
+  },
+  "contextPath": ""
+}

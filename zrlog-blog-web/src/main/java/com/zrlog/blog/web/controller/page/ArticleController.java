@@ -3,7 +3,6 @@ package com.zrlog.blog.web.controller.page;
 import com.hibegin.common.dao.dto.PageData;
 import com.hibegin.common.dao.dto.PageRequest;
 import com.hibegin.common.dao.dto.PageRequestImpl;
-import com.hibegin.common.dao.dto.UnPageRequestImpl;
 import com.hibegin.common.util.LoggerUtil;
 import com.hibegin.common.util.StringUtils;
 import com.hibegin.http.HttpMethod;
@@ -55,9 +54,9 @@ public class ArticleController extends Controller {
     private void setPageDataInfo(String currentUri, PageData<ArticleBasicDTO> data, PageRequest pageRequest) {
         data.getRows().forEach(e -> ArticleService.handlerArticle(e, request));
         getRequest().getAttr().put("yurl", Constants.getArticleUri() + currentUri);
+        getRequest().getAttr().put("data", data);
         long totalPage = BigDecimal.valueOf(Math.ceil(data.getTotalElements() * 1.0 / pageRequest.getSize())).longValue();
         if (totalPage > 0) {
-            getRequest().getAttr().put("data", data);
             //大于1页
             if (totalPage > 1) {
                 PagerVO pager = PagerUtil.generatorPager(currentUri, pageRequest.getPage(), totalPage);
@@ -197,27 +196,35 @@ public class ArticleController extends Controller {
 
     @RequestMethod
     public String tags() {
-        Long rows = cacheService.getPublicWebSiteInfo().getRows();
-        setPageDataInfo("tags", new PageData<>(), new PageRequestImpl(1L, rows));
-        return "tags";
+        return aggregatePage("tags", "tag");
     }
 
     @RequestMethod
     public String link() {
-        return "link";
+        return links();
     }
 
     @RequestMethod
     public String links() {
-        return "links";
+        return aggregatePage("links", "link");
     }
 
     @RequestMethod
     public String archives() {
-        PageRequest pageRequest = new UnPageRequestImpl(1L);
-        PageData<ArticleBasicDTO> data = new Log().visitorFind(pageRequest, null);
-        setPageDataInfo("archives-", data, pageRequest);
-        return "archives";
+        return aggregatePage("archives", "archive");
+    }
+
+    @RequestMethod
+    public String categories() {
+        return aggregatePage("categories", "category");
+    }
+
+    private String aggregatePage(String templateName, String i18nKey) {
+        request.getAttr().put("tipsType", I18nUtil.getBlogStringFromRes(i18nKey));
+        request.getAttr().put("tipsName", "");
+        Long rows = cacheService.getPublicWebSiteInfo().getRows();
+        setPageDataInfo(templateName, new PageData<>(), new PageRequestImpl(1L, rows));
+        return templateName;
     }
 
 }

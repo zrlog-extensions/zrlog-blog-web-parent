@@ -1,3 +1,5 @@
 <#include "header.ftl">
-<plugin name="${arrangePlugin}" view="${reqUriPath}" param="${reqQueryString}"/>
+<section class="content-column content-column-wide">
+    <plugin name="${arrangePlugin}" view="${reqUriPath}" param="${reqQueryString}"/>
+</section>
 <#include "footer.ftl">
