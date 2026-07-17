@@ -427,6 +427,7 @@ html.theme-changing *::after {
 
 .post-card,
 .article-detail,
+.comment-shell,
 .widget,
 .search-form,
 .empty-state {
@@ -846,6 +847,7 @@ html.theme-changing *::after {
 
 .comment-shell {
     margin-top: 1.25rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
 }
 
 .detail-ad {
