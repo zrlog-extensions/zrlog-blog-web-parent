@@ -11,7 +11,9 @@ import org.junit.Test;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -24,19 +26,25 @@ public class ArticleControllerDatabaseTest {
     public void shouldRenderIndexPageFromInMemoryDatabase() throws Exception {
         try (InMemoryBlogDatabase database = InMemoryBlogDatabase.open()) {
             seedArticles(database);
-            Map<String, Object> attrs = new HashMap<>();
+            database.update("update log set sticky=? where logId=?", 2, 1);
+            database.update("update log set sticky=? where logId=?", 1, 4);
+            Map<String, Object> firstPageAttrs = new HashMap<>();
 
-            String view = new ArticleController(request("/all-1.html", HttpMethod.GET, "", attrs), null).index();
+            String view = new ArticleController(request("/all-1.html", HttpMethod.GET, "", firstPageAttrs), null).index();
+            Map<String, Object> secondPageAttrs = new HashMap<>();
+            new ArticleController(request("/all-2.html", HttpMethod.GET, "", secondPageAttrs), null).index();
 
             assertEquals("index", view);
-            assertEquals("all-", attrs.get("yurl"));
-            PageData<ArticleBasicDTO> data = pageData(attrs);
-            assertEquals(3L, data.getTotalElements());
-            assertEquals(2, data.getRows().size());
-            assertEquals("last-public", data.getRows().get(0).getAlias());
-            assertEquals("/blog/last-public", data.getRows().get(0).getUrl());
-            assertEquals("java-post", data.getRows().get(1).getAlias());
-            assertNotNull(attrs.get("pager"));
+            assertEquals("all-", firstPageAttrs.get("yurl"));
+            PageData<ArticleBasicDTO> firstPage = pageData(firstPageAttrs);
+            PageData<ArticleBasicDTO> secondPage = pageData(secondPageAttrs);
+            assertEquals(3L, firstPage.getTotalElements());
+            assertEquals(3L, secondPage.getTotalElements());
+            assertEquals(List.of("hello-world", "java-post"), aliases(firstPage));
+            assertEquals(List.of("last-public"), aliases(secondPage));
+            assertEquals("/blog/hello-world", firstPage.getRows().get(0).getUrl());
+            assertTrue(Collections.disjoint(logIds(firstPage), logIds(secondPage)));
+            assertNotNull(firstPageAttrs.get("pager"));
         }
     }
 
@@ -63,12 +71,14 @@ public class ArticleControllerDatabaseTest {
     public void shouldRenderCategoryTagAndRecordPagesFromRealDao() throws Exception {
         try (InMemoryBlogDatabase database = InMemoryBlogDatabase.open()) {
             seedArticles(database);
+            database.update("update log set sticky=? where logId=?", 10, 1);
 
             Map<String, Object> sortAttrs = new HashMap<>();
             assertEquals("page", new ArticleController(request("/sort/default-1.html", HttpMethod.GET, "",
                     sortAttrs), null).sort());
             assertEquals("Default", sortAttrs.get("tipsName"));
             assertEquals(3L, pageData(sortAttrs).getTotalElements());
+            assertEquals(List.of("last-public", "java-post"), aliases(pageData(sortAttrs)));
 
             Map<String, Object> tagAttrs = new HashMap<>();
             assertEquals("page", new ArticleController(request("/tag/java.html", HttpMethod.GET, "", tagAttrs),
@@ -103,6 +113,14 @@ public class ArticleControllerDatabaseTest {
     @SuppressWarnings("unchecked")
     private static PageData<ArticleBasicDTO> pageData(Map<String, Object> attrs) {
         return (PageData<ArticleBasicDTO>) attrs.get("data");
+    }
+
+    private static List<String> aliases(PageData<ArticleBasicDTO> data) {
+        return data.getRows().stream().map(ArticleBasicDTO::getAlias).collect(Collectors.toList());
+    }
+
+    private static List<Long> logIds(PageData<ArticleBasicDTO> data) {
+        return data.getRows().stream().map(ArticleBasicDTO::getLogId).collect(Collectors.toList());
     }
 
     private static void seedArticles(InMemoryBlogDatabase database) throws Exception {

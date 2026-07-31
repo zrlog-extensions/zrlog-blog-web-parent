@@ -8,6 +8,7 @@ import com.hibegin.http.server.api.HttpRequest;
 import com.hibegin.http.server.web.Controller;
 import com.zrlog.blog.business.rest.response.ApiStandardResponse;
 import com.zrlog.blog.business.service.ArticleService;
+import com.zrlog.blog.business.service.ArticleService.ArticleListOrder;
 import com.zrlog.blog.web.controller.api.BlogApiArticleController;
 import com.zrlog.blog.web.controller.api.BlogApiCacheController;
 import com.zrlog.blog.web.controller.api.BlogApiPublicController;
@@ -140,6 +141,19 @@ public class BlogApiControllerContractTest {
         assertSame(request, articleService.lastPageRequestHttpRequest);
         assertEquals(Long.valueOf(2L), articleService.lastPageRequest.getPage());
         assertEquals(Long.valueOf(5L), articleService.lastPageRequest.getSize());
+        assertEquals(ArticleListOrder.STICKY_FIRST, articleService.lastListOrder);
+    }
+
+    @Test
+    public void shouldRequestNewestFirstArticlePageForFeed() throws Exception {
+        BlogApiArticleController controller = new BlogApiArticleController();
+        FakeArticleService articleService = new FakeArticleService();
+        setArticleService(controller, articleService);
+        setControllerRequest(controller, request(Map.of("feed", "true")));
+
+        controller.index();
+
+        assertEquals(ArticleListOrder.NEWEST_FIRST, articleService.lastListOrder);
     }
 
     @Test
@@ -227,6 +241,13 @@ public class BlogApiControllerContractTest {
                             return args.length > 1 ? args[1] : null;
                         }
                         return Integer.parseInt(value);
+                    }
+                    if ("getParaToBool".equals(method.getName())) {
+                        String value = params.get(args[0].toString());
+                        if (value == null) {
+                            return args.length > 1 ? args[1] : false;
+                        }
+                        return Boolean.parseBoolean(value);
                     }
                     if ("toString".equals(method.getName())) {
                         return "HttpRequestProxy";
@@ -385,6 +406,7 @@ public class BlogApiControllerContractTest {
         private PageRequest lastPageRequest;
         private String lastKeywords;
         private HttpRequest lastPageRequestHttpRequest;
+        private ArticleListOrder lastListOrder;
 
         @Override
         public ArticleDetailDTO detail(Object idOrAlias, HttpRequest request) throws SQLException {
@@ -395,10 +417,11 @@ public class BlogApiControllerContractTest {
 
         @Override
         public PageData<ArticleBasicDTO> pageByKeywords(PageRequest pageRequest, String keywords,
-                                                        HttpRequest request) {
+                                                        HttpRequest request, ArticleListOrder listOrder) {
             lastPageRequest = pageRequest;
             lastKeywords = keywords;
             lastPageRequestHttpRequest = request;
+            lastListOrder = listOrder;
             return pageData;
         }
     }

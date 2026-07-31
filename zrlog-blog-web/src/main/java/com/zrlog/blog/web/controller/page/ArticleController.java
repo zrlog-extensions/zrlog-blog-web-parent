@@ -76,7 +76,7 @@ public class ArticleController extends Controller {
     @RequestMethod
     public String index() {
         PageRequest pageRequest = new PageRequestImpl(parseUriInfo(request.getUri()).getPage(), cacheService.getPublicWebSiteInfo().getRows());
-        PageData<ArticleBasicDTO> data = new Log().visitorFind(pageRequest, null);
+        PageData<ArticleBasicDTO> data = new Log().visitorFindHome(pageRequest);
         setPageDataInfo("all-", data, pageRequest);
         return "index";
     }

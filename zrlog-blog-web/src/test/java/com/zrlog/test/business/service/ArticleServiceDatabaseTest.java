@@ -4,6 +4,7 @@ import com.hibegin.common.dao.dto.PageData;
 import com.hibegin.common.dao.dto.PageRequestImpl;
 import com.hibegin.http.server.api.HttpRequest;
 import com.zrlog.blog.business.service.ArticleService;
+import com.zrlog.blog.business.service.ArticleService.ArticleListOrder;
 import com.zrlog.data.dto.ArticleBasicDTO;
 import com.zrlog.data.dto.ArticleDetailDTO;
 import com.zrlog.test.support.InMemoryBlogDatabase;
@@ -63,7 +64,8 @@ public class ArticleServiceDatabaseTest {
                     "2026-06-03 10:00:00", false, false);
 
             PageData<ArticleBasicDTO> data = new ArticleService()
-                    .pageByKeywords(new PageRequestImpl(1L, 10L), "Java", request("/blog"));
+                    .pageByKeywords(new PageRequestImpl(1L, 10L), "Java", request("/blog"),
+                            ArticleListOrder.STICKY_FIRST);
 
             assertEquals(1L, data.getTotalElements());
             assertEquals("Java", data.getKey());
@@ -74,6 +76,35 @@ public class ArticleServiceDatabaseTest {
             assertEquals("/blog/java-post", row.getUrl());
             assertEquals("/blog/sort/default", row.getTypeUrl());
             assertEquals("java", row.getTags().get(0).getName());
+        }
+    }
+
+    @Test
+    public void shouldUseStickyOrderOnlyForHomeArticlePages() throws Exception {
+        try (InMemoryBlogDatabase database = InMemoryBlogDatabase.open()) {
+            database.insertArticle(1, "java-old", "Java Old", "Java old content", "java",
+                    "2026-06-01 10:00:00", false, false);
+            database.insertArticle(2, "java-new", "Java New", "Java new content", "java",
+                    "2026-06-02 10:00:00", false, false);
+            database.insertArticle(3, "other-post", "Other Post", "Other content", "other",
+                    "2026-06-03 10:00:00", false, false);
+            database.update("update log set sticky=? where logId=?", 1, 1);
+            ArticleService service = new ArticleService();
+
+            PageData<ArticleBasicDTO> home = service.pageByKeywords(
+                    new PageRequestImpl(1L, 10L), "", request("/blog"), ArticleListOrder.STICKY_FIRST);
+            PageData<ArticleBasicDTO> feed = service.pageByKeywords(
+                    new PageRequestImpl(1L, 10L), "", request("/blog"), ArticleListOrder.NEWEST_FIRST);
+            PageData<ArticleBasicDTO> search = service.pageByKeywords(
+                    new PageRequestImpl(1L, 10L), "Java", request("/blog"), ArticleListOrder.STICKY_FIRST);
+
+            assertEquals(3L, home.getTotalElements());
+            assertEquals("java-old", home.getRows().get(0).getAlias());
+            assertEquals(3L, feed.getTotalElements());
+            assertEquals("other-post", feed.getRows().get(0).getAlias());
+            assertEquals(2L, search.getTotalElements());
+            assertEquals("Java", search.getKey());
+            assertEquals("java-new", search.getRows().get(0).getAlias());
         }
     }
 

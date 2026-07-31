@@ -20,6 +20,10 @@
                 <path d="M4 4h6.8a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.8l-4.8 4.8a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 4 10.8Z"/>
                 <circle cx="8" cy="8" r="1.25"/>
                 <#break>
+            <#case "pin">
+                <path d="M6 3h12l-2 7 3 3v4H5v-4l3-3Z"/>
+                <path d="M12 17v5"/>
+                <#break>
         </#switch>
     </svg>
 </#macro>

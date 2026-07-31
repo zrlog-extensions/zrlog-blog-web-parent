@@ -44,6 +44,15 @@ public class BlogApiArticleControllerDatabaseTest {
             assertEquals("java-post", page.getData().getRows().get(0).getAlias());
             assertFalse(page.getData().getRows().get(0).getTags().isEmpty());
 
+            database.update("update log set sticky=? where logId=?", 1, 1);
+            setControllerRequest(controller, request(Map.of("page", "1", "size", "10")));
+            ApiStandardResponse<PageData<ArticleBasicDTO>> homePage = controller.index();
+            setControllerRequest(controller, request(Map.of("feed", "true", "page", "1", "size", "10")));
+            ApiStandardResponse<PageData<ArticleBasicDTO>> feedPage = controller.index();
+
+            assertEquals("previous-post", homePage.getData().getRows().get(0).getAlias());
+            assertEquals("java-post", feedPage.getData().getRows().get(0).getAlias());
+
             setControllerRequest(controller, request(Map.of("id", "2")));
             ApiStandardResponse<List<VisitorCommentDTO>> comments = controller.comment();
 
@@ -101,6 +110,13 @@ public class BlogApiArticleControllerDatabaseTest {
                             return args.length > 1 ? args[1] : null;
                         }
                         return Integer.parseInt(value);
+                    }
+                    if ("getParaToBool".equals(method.getName())) {
+                        String value = params.get(args[0].toString());
+                        if (value == null) {
+                            return args.length > 1 ? args[1] : false;
+                        }
+                        return Boolean.parseBoolean(value);
                     }
                     if ("toString".equals(method.getName())) {
                         return "HttpRequestProxy";

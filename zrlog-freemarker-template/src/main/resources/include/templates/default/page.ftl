@@ -22,6 +22,12 @@
                     </#if>
                     <div class="post-card-body">
                         <div class="post-card-meta">
+                            <#if zrlogHomeIndex?? && zrlogHomeIndex && log.sticky?? && log.sticky gt 0>
+                                <span class="post-card-pinned">
+                                    <@themeIcon name="pin" className="post-card-pinned-icon"/>
+                                    <span>${_res.pinned}</span>
+                                </span>
+                            </#if>
                             <a class="category-link" href="${log.typeUrl}">${log.typeName}</a>
                             <span aria-hidden="true">·</span>
                             <time datetime="${log.releaseTime}">${log.releaseTime?split("T")[0]}</time>

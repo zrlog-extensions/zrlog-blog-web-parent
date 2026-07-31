@@ -34,6 +34,11 @@ import java.util.Objects;
 
 public class ArticleService {
 
+    public enum ArticleListOrder {
+        STICKY_FIRST,
+        NEWEST_FIRST
+    }
+
     private static List<ArticleDetailDTO.TagsDTO> getTags(ArticleBasicDTO log, HttpRequest request) {
         String keywords = ObjectHelpers.requireNonNullElse(log.getKeywords(), "");
         List<ArticleDetailDTO.TagsDTO> tags = new ArrayList<>();
@@ -171,8 +176,13 @@ public class ArticleService {
         return null;
     }
 
-    public PageData<ArticleBasicDTO> pageByKeywords(PageRequest pageRequest, String keywords, HttpRequest request) {
-        PageData<ArticleBasicDTO> data = new Log().visitorFind(pageRequest, keywords);
+    public PageData<ArticleBasicDTO> pageByKeywords(PageRequest pageRequest, String keywords, HttpRequest request,
+                                                     ArticleListOrder listOrder) {
+        Log log = new Log();
+        PageData<ArticleBasicDTO> data = StringUtils.isEmpty(keywords)
+                && listOrder == ArticleListOrder.STICKY_FIRST
+                ? log.visitorFindHome(pageRequest)
+                : log.visitorFind(pageRequest, keywords);
         ArticleHelpers.wrapperSearchKeyword(data, keywords);
         data.setKey(keywords);
         data.getRows().forEach(e -> handlerArticle(e, request));

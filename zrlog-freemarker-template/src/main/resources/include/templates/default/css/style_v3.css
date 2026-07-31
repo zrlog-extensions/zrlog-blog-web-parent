@@ -487,6 +487,27 @@ html.theme-changing *::after {
     text-decoration: none;
 }
 
+.post-card-pinned {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: .25rem;
+    padding: .08rem .38rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.post-card-pinned-icon {
+    width: .82rem;
+    height: .82rem;
+}
+
 .post-card h2 {
     margin: .55rem 0 .5rem;
     font-size: clamp(1.3rem, 3vw, 1.75rem);

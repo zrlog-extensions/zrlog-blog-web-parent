@@ -146,6 +146,27 @@ public class ZrLogTemplateRenderTest {
         });
     }
 
+    @Test
+    public void shouldShowPinnedMarkerOnlyOnDefaultTemplateHomePage() throws Exception {
+        withConfig(false, () -> {
+            PageData<ArticleBasicDTO> data = previewPageData();
+            data.getRows().get(0).setSticky(1);
+            Map<String, Object> homeAttrs = new HashMap<>();
+            homeAttrs.put("data", data);
+            String homeHtml = new ZrLogTemplateRender(
+                    templateRequest("/all-1", null, homeAttrs)).renderByTemplateName("index");
+            Map<String, Object> searchAttrs = new HashMap<>();
+            searchAttrs.put("data", data);
+            searchAttrs.put("tipsType", "Search");
+            searchAttrs.put("tipsName", "Pinned");
+            String searchHtml = new ZrLogTemplateRender(
+                    templateRequest("/search/Pinned-1", null, searchAttrs)).renderByTemplateName("page");
+
+            assertTrue(homeHtml.contains("class=\"post-card-pinned\""));
+            assertFalse(searchHtml.contains("class=\"post-card-pinned\""));
+        });
+    }
+
     private void withConfig(boolean generatorHtmlStatus, ThrowingRunnable runnable) throws Exception {
         withConfig(generatorHtmlStatus, null, runnable);
     }

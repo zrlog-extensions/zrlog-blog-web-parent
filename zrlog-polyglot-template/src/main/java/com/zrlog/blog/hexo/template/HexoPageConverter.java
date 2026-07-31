@@ -111,6 +111,8 @@ public class HexoPageConverter {
                 for (ArticleBasicDTO articleBasicDTO : rows) {
                     Map<String, Object> row = new HashMap<>();
                     row.put("title", articleBasicDTO.getTitle());
+                    Number sticky = articleBasicDTO.getSticky();
+                    row.put("sticky", Objects.nonNull(sticky) ? sticky : 0);
                     List<Map<String, Object>> categories = new ArrayList<>();
                     Map<String, Object> cat = new HashMap<>();
                     cat.put("_id", articleBasicDTO.getTypeId());
