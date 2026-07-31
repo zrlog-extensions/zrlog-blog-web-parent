@@ -99,6 +99,7 @@ public class InMemoryBlogDatabase implements AutoCloseable {
                 throw new IllegalStateException("Missing init-table-structure.sql from zrlog-install-web test dependency");
             }
             database.loadMySQLSchema(input);
+            dataSource.getQueryRunner().update("alter table log add column if not exists sticky integer not null default 0");
         }
     }
 
