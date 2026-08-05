@@ -176,6 +176,10 @@ public class ArticleService {
         return null;
     }
 
+    public PageData<ArticleBasicDTO> pageByKeywords(PageRequest pageRequest, String keywords, HttpRequest request) {
+        return pageByKeywords(pageRequest, keywords, request, ArticleListOrder.NEWEST_FIRST);
+    }
+
     public PageData<ArticleBasicDTO> pageByKeywords(PageRequest pageRequest, String keywords, HttpRequest request,
                                                      ArticleListOrder listOrder) {
         Log log = new Log();

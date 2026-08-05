@@ -95,6 +95,8 @@ public class ArticleServiceDatabaseTest {
                     new PageRequestImpl(1L, 10L), "", request("/blog"), ArticleListOrder.STICKY_FIRST);
             PageData<ArticleBasicDTO> feed = service.pageByKeywords(
                     new PageRequestImpl(1L, 10L), "", request("/blog"), ArticleListOrder.NEWEST_FIRST);
+            PageData<ArticleBasicDTO> legacy = service.pageByKeywords(
+                    new PageRequestImpl(1L, 10L), "", request("/blog"));
             PageData<ArticleBasicDTO> search = service.pageByKeywords(
                     new PageRequestImpl(1L, 10L), "Java", request("/blog"), ArticleListOrder.STICKY_FIRST);
 
@@ -102,6 +104,8 @@ public class ArticleServiceDatabaseTest {
             assertEquals("java-old", home.getRows().get(0).getAlias());
             assertEquals(3L, feed.getTotalElements());
             assertEquals("other-post", feed.getRows().get(0).getAlias());
+            assertEquals(3L, legacy.getTotalElements());
+            assertEquals("other-post", legacy.getRows().get(0).getAlias());
             assertEquals(2L, search.getTotalElements());
             assertEquals("Java", search.getKey());
             assertEquals("java-new", search.getRows().get(0).getAlias());
