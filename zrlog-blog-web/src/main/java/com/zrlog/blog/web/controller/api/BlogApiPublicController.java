@@ -1,5 +1,6 @@
 package com.zrlog.blog.web.controller.api;
 
+import com.hibegin.http.HttpMethod;
 import com.hibegin.http.annotation.RequestMethod;
 import com.hibegin.http.annotation.ResponseBody;
 import com.hibegin.http.server.web.Controller;
@@ -22,7 +23,7 @@ public class BlogApiPublicController extends Controller {
     }
 
     @ResponseBody
-    @RequestMethod
+    @RequestMethod(method = HttpMethod.GET)
     public ApiStandardResponse<Map<String, Object>> blogResource() {
         return new ApiStandardResponse<>(_blogResourceInfo());
     }

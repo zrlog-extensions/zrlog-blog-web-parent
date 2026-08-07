@@ -1,5 +1,6 @@
 package com.zrlog.blog.web.controller.api;
 
+import com.hibegin.http.HttpMethod;
 import com.hibegin.http.annotation.RequestMethod;
 import com.hibegin.http.annotation.ResponseBody;
 import com.hibegin.http.server.web.Controller;
@@ -10,7 +11,7 @@ import com.zrlog.common.cache.vo.BaseDataInitVO;
 public class BlogApiCacheController extends Controller {
 
     @ResponseBody
-    @RequestMethod
+    @RequestMethod(method = HttpMethod.GET)
     public ApiStandardResponse<BaseDataInitVO> index() {
         return new ApiStandardResponse<>(Constants.zrLogConfig.getCacheService().getInitData());
     }

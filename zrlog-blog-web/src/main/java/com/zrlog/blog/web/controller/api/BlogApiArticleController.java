@@ -1,6 +1,7 @@
 package com.zrlog.blog.web.controller.api;
 
 import com.hibegin.common.dao.dto.PageData;
+import com.hibegin.http.HttpMethod;
 import com.hibegin.http.annotation.RequestMethod;
 import com.hibegin.http.annotation.ResponseBody;
 import com.hibegin.http.server.web.Controller;
@@ -21,13 +22,13 @@ public class BlogApiArticleController extends Controller {
     private final ArticleService articleService = new ArticleService();
 
     @ResponseBody
-    @RequestMethod
+    @RequestMethod(method = HttpMethod.GET)
     public ApiStandardResponse<ArticleDetailDTO> detail() throws SQLException {
         return new ApiStandardResponse<>(articleService.detail(request.getParaToStr("id", ""), request));
     }
 
     @ResponseBody
-    @RequestMethod
+    @RequestMethod(method = HttpMethod.GET)
     public ApiStandardResponse<PageData<ArticleBasicDTO>> index() {
         String key = getRequest().getParaToStr("key", "");
         ArticleListOrder listOrder = getRequest().getParaToBool("feed", false)
@@ -38,7 +39,7 @@ public class BlogApiArticleController extends Controller {
     }
 
     @ResponseBody
-    @RequestMethod
+    @RequestMethod(method = HttpMethod.GET)
     public ApiStandardResponse<List<VisitorCommentDTO>> comment() throws SQLException {
         return new ApiStandardResponse<>(new Comment().visitorFindAllByLogId(Integer.parseInt(request.getParaToStr("id", ""))));
     }

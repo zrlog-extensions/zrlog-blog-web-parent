@@ -1,5 +1,7 @@
 # zrlog-blog-web
 
+公开博客 API 的权威契约见 [docs/api/README.md](docs/api/README.md)。人类可浏览页面由 `zrlog-www` 聚合提供，接口定义仍归本仓库所有。
+
 `zrlog-blog-web` 是 ZrLog 的博客前台渲染工程，负责文章列表、文章详情、评论、归档、标签、分类、搜索、RSS、模板渲染和主题资源。
 
 面向 AI Agent 的开发约束和主题维护规范放在 [AGENTS.md](AGENTS.md)。
