@@ -4,6 +4,7 @@ import com.zrlog.blog.hexo.template.InjectionStorage;
 import com.zrlog.blog.hexo.template.JsMapAdapter;
 import com.zrlog.blog.hexo.template.util.HexoDateObjUtils;
 import com.zrlog.blog.polyglot.njk.NativeJavaLoader;
+import com.zrlog.blog.polyglot.markdown.MarkdownJsRenderer;
 import com.zrlog.blog.polyglot.resource.ScriptProvider;
 import com.zrlog.common.Constants;
 import com.hibegin.common.util.LoggerUtil;
@@ -68,6 +69,11 @@ public class PolyglotNativeImageUtils {
             LOGGER.info("Polyglot native image metadata warmup finished");
         } catch (Throwable e) {
             logNativeWarmupFailure("PolyglotContext", e);
+        }
+        try {
+            new MarkdownJsRenderer().render("# Native Markdown");
+        } catch (Throwable e) {
+            logNativeWarmupFailure("MarkdownJsRenderer", e);
         }
     }
 
