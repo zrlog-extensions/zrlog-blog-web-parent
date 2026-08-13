@@ -6,7 +6,7 @@
             </header>
 
             <div class="space-y-4">
-                <p class="text-gray-600 dark:text-gray-400">抱歉，没有符合您搜索条件的结果。请换其它关键词再试。</p>
+                <p class="text-gray-600 dark:text-gray-400">${_res.notFoundDescription}</p>
 
                 <form method="post" action="${searchUrl}" class="flex flex-col sm:flex-row items-center gap-3 justify-center">
                     <input

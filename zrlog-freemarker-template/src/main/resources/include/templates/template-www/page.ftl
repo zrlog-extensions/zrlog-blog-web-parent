@@ -7,8 +7,8 @@
                 <#if data?has_content>
                     <#if tipsType?has_content>
                         <div class="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg p-5">
-                            <h3 class="text-xl sm:text-2xl dark:text-gray-200 font-semibold text-gray-800 mb-2">${tipsType}目录：${tipsName}</h3>
-                            <p class="text-gray-600 dark:text-gray-200 text-base">以下是与 ${tipsType} “${tipsName}” 相关联的文章</p>
+                            <h3 class="text-xl sm:text-2xl dark:text-gray-200 font-semibold text-gray-800 mb-2">${tipsType}${_res.directorySuffix}${_res.labelSeparator}${tipsName}</h3>
+                            <p class="text-gray-600 dark:text-gray-200 text-base">${_res.relatedArticlesPrefix}${tipsType} “${tipsName}”${_res.relatedArticlesSuffix}</p>
                         </div>
                     </#if>
 
@@ -54,16 +54,16 @@
                                     <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800 mt-auto">
                                         <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                                             <span class="flex items-center gap-1.5">
-                                                <i class="ri-eye-line"></i> ${log.click} 阅读
+                                                <i class="ri-eye-line"></i> ${log.click} ${_res.views}
                                             </span>
                                             <#if log.canComment>
                                                 <a href="${log.url}#comment" class="flex items-center gap-1.5 hover:text-blue-600 transition-colors group/comment">
-                                                    <i class="ri-chat-1-line group-hover/comment:text-blue-600 transition-colors"></i> ${log.commentSize} 评论
+                                                    <i class="ri-chat-1-line group-hover/comment:text-blue-600 transition-colors"></i> ${log.commentSize} ${_res.commentCount}
                                                 </a>
                                             </#if>
                                         </div>
                                         <a href="${log.url}" class="text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline flex items-center gap-1 group/link">
-                                            阅读全文 <i class="ri-arrow-right-line transition-transform group-hover/link:translate-x-1"></i>
+                                            ${_res.readMore} <i class="ri-arrow-right-line transition-transform group-hover/link:translate-x-1"></i>
                                         </a>
                                     </div>
                                 </div>
