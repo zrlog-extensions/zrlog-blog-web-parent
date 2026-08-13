@@ -16,7 +16,7 @@
         <span class="text-gray-200 dark:text-gray-700">|</span>
         <span class="flex items-center gap-2">
             <i class="ri-eye-line text-lg text-gray-400"></i>
-            ${log.click} 阅读
+            ${log.click} ${_res.views}
         </span>
     </div>
 
@@ -39,7 +39,6 @@
     </#if>
 
     <!-- 转载说明 -->
-    <!-- 转载说明 -->
     <div class="bg-gray-50 dark:bg-gray-950 rounded-lg p-5 mb-8 text-sm text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800 relative overflow-hidden group">
         <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <i class="ri-copyright-line text-6xl text-gray-400"></i>
@@ -50,7 +49,7 @@
                 <span class="text-gray-600 dark:text-gray-400">${website.title}</span>
             </div>
             <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-                <span class="font-medium text-gray-700 dark:text-gray-300 min-w-[4em]">${log.title}:</span>
+                <span class="font-medium text-gray-700 dark:text-gray-300 min-w-[4em]">${_res.originalLink}${_res.labelSeparator}</span>
                 <a class="text-blue-600 hover:underline break-all" title="${log.title}" href="${log.noSchemeUrl}">
                     ${log.noSchemeUrl}
                 </a>
@@ -71,7 +70,7 @@
             </a>
         <#else>
              <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 text-gray-400 text-sm">
-                 ${_res.lastArticle}：没有了
+                 ${_res.lastArticle}${_res.labelSeparator}${_res.noMoreArticles}
              </div>
         </#if>
         
@@ -86,7 +85,7 @@
             </a>
         <#else>
             <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 text-gray-400 text-sm text-right">
-                ${_res.nextArticle}：没有了
+                ${_res.nextArticle}${_res.labelSeparator}${_res.noMoreArticles}
             </div>
         </#if>
     </div>

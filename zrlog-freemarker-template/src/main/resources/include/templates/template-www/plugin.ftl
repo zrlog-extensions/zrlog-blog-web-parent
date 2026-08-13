@@ -78,7 +78,7 @@
                             </ul>
                             <div id="archive-more-btn-container" class="hidden mt-2">
                                 <button id="archive-more-btn" class="w-full text-xs text-center text-gray-400 hover:text-blue-600 transition-colors py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-950 cursor-pointer">
-                                    ${_res['more']!'更多...'}
+                                    ${_res.more}
                                 </button>
                             </div>
                             <script>
@@ -105,14 +105,14 @@
                                                 for (let i = limit; i < items.length; i++) {
                                                     items[i].classList.add('hidden');
                                                 }
-                                                btn.innerText = '${_res['more']!'更多...'}';
+                                                btn.innerText = '${_res.more}';
                                                 btn.setAttribute('data-expanded', 'false');
                                             } else {
                                                 // Expand
                                                 for (let i = limit; i < items.length; i++) {
                                                     items[i].classList.remove('hidden');
                                                 }
-                                                btn.innerText = '${_res['packUp']!'收起'}';
+                                                btn.innerText = '${_res.packUp}';
                                                 btn.setAttribute('data-expanded', 'true');
                                             }
                                         });
