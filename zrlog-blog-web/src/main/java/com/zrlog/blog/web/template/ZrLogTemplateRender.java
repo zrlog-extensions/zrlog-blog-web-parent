@@ -23,7 +23,9 @@ import com.zrlog.plugin.BaseStaticSitePlugin;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 public class ZrLogTemplateRender implements TemplateRender {
@@ -39,7 +41,30 @@ public class ZrLogTemplateRender implements TemplateRender {
     public ZrLogTemplateRender(HttpRequest request) throws Exception {
         this.request = request;
         this.pageInfo = TemplateRenderUtils.fullTemplateInfo(request);
+        loadClasspathTemplateI18n(pageInfo);
         this.zrLogTemplate = setupTemplate();
+    }
+
+    private static void loadClasspathTemplateI18n(BasePageInfo pageInfo) throws Exception {
+        TemplateVO templateVO = TemplateInfoHelper.loadTemplateVO(pageInfo.getTemplate());
+        if (Objects.isNull(templateVO) || !templateVO.isClasspathTemplate()) {
+            return;
+        }
+        String resourcePath = pageInfo.getTemplate() + "/language/i18n_" + pageInfo.getLocal() + ".properties";
+        try (InputStream inputStream = ZrLogTemplateRender.class.getResourceAsStream(resourcePath)) {
+            if (Objects.isNull(inputStream)) {
+                return;
+            }
+            Properties properties = new Properties();
+            properties.load(inputStream);
+            Map<String, Object> resources = pageInfo.get_res();
+            if (Objects.isNull(resources)) {
+                return;
+            }
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                resources.put(entry.getKey().toString(), entry.getValue());
+            }
+        }
     }
 
     private ZrLogTemplate setupTemplate() throws Exception {

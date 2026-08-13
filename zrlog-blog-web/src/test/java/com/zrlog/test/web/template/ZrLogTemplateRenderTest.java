@@ -127,9 +127,17 @@ public class ZrLogTemplateRenderTest {
             assertTrue(html.contains("<nav"));
             assertTrue(html.contains("Template Preview"));
             assertTrue(html.contains("Default"));
+            assertTrue(html.contains("12 阅读"));
+            assertTrue(html.contains("阅读全文"));
             assertTrue(html.contains("flex items-stretch gap-2"));
             assertTrue(html.contains("min-w-0 h-11 flex-1"));
             assertTrue(html.contains("h-11 shrink-0 inline-flex"));
+
+            HttpRequest englishRequest = templateRequest("/index-en",
+                    Cookie.saxToCookie("template=" + Constants.TEMPLATE_BASE_PATH + "template-www"), attrs, "en-US");
+            String englishHtml = new ZrLogTemplateRender(englishRequest).renderByTemplateName("index");
+            assertTrue(englishHtml.contains("12 views"));
+            assertTrue(englishHtml.contains("Read more"));
         });
     }
 
@@ -225,6 +233,11 @@ public class ZrLogTemplateRenderTest {
     }
 
     private static HttpRequest templateRequest(String uri, Cookie[] cookies, Map<String, Object> attrs) {
+        return templateRequest(uri, cookies, attrs, null);
+    }
+
+    private static HttpRequest templateRequest(String uri, Cookie[] cookies, Map<String, Object> attrs,
+                                               String acceptLanguage) {
         RequestConfig requestConfig = new RequestConfig();
         ServerConfig serverConfig = new ServerConfig();
         return (HttpRequest) Proxy.newProxyInstance(
@@ -260,6 +273,9 @@ public class ZrLogTemplateRenderTest {
                     }
                     if ("getHeader".equals(method.getName()) && "Host".equals(args[0])) {
                         return "blog.example.com";
+                    }
+                    if ("getHeader".equals(method.getName()) && "Accept-Language".equals(args[0])) {
+                        return acceptLanguage;
                     }
                     if ("getHeaderMap".equals(method.getName())) {
                         return Collections.singletonMap("Host", "blog.example.com");
