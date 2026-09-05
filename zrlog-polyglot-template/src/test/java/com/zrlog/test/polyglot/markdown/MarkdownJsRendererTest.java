@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class MarkdownJsRendererTest {
@@ -29,6 +30,47 @@ public class MarkdownJsRendererTest {
     @Test
     public void shouldRenderNullMarkdownAsEmptyHtml() {
         assertEquals("", new MarkdownJsRenderer().render(null));
+    }
+
+    @Test
+    public void shouldRenderEditorCodeHighlightingAndCjkStrongBoundaries() {
+        String html = new MarkdownJsRenderer().render(
+                "\u4e2d**\u201c\u6587\u201d**\u5b57\n\n```javascript\nconst x = 1;\n```");
+
+        assertTrue(html.contains("<strong>\u201c\u6587\u201d</strong>"));
+        assertTrue(html.contains("code-block-wrapper"));
+        assertTrue(html.contains("hljs-keyword"));
+        assertFalse(html.contains("zrlog-cjk-strong"));
+    }
+
+    @Test
+    public void shouldRenderInlineDisplayAndFencedMathWithoutDom() {
+        MarkdownJsRenderer renderer = new MarkdownJsRenderer();
+
+        assertTrue(renderer.render("$x^2$").contains("katex-html"));
+        assertTrue(renderer.render("$$x^2$$").contains("katex-display"));
+        for (String language : new String[]{"math", "latex", "katex"}) {
+            String html = renderer.render("```" + language + "\nx^2\n```");
+            assertTrue(language, html.contains("katex-html"));
+            assertFalse(language, html.contains("data-code="));
+        }
+        assertTrue(renderer.render("```math\nx^{\n```").contains("katex-error"));
+    }
+
+    @Test
+    public void shouldKeepCodeLiteralAndRenderDiagramsAsEscapedCode() {
+        MarkdownJsRenderer renderer = new MarkdownJsRenderer();
+        String html = renderer.render("`$x^2$`\n\n```plaintext\n$x^2$\n```");
+
+        assertTrue(html.contains("<code>$x^2$</code>"));
+        assertFalse(html.contains("katex"));
+        for (String language : new String[]{"flow", "seq"}) {
+            String diagram = renderer.render("```" + language + "\nA->B: <script>alert(1)</script>\n```");
+            assertTrue(diagram.contains("language-" + language));
+            assertTrue(diagram.contains("&lt;script&gt;"));
+            assertFalse(diagram.contains("<script>"));
+            assertFalse(diagram.contains("class=\"" + language + "\""));
+        }
     }
 
     @Test
