@@ -15,14 +15,13 @@ import java.nio.charset.StandardCharsets;
 public class MarkdownJsRenderer {
 
     public static final String MARKED_VERSION = "16.0.0";
+    public static final String EDITOR_VERSION = "2.1.32";
 
-    private static final String MARKED_RESOURCE = "/conf/base/scripts/marked.umd.js";
+    private static final String RENDERER_RESOURCE = "/conf/base/scripts/zrlog-markdown-v" + EDITOR_VERSION + ".min.js";
     private static final Engine ENGINE = Engine.newBuilder()
             .option("engine.WarnInterpreterOnly", "false")
             .build();
-    private static final Source MARKED_SOURCE = loadMarkedSource();
-    private static final Source RENDER_SOURCE = Source.create("js",
-            "markdown => globalThis.marked.parse(markdown, {gfm: true, breaks: true})");
+    private static final Source RENDERER_SOURCE = loadRendererSource();
 
     /**
      * @param markdown Markdown source
@@ -30,8 +29,8 @@ public class MarkdownJsRenderer {
      */
     public String render(String markdown) {
         try (Context context = buildContext()) {
-            context.eval(MARKED_SOURCE);
-            Value render = context.eval(RENDER_SOURCE);
+            context.eval(RENDERER_SOURCE);
+            Value render = context.getBindings("js").getMember("ZrLogMarkdown").getMember("markdownToHtml");
             return render.execute(markdown == null ? "" : markdown).asString();
         }
     }
@@ -48,15 +47,15 @@ public class MarkdownJsRenderer {
                 .build();
     }
 
-    private static Source loadMarkedSource() {
-        try (InputStream inputStream = MarkdownJsRenderer.class.getResourceAsStream(MARKED_RESOURCE)) {
+    private static Source loadRendererSource() {
+        try (InputStream inputStream = MarkdownJsRenderer.class.getResourceAsStream(RENDERER_RESOURCE)) {
             if (inputStream == null) {
-                throw new IllegalStateException("Missing bundled marked script: " + MARKED_RESOURCE);
+                throw new IllegalStateException("Missing bundled editor Markdown script: " + RENDERER_RESOURCE);
             }
             String script = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            return Source.newBuilder("js", script, "marked-" + MARKED_VERSION + ".umd.js").buildLiteral();
+            return Source.newBuilder("js", script, "zrlog-markdown-v" + EDITOR_VERSION + ".min.js").buildLiteral();
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to load bundled marked script", e);
+            throw new IllegalStateException("Unable to load bundled editor Markdown script", e);
         }
     }
 }

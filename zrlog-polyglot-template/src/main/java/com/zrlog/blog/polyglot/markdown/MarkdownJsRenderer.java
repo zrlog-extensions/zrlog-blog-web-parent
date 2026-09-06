@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 public class MarkdownJsRenderer {
 
     public static final String MARKED_VERSION = "16.0.0";
+    public static final String EDITOR_VERSION = "2.1.32";
 
     private static final Logger LOGGER = Logger.getLogger(MarkdownJsRenderer.class.getName());
 
